@@ -57,9 +57,7 @@ class Crawl with ChangeNotifier {
     } catch (e) {
       print("학번 / 비밀번호를 확인하세요");
     }
-
     // print("내가만든 쿠키 : $cookie");
-    // print("내가만든쿠키들 : $cookies");
   }
 
   Future<Map<String, dynamic>> crawlUser() async {
@@ -69,7 +67,7 @@ class Crawl with ChangeNotifier {
       ..options.followRedirects = false
       ..options.validateStatus =
           (status) => status != null && status >= 200 && status < 400;
-    final finalDio = Dio()..interceptors.add(CookieManager(cookieJar));
+    // final finalDio = Dio()..interceptors.add(CookieManager(cookieJar));
 
     await _login();
     if (cookie.length < 10) {
@@ -80,7 +78,7 @@ class Crawl with ChangeNotifier {
       final url3 = 'https://cn.hongik.ac.kr/stud/A/01000/01000.jsp';
 
       await cookieJar.saveFromResponse(Uri.parse(url2), cookies);
-      final directed = await dio.get(url2);
+      // final directed = await dio.get(url2);
       await cookieJar.saveFromResponse(Uri.parse(url1), cookies);
       final redirected = await dio.get(url1);
       final finalresponse = await Future.wait([
@@ -88,7 +86,7 @@ class Crawl with ChangeNotifier {
         dio.get(url3)
       ]);
 
-      // print(finalresponse[1]);
+      print(finalresponse[1]);
       final document = parse(finalresponse[1].toString());
       var content = document.querySelectorAll(
           "#body > div.table1.mato10 > table > tbody > tr > td");
@@ -96,7 +94,7 @@ class Crawl with ChangeNotifier {
       for (var i in content) {
         contents.add(i.text);
       }
-      // print(contents);
+      print(contents);
       studentId = contents[1];
       name = contents[3];
       major = contents[9];
@@ -118,5 +116,12 @@ class Crawl with ChangeNotifier {
         ),
         instanceName: "userInfo");
     return user;
+  }
+
+  Future<void> _logout() async {
+    if (this.cookie == '')
+      throw new CustomException(300, 'Already Logout');
+    else
+      this.cookie = '';
   }
 }

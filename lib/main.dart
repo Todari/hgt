@@ -2,14 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
-
-import 'screens/home.dart';
+import 'screens/menu.dart';
 
 void main() async {
   runApp(MyApp());
 }
 
 class MyApp extends StatefulWidget {
+  @override
   _MyAppState createState() => _MyAppState();
 }
 
@@ -19,7 +19,7 @@ class _MyAppState extends State<MyApp> {
     return CupertinoApp(
       title: '홍개팅',
       // debugShowCheckedModeBanner: false,
-      home: Home(),
+      home: Menu(),
       // home: CupertinoPageScaffold(child: Text("hi")),
     );
   }

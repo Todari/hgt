@@ -9,7 +9,7 @@ import 'package:hgt/object/user.dart';
 import 'package:hgt/services/loginDataControl.dart';
 import '../http/Crawl.dart';
 
-import 'home.dart';
+import 'menu.dart';
 
 class Splash extends StatefulWidget {
   const Splash({Key? key}) : super(key: key);
@@ -94,7 +94,7 @@ class _HomeState extends State<Splash> {
       Navigator.push(
         context,
         CupertinoPageRoute(
-          builder: (context) => Home(),
+          builder: (context) => Menu(),
         ),
       );
 

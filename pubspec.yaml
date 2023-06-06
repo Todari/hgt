@@ -71,6 +71,21 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
+  # assets:
+  fonts:
+    - family: Spoqa
+      fonts : 
+      - asset : fonts/SpoqaHanSansNeo-Thin.otf
+        weight : 100
+      - asset : fonts/SpoqaHanSansNeo-Light.otf
+        weight : 200
+      - asset : fonts/SpoqaHanSansNeo-Medium.otf
+        weight : 300
+      - asset : fonts/SpoqaHanSansNeo-Regular.otf
+        weight : 400
+      - asset : fonts/SpoqaHanSansNeo-Bold.otf
+        weight : 500
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 
