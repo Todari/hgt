@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/Todari/go-mongo-crud-rest-api/model"
-	"github.com/Todari/go-mongo-crud-rest-api/repository"
+	"github.com/Todari/go-mongo-crud/model"
+	"github.com/Todari/go-mongo-crud/repository"
 )
 
 type Server struct {

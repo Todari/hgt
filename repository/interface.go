@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/Todari/go-mongo-crud-rest-api/model"
+	"github.com/Todari/go-mongo-crud/model"
 )
 
 type Repository interface {

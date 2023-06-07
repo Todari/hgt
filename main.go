@@ -8,8 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/Todari/go-mongo-crud-rest-api/http"
-	"github.com/Todari/go-mongo-crud-rest-api/repository"
+	"github.com/Todari/go-mongo-crud/http"
+	"github.com/Todari/go-mongo-crud/repository"
 )
 
 func main() {

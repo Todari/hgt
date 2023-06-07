@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	"github.com/Todari/go-mongo-crud-rest-api/model"
+	"github.com/Todari/go-mongo-crud/model"
 )
 
 var (
