@@ -5,5 +5,5 @@ type User struct {
 	Name      string `json:"name"`
 	StudentId string `json:"studentId"`
 	Major     string `json:"major"`
-	Age       int    `json:"age"`
+	Age       string `json:"age"`
 }
