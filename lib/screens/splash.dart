@@ -95,13 +95,15 @@ class _SplashState extends State<Splash> {
       print("customexception");
     }
     print(userInfo);
-    await http.addUser(userInfo);
     if (userInfo.name != "") {
-      // Navigator.of(context).pushNamedAndRemoveUntil(
-      //   '/menu',
-      //   (route) => true,
-      // );
+      await http.addUser(userInfo);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/menu',
+        (route) => true,
+      );
       _isLogined = true;
+    } else {
+      print("학번 / 비밀번호를 확인하세요");
     }
   }
 
