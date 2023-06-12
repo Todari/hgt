@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	"github.com/Todari/go-mongo-crud/model"
+	"github.com/Todari/hgt-server/model"
 )
 
 func (r repository) GetUser(ctx context.Context, studentId string) (model.User, error) {

@@ -1,7 +1,7 @@
 package http
 
 import (
-	"github.com/Todari/go-mongo-crud/repository"
+	"github.com/Todari/hgt-server/repository"
 )
 
 type Server struct {

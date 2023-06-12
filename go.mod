@@ -1,4 +1,4 @@
-module github.com/Todari/go-mongo-crud
+module github.com/Todari/hgt-server
 
 go 1.19
 

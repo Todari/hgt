@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/Todari/go-mongo-crud/model"
+	"github.com/Todari/hgt-server/model"
 )
 
 type Repository interface {

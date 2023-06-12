@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/Todari/go-mongo-crud/model"
-	"github.com/Todari/go-mongo-crud/repository"
+	"github.com/Todari/hgt-server/model"
+	"github.com/Todari/hgt-server/repository"
 )
 
 func (s Server) GetUser(ctx *gin.Context) {
