@@ -2,7 +2,7 @@ class HgtUser {
   String name;
   String studentId;
   String major;
-  int age;
+  String age;
 
   HgtUser(this.name, this.studentId, this.major, this.age);
   @override

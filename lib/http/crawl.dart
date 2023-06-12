@@ -13,8 +13,7 @@ import '../object/user.dart';
 class Crawl with ChangeNotifier {
   String cookie = '';
   static String id = "", pw = "";
-  static String name = "", studentId = "", major = "";
-  static int age = 0;
+  static String name = "", studentId = "", major = "", age = "";
 
   final List<Cookie> cookies = [];
 
@@ -57,7 +56,7 @@ class Crawl with ChangeNotifier {
     } catch (e) {
       print("학번 / 비밀번호를 확인하세요");
     }
-    // print("내가만든 쿠키 : $cookie");
+    print("내가만든 쿠키 : $cookie");
   }
 
   Future<Map<String, dynamic>> crawlUser() async {
@@ -86,7 +85,7 @@ class Crawl with ChangeNotifier {
         dio.get(url3)
       ]);
 
-      print(finalresponse[1]);
+      // print(finalresponse[1]);
       final document = parse(finalresponse[1].toString());
       var content = document.querySelectorAll(
           "#body > div.table1.mato10 > table > tbody > tr > td");
@@ -94,11 +93,12 @@ class Crawl with ChangeNotifier {
       for (var i in content) {
         contents.add(i.text);
       }
-      print(contents);
+      // print(contents);
       studentId = contents[1];
       name = contents[3];
       major = contents[9];
-      age = 2023 - int.parse(contents[7].toString().trim().substring(0, 4));
+      age = (2023 - int.parse(contents[7].toString().trim().substring(0, 4)))
+          .toString();
       print("학번 : $studentId, 이름 : $name, 만 나이 : $age, 전공 : $major");
     }
     Map<String, dynamic> user = {

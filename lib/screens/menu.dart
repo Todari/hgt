@@ -22,35 +22,22 @@ class _MenuState extends State<Menu> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoApp(
-      home: CupertinoTabScaffold(
-        tabBar: CupertinoTabBar(items: [
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.add)),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.add)),
-          BottomNavigationBarItem(icon: Icon(CupertinoIcons.add)),
-        ]),
-        tabBuilder: (BuildContext context, int index) {
-          return CupertinoTabView(
-            builder: (context) {
-              return CupertinoPageScaffold(
-                child: data[index],
-              );
-            },
-          );
-        },
-      ),
+    return CupertinoTabScaffold(
+      tabBar: CupertinoTabBar(items: [
+        BottomNavigationBarItem(icon: Icon(CupertinoIcons.add)),
+        BottomNavigationBarItem(icon: Icon(CupertinoIcons.add)),
+        BottomNavigationBarItem(icon: Icon(CupertinoIcons.add)),
+      ]),
+      tabBuilder: (BuildContext context, int index) {
+        return CupertinoTabView(
+          builder: (context) {
+            return CupertinoPageScaffold(
+              child: data[index],
+            );
+          },
+        );
+      },
     );
-  }
-
-  Future<void> _logOut() async {
-    var ctrl = new LoginDataCtrl();
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => Splash(),
-      ),
-    );
-    ctrl.removeLoginData();
   }
 }
 // 

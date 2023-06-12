@@ -6,14 +6,17 @@ String font = "Spoqa";
 class HgtText {
   static TextStyle Title = TextStyle(
     fontFamily: font,
-    fontSize: 36,
-    fontWeight: FontWeight.w500,
+    fontSize: 24,
+    // fontWeight: FontWeight.bold,
   );
 
   static TextStyle p = TextStyle(
     fontFamily: font,
-    fontSize: 16,
-    // color: HgtColor.b9,
-    // fontWeight: FontWeight.w500,
+    fontSize: 18,
+  );
+
+  static TextStyle p2 = TextStyle(
+    fontFamily: font,
+    fontSize: 14,
   );
 }
