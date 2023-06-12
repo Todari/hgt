@@ -38,5 +38,5 @@ func main() {
 	}
 
 	// start the router
-	router.Run(":80")
+	router.Run(":8888")
 }
