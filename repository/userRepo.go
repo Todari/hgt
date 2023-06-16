@@ -84,7 +84,7 @@ type user struct {
 	StudentId string             `bson:"studentId,omitempty"`
 	Major     string             `bson:"major,omitempty"`
 	Age       string             `bson:"age,omitempty"`
-	Gender    bool               `bson:"gender,omitempty"`
+	Gender    string             `bson:"gender,omitempty"`
 }
 
 func fromModel(in model.User) user {
