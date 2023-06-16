@@ -11,9 +11,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-        child: SafeArea(
-            child: Padding(
+    return SafeArea(
+        child: Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -29,6 +28,6 @@ class _HomeState extends State<Home> {
           )
         ],
       ),
-    )));
+    ));
   }
 }

@@ -16,11 +16,11 @@ import '../http/Crawl.dart';
 
 import 'menu.dart';
 
-class Splash extends StatefulWidget {
-  _SplashState createState() => _SplashState();
+class Login extends StatefulWidget {
+  _LoginState createState() => _LoginState();
 }
 
-class _SplashState extends State<Splash> {
+class _LoginState extends State<Login> {
   late TextEditingController _idController;
   late TextEditingController _pwController;
   late FocusNode _pwFocusNode;
@@ -36,10 +36,11 @@ class _SplashState extends State<Splash> {
 
   @override
   void initState() {
+    _loginCheck();
     _idController = TextEditingController();
     _pwController = TextEditingController();
     _pwFocusNode = FocusNode();
-    _loginCheck();
+
     super.initState();
   }
 
@@ -57,13 +58,15 @@ class _SplashState extends State<Splash> {
   }
 
   Future<void> _loginCheck() async {
-    print("login check!!!, ${_isLogined}");
+    print("### login check!! ${_isLogined}");
+
     // await ctrl.saveLoginData("b513077", "Suramjam0428");
     var assurance = await ctrl.loadLoginData();
     saved_id = assurance["user_id"] ?? "";
     saved_pw = assurance["user_pw"] ?? "";
+    print("### saved id????? ${saved_id}");
 
-    if (userInfo.name == "") {
+    if (saved_id == "") {
       setState(() {
         _isLogined = false;
       });
@@ -71,10 +74,7 @@ class _SplashState extends State<Splash> {
       setState(() {
         _isLogined = true;
       });
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/menu',
-        (route) => true,
-      );
+      _login(saved_id, saved_pw);
     }
   }
 
@@ -97,9 +97,12 @@ class _SplashState extends State<Splash> {
     print(userInfo);
     if (userInfo.name != "") {
       await http.addUser(userInfo);
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/menu',
-        (route) => true,
+      //@*TODO: DB 정보가 최신화 되어있지 않을때 최신화 시키기
+      Navigator.push(
+        context,
+        CupertinoPageRoute(
+          builder: (context) => Menu(),
+        ),
       );
       _isLogined = true;
     } else {

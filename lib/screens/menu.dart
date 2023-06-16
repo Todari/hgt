@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hgt/screens/splash.dart';
+import 'package:hgt/screens/login.dart';
 import 'dart:async';
 import 'home.dart';
 import 'chat.dart';

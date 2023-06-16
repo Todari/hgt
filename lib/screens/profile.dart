@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hgt/const/boxStyle.dart';
 import 'package:hgt/object/user.dart';
-import 'package:hgt/screens/splash.dart';
+import 'package:hgt/screens/login.dart';
 import 'package:hgt/services/loginDataControl.dart';
 import 'package:provider/provider.dart';
 import '../const/textStyle.dart';
@@ -29,28 +29,26 @@ class _ProfileState extends State<Profile> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              MyInfo(),
-              MyProperty(),
-              CupertinoButton.filled(
-                  child: Text(
-                    "로그아웃",
-                    style: HgtText.p,
-                  ),
-                  onPressed: () {
-                    ctrl.removeLoginData();
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      '/splash',
-                      (route) => true,
-                    );
-                  })
-            ],
-          ),
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            MyInfo(),
+            SizedBox(
+              height: 64,
+            ),
+            // MyProperty(),
+            CupertinoButton.filled(
+                child: Text(
+                  "로그아웃",
+                  style: HgtText.p,
+                ),
+                onPressed: () {
+                  ctrl.removeLoginData();
+                  Navigator.pop(context);
+                })
+          ],
         ),
       ),
     );
@@ -65,6 +63,11 @@ class MyInfo extends StatefulWidget {
 }
 
 class _MyInfoState extends State<MyInfo> {
+  double _kItemExtent = 32.0;
+  List<String> _religions = ["무교", "기독교", "천주교", "불교", "이슬람교", "기타"];
+  int _selectedReligion = 0;
+  var religion = "-";
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -75,134 +78,111 @@ class _MyInfoState extends State<MyInfo> {
           // decoration: HgtBox.test,
           alignment: Alignment.centerLeft,
           child: Text(
-            "C동3층고양이",
+            "내정보",
             style: HgtText.Title,
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8.0,
-          ),
-          child: Container(
-            child: Row(
-              children: [
-                Container(
-                  alignment: Alignment.centerLeft,
-                  // decoration: HgtBox.test,
-                  width: 48,
-                  child: Text(
-                    "이름",
-                    style: HgtText.p,
-                  ),
+        infoItem("이름", GetIt.I<HgtUser>(instanceName: "userInfo").name),
+        infoItem(
+            "학번 / 나이",
+            GetIt.I<HgtUser>(instanceName: "userInfo")
+                    .studentId
+                    .substring(0, 2)
+                    .replaceAll('A', '0')
+                    .replaceAll('B', '1')
+                    .replaceAll('C', '2') +
+                "학번 / 만 " +
+                GetIt.I<HgtUser>(instanceName: "userInfo").age +
+                " 세"),
+        infoItem("전공", GetIt.I<HgtUser>(instanceName: "userInfo").major),
+        infoItem("키", "-키-"),
+        GestureDetector(
+          child: infoItem("종교", religion),
+          onTap: () {
+            _showDialog(
+              CupertinoPicker(
+                magnification: 1.22,
+                squeeze: 1,
+                useMagnifier: true,
+                itemExtent: _kItemExtent,
+                // This sets the initial item.
+                scrollController: FixedExtentScrollController(
+                  initialItem: _selectedReligion,
                 ),
-                SizedBox(
-                  width: 16,
-                ),
-                Expanded(
-                  child: Container(
-                    // decoration: HgtBox.test,
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "이태훈",
-                      style: HgtText.p,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+                // This is called when selected item is changed.
+                onSelectedItemChanged: (int selectedItem) {
+                  setState(() {
+                    _selectedReligion = selectedItem;
+                    religion = _religions[_selectedReligion];
+                  });
+                },
+                children: List<Widget>.generate(_religions.length, (int index) {
+                  return Center(child: Text(_religions[index]));
+                }),
+              ),
+            );
+          },
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8.0,
-          ),
-          child: Container(
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  child: Text(
-                    "나이",
-                    style: HgtText.p,
-                  ),
-                ),
-                SizedBox(
-                  width: 16,
-                ),
-                Expanded(
-                  child: Container(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "27",
-                      style: HgtText.p,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8.0,
-          ),
-          child: Container(
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  child: Text(
-                    "학번",
-                    style: HgtText.p,
-                  ),
-                ),
-                SizedBox(
-                  width: 16,
-                ),
-                Expanded(
-                  child: Container(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "B513077",
-                      style: HgtText.p,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8.0,
-          ),
-          child: Container(
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  child: Text(
-                    "전공",
-                    style: HgtText.p,
-                  ),
-                ),
-                SizedBox(
-                  width: 16,
-                ),
-                Expanded(
-                  child: Container(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "토목공학과",
-                      style: HgtText.p,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        infoItem("흡연여부", "흡연/전자담배/비흡연"),
       ],
+    );
+  }
+
+  Widget infoItem(title, text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 16.0,
+      ),
+      child: Container(
+        decoration: HgtBox.bg,
+        child: Row(
+          children: [
+            Container(
+              alignment: Alignment.centerLeft,
+              // decoration: HgtBox.test,
+              width: 80,
+              child: Text(
+                title,
+                style: HgtText.p,
+              ),
+            ),
+            SizedBox(
+              width: 16,
+            ),
+            Expanded(
+              child: Container(
+                // decoration: HgtBox.test,
+                alignment: Alignment.centerRight,
+                child: Text(
+                  text,
+                  style: HgtText.p,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDialog(Widget child) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) => Container(
+        height: 320,
+        padding: const EdgeInsets.only(top: 6.0),
+        // The Bottom margin is provided to align the popup above the system navigation bar.
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        // Provide a background color for the popup.
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        // Use a SafeArea widget to avoid system overlaps.
+        child: SafeArea(
+          top: false,
+          child: child,
+        ),
+      ),
     );
   }
 }

@@ -5,7 +5,7 @@ import 'package:hgt/const/theme.dart';
 import 'package:hgt/screens/home.dart';
 import './screens/chat.dart';
 import './screens/profile.dart';
-import 'package:hgt/screens/splash.dart';
+import 'package:hgt/screens/login.dart';
 import 'dart:async';
 import 'screens/menu.dart';
 import 'package:hgt/services/loginDataControl.dart';
@@ -39,7 +39,7 @@ class _HgtState extends State<Hgt> {
         '/chat': (context) => Chat(),
         '/profile': (context) => Profile(),
       },
-      home: Splash(),
+      home: Login(),
       // home: Menu(),
       // home: CupertinoPageScaffold(child: Text("hi")),
     );
