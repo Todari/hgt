@@ -27,19 +27,15 @@ func (r repository) GetUser(ctx context.Context, studentId string) (model.User, 
 }
 
 func (r repository) CreateUser(ctx context.Context, user model.User) (model.User, error) {
-	_, err := r.GetUser(ctx, user.StudentId)
-	if err == nil {
-		out, err := r.db.
-			Collection("hgtUser").
-			InsertOne(ctx, fromModel(user))
-		if err != nil {
-			return model.User{}, err
-		}
-		user.ID = out.InsertedID.(primitive.ObjectID).String()
-		return user, nil
-	} else {
-		return user, err
+	out, err := r.db.
+		Collection("hgtUser").
+		InsertOne(ctx, fromModel(user))
+	if err != nil {
+		return model.User{}, err
 	}
+	user.ID = out.InsertedID.(primitive.ObjectID).String()
+	return user, nil
+
 }
 
 func (r repository) UpdateUser(ctx context.Context, user model.User) (model.User, error) {
