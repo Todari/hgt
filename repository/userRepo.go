@@ -27,14 +27,19 @@ func (r repository) GetUser(ctx context.Context, studentId string) (model.User, 
 }
 
 func (r repository) CreateUser(ctx context.Context, user model.User) (model.User, error) {
-	out, err := r.db.
-		Collection("hgtUser").
-		InsertOne(ctx, fromModel(user))
-	if err != nil {
-		return model.User{}, err
+	_, err := r.GetUser(ctx, user.StudentId)
+	if err == nil {
+		out, err := r.db.
+			Collection("hgtUser").
+			InsertOne(ctx, fromModel(user))
+		if err != nil {
+			return model.User{}, err
+		}
+		user.ID = out.InsertedID.(primitive.ObjectID).String()
+		return user, nil
+	} else {
+		return user, err
 	}
-	user.ID = out.InsertedID.(primitive.ObjectID).String()
-	return user, nil
 }
 
 func (r repository) UpdateUser(ctx context.Context, user model.User) (model.User, error) {
@@ -79,6 +84,7 @@ type user struct {
 	StudentId string             `bson:"studentId,omitempty"`
 	Major     string             `bson:"major,omitempty"`
 	Age       string             `bson:"age,omitempty"`
+	Gender    bool               `bson:"gender,omitempty"`
 }
 
 func fromModel(in model.User) user {
@@ -87,6 +93,7 @@ func fromModel(in model.User) user {
 		StudentId: in.StudentId,
 		Major:     in.Major,
 		Age:       in.Age,
+		Gender:    in.Gender,
 	}
 }
 
@@ -97,22 +104,6 @@ func toModel(in user) model.User {
 		StudentId: in.StudentId,
 		Major:     in.Major,
 		Age:       in.Age,
+		Gender:    in.Gender,
 	}
 }
-
-// func fromModel(in model.User) user {
-// 	return user{
-// 		Name:     in.Name,
-// 		Email:    in.Email,
-// 		Password: in.Password,
-// 	}
-// }
-
-// func toModel(in user) model.User {
-// 	return model.User{
-// 		ID:       in.ID.String(),
-// 		Name:     in.Name,
-// 		Email:    in.Email,
-// 		Password: in.Password,
-// 	}
-// }

@@ -6,4 +6,5 @@ type User struct {
 	StudentId string `json:"studentId"`
 	Major     string `json:"major"`
 	Age       string `json:"age"`
+	Gender    bool   `json:"gender"`
 }
