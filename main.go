@@ -35,6 +35,8 @@ func main() {
 		router.POST("/user", server.CreateUser)
 		router.PUT("/user/:studentId", server.UpdateUser)
 		router.DELETE("/user/:studentId", server.DeleteUser)
+
+		router.PUT("/property/:studentId", server.UpdateProperty)
 	}
 
 	// start the router

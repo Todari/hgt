@@ -30,11 +30,12 @@ func (s Server) GetUser(ctx *gin.Context) {
 
 func (s Server) CreateUser(ctx *gin.Context) {
 	var user model.User
+	var property model.Property
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
-	user, err := s.repository.CreateUser(ctx, user)
+	user, property, err := s.repository.CreateUser(ctx, user, property)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, err.Error())
 		return

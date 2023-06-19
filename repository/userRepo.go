@@ -23,18 +23,25 @@ func (r repository) GetUser(ctx context.Context, studentId string) (model.User, 
 		}
 		return model.User{}, err
 	}
-	return toModel(out), nil
+	return toModelUser(out), nil
 }
 
-func (r repository) CreateUser(ctx context.Context, user model.User) (model.User, error) {
-	out, err := r.db.
+func (r repository) CreateUser(ctx context.Context, user model.User, property model.Property) (model.User, model.Property, error) {
+	userOut, err := r.db.
 		Collection("hgtUser").
-		InsertOne(ctx, fromModel(user))
+		InsertOne(ctx, fromModelUser(user))
 	if err != nil {
-		return model.User{}, err
+		return model.User{}, model.Property{}, err
 	}
-	user.ID = out.InsertedID.(primitive.ObjectID).String()
-	return user, nil
+	user.ID = userOut.InsertedID.(primitive.ObjectID).String()
+	property.UserID = user.ID
+
+	propertyOut, err := r.db.Collection("property").InsertOne(ctx, property)
+	if err != nil {
+		return model.User{}, model.Property{}, err
+	}
+	property.ID = propertyOut.InsertedID.(primitive.ObjectID).String()
+	return user, property, nil
 
 }
 
@@ -83,7 +90,7 @@ type user struct {
 	Gender    string             `bson:"gender,omitempty"`
 }
 
-func fromModel(in model.User) user {
+func fromModelUser(in model.User) user {
 	return user{
 		Name:      in.Name,
 		StudentId: in.StudentId,
@@ -93,7 +100,7 @@ func fromModel(in model.User) user {
 	}
 }
 
-func toModel(in user) model.User {
+func toModelUser(in user) model.User {
 	return model.User{
 		ID:        in.ID.String(),
 		Name:      in.Name,
