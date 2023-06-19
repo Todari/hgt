@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Todari/hgt-server/model"
 	"go.mongodb.org/mongo-driver/bson"
@@ -11,13 +12,16 @@ import (
 func (r repository) UpdateProperty(ctx context.Context, studentId string, property model.Property) (model.Property, error) {
 	var result user
 	err := r.db.Collection("hgtUser").FindOne(ctx, bson.M{"studentId": studentId}).Decode(&result)
+	fmt.Println("user", result)
 	if err != nil {
 		return model.Property{}, ErrUserNotFound
 	}
-	in := bson.M{}
+	in := bson.M{"userId": primitive.ObjectID(result.ID), "smoke": property.Smoke, "height": property.Height, "religion": property.Religion, "p": property.P}
+	fmt.Println("in", in)
 	out, err := r.db.
 		Collection("property").
 		UpdateOne(ctx, bson.M{"userId": result.ID}, bson.M{"$set": in})
+	fmt.Println("out", out)
 	if err != nil {
 		return model.Property{}, err
 	}
@@ -37,8 +41,13 @@ type property struct {
 }
 
 func fromModelProperty(in model.Property) property {
+	UserID, err := primitive.ObjectIDFromHex(in.UserID)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// fmt.Println(UserID)
 	return property{
-		// UserID:   in.UserID,
+		UserID:   UserID,
 		Smoke:    in.Smoke,
 		Height:   in.Height,
 		Religion: in.Religion,

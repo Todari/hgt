@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -34,13 +36,16 @@ func (r repository) CreateUser(ctx context.Context, user model.User, property mo
 		return model.User{}, model.Property{}, err
 	}
 	user.ID = userOut.InsertedID.(primitive.ObjectID).String()
-	property.UserID = user.ID
-
-	propertyOut, err := r.db.Collection("property").InsertOne(ctx, property)
+	fmt.Println(user.ID)
+	property.UserID = strings.Split(user.ID, "\"")[1]
+	fmt.Println(property.UserID)
+	propertyOut, err := r.db.Collection("property").InsertOne(ctx, fromModelProperty(property))
+	fmt.Println(propertyOut)
 	if err != nil {
 		return model.User{}, model.Property{}, err
 	}
 	property.ID = propertyOut.InsertedID.(primitive.ObjectID).String()
+
 	return user, property, nil
 
 }
