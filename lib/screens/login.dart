@@ -27,7 +27,7 @@ class _LoginState extends State<Login> {
   // NyanUser userInfo = NyanUser('', '');
   // List<Lecture> classesInfo = [];
   String saved_id = "", saved_pw = "";
-  HgtUser userInfo = HgtUser("", "", "", "");
+  HgtUser userInfo = HgtUser("", "", "", "", "");
 
   var ctrl = LoginDataCtrl();
   bool _isChecked = false;

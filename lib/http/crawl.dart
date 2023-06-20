@@ -13,7 +13,7 @@ import '../object/user.dart';
 class Crawl with ChangeNotifier {
   String cookie = '';
   static String id = "", pw = "";
-  static String name = "", studentId = "", major = "", age = "";
+  static String name = "", studentId = "", major = "", age = "", gender = "";
 
   final List<Cookie> cookies = [];
 
@@ -94,27 +94,29 @@ class Crawl with ChangeNotifier {
         contents.add(i.text);
       }
       // print(contents);
+      !contents.contains("군복무여부") ? gender = "여" : gender = "남";
+      print(gender);
       studentId = contents[1];
       name = contents[3];
       major = contents[9];
-      age = (2023 - int.parse(contents[7].toString().trim().substring(0, 4)))
+      print(contents[7].toString().trim().substring(0, 4));
+      age = (2024 - int.parse(contents[7].toString().trim().substring(0, 4)))
           .toString();
-      print("학번 : $studentId, 이름 : $name, 만 나이 : $age, 전공 : $major");
+      // print(
+      //     "학번 : $studentId, 이름 : $name, 만 나이 : $age, 전공 : $major, 성별 : $gender");
     }
     Map<String, dynamic> user = {
       'name': name,
       'studentId': studentId,
       'major': major,
       'age': age,
+      'gender': gender,
     };
     GetIt.I.registerSingleton<HgtUser>(
-        HgtUser(
-          user["name"],
-          user["studentId"],
-          user["major"],
-          user["age"],
-        ),
+        HgtUser(user["name"], user["studentId"], user["major"], user["age"],
+            user["gender"]),
         instanceName: "userInfo");
+    print(user);
     return user;
   }
 

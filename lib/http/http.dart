@@ -24,6 +24,7 @@ class HgtHttp {
             "studentId": user.studentId,
             "major": user.major,
             "age": user.age,
+            "gender": user.gender
           }));
       print(response.body);
       return response.statusCode;
@@ -37,6 +38,31 @@ class HgtHttp {
     final url = Uri.http(hgtURL, '/user/$id');
     print("sending getUserGet");
     print(id);
+    var response = await http.get(url);
+    print(response.body);
+    return response.statusCode;
+  }
+
+  Future<int> updateProperty(studentId, property) async {
+    final url = Uri.http(hgtURL, '/property/$studentId');
+    var response = await http.put(
+      url,
+      body: jsonEncode(
+        <String, dynamic>{
+          "studentId": studentId,
+          "height": property.height,
+          "smoke": property.smoke,
+          "religion": property.religion,
+          "p": property.p,
+        },
+      ),
+    );
+    print(response.body);
+    return response.statusCode;
+  }
+
+  Future<int> getChatroom(studentId) async {
+    final url = Uri.http(hgtURL, '/chatroom/$studentId');
     var response = await http.get(url);
     print(response.body);
     return response.statusCode;

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hgt/const/boxStyle.dart';
 import 'package:hgt/object/user.dart';
@@ -7,9 +8,9 @@ import 'package:hgt/screens/login.dart';
 import 'package:hgt/services/loginDataControl.dart';
 import 'package:provider/provider.dart';
 import '../const/textStyle.dart';
-import '../object/properties.dart';
+import '../object/property.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import '../widget/multiSelectBottomSheet.dart';
+import '../http/http.dart';
 
 class Profile extends StatefulWidget {
   _ProfileState createState() => _ProfileState();
@@ -31,23 +32,23 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
             MyInfo(),
             SizedBox(
               height: 64,
-            ),
-            // MyProperty(),
+            ), // MyProperty(),
             CupertinoButton.filled(
-                child: Text(
-                  "로그아웃",
-                  style: HgtText.p,
-                ),
-                onPressed: () {
-                  ctrl.removeLoginData();
-                  Navigator.pop(context);
-                })
+              child: Text(
+                "로그아웃",
+                style: HgtText.p,
+              ),
+              onPressed: () {
+                ctrl.removeLoginData();
+                Navigator.pop(context);
+              },
+            )
           ],
         ),
       ),
@@ -56,17 +57,35 @@ class _ProfileState extends State<Profile> {
 }
 
 class MyInfo extends StatefulWidget {
-  const MyInfo({super.key});
-
   @override
   State<MyInfo> createState() => _MyInfoState();
 }
 
 class _MyInfoState extends State<MyInfo> {
+  late TextEditingController _heightController;
   double _kItemExtent = 32.0;
   List<String> _religions = ["무교", "기독교", "천주교", "불교", "이슬람교", "기타"];
   int _selectedReligion = 0;
   var religion = "-";
+  List<String> _smokes = ["흡연", "술마실 때만", "전자담배", "비흡연"];
+  int _selectedSmoke = 0;
+  var smoke = "-";
+  var user = GetIt.I<HgtUser>(instanceName: "userInfo");
+  var height = "170";
+  List<String> p = [];
+  var http = HgtHttp();
+
+  @override
+  void initState() {
+    _heightController = TextEditingController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _heightController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,20 +101,77 @@ class _MyInfoState extends State<MyInfo> {
             style: HgtText.Title,
           ),
         ),
-        infoItem("이름", GetIt.I<HgtUser>(instanceName: "userInfo").name),
+        infoItem("이름", user.name),
         infoItem(
             "학번 / 나이",
-            GetIt.I<HgtUser>(instanceName: "userInfo")
-                    .studentId
+            user.studentId
                     .substring(0, 2)
                     .replaceAll('A', '0')
                     .replaceAll('B', '1')
                     .replaceAll('C', '2') +
-                "학번 / 만 " +
-                GetIt.I<HgtUser>(instanceName: "userInfo").age +
+                "학번 / " +
+                user.age +
                 " 세"),
-        infoItem("전공", GetIt.I<HgtUser>(instanceName: "userInfo").major),
-        infoItem("키", "-키-"),
+        infoItem("단과대", user.major.split(' ')[0]),
+        infoItem(
+            "전공",
+            user.major.substring(
+              user.major.split(' ')[0].length + 1,
+            )),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 16.0,
+          ),
+          child: Container(
+            decoration: HgtBox.bg,
+            child: Row(
+              children: [
+                Container(
+                  alignment: Alignment.centerLeft,
+                  // decoration: HgtBox.test,
+                  width: 80,
+                  child: Text(
+                    "키",
+                    style: HgtText.p,
+                  ),
+                ),
+                SizedBox(
+                  width: 16,
+                ),
+                Expanded(
+                  child: Container(
+                    // decoration: HgtBox.test,
+                    alignment: Alignment.centerRight,
+                    child: CupertinoTextField.borderless(
+                      maxLength: 3,
+                      controller: _heightController,
+                      style: HgtText.p,
+                      textAlign: TextAlign.right,
+                      onChanged: (value) {
+                        if (int.parse(value) > 230) {
+                          setState(() {
+                            value = "230";
+                            _heightController.text = value;
+                          });
+                        }
+                      },
+                      onSubmitted: (value) {
+                        if (int.parse(value) < 130) {
+                          setState(() {
+                            value = "130";
+                            _heightController.text = value;
+                          });
+                        }
+                        height = _heightController.text;
+                      },
+                      suffix: Text("cm"),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
         GestureDetector(
           child: infoItem("종교", religion),
           onTap: () {
@@ -123,7 +199,43 @@ class _MyInfoState extends State<MyInfo> {
             );
           },
         ),
-        infoItem("흡연여부", "흡연/전자담배/비흡연"),
+        GestureDetector(
+          child: infoItem("흡연여부", smoke),
+          onTap: () {
+            _showDialog(
+              CupertinoPicker(
+                magnification: 1.22,
+                squeeze: 1,
+                useMagnifier: true,
+                itemExtent: _kItemExtent,
+                // This sets the initial item.
+                scrollController: FixedExtentScrollController(
+                  initialItem: _selectedSmoke,
+                ),
+                // This is called when selected item is changed.
+                onSelectedItemChanged: (int selectedItem) {
+                  setState(() {
+                    _selectedSmoke = selectedItem;
+                    smoke = _smokes[_selectedSmoke];
+                  });
+                },
+                children: List<Widget>.generate(_smokes.length, (int index) {
+                  return Center(child: Text(_smokes[index]));
+                }),
+              ),
+            );
+          },
+        ),
+        CupertinoButton.filled(
+          child: Text(
+            "변경완료",
+            style: HgtText.p,
+          ),
+          onPressed: () async {
+            final Property property = Property(height, smoke, religion, p);
+            await http.updateProperty(user.studentId, property);
+          },
+        ),
       ],
     );
   }
@@ -156,6 +268,7 @@ class _MyInfoState extends State<MyInfo> {
                 child: Text(
                   text,
                   style: HgtText.p,
+                  textAlign: TextAlign.right,
                 ),
               ),
             ),
@@ -184,41 +297,5 @@ class _MyInfoState extends State<MyInfo> {
         ),
       ),
     );
-  }
-}
-
-class MyProperty extends StatefulWidget {
-  const MyProperty({super.key});
-
-  @override
-  State<MyProperty> createState() => _MyPropertyState();
-}
-
-class _MyPropertyState extends State<MyProperty> {
-  final _selectedMyProperties = [Properties(0, "성실함"), Properties(1, "근자감")];
-
-  @override
-  Widget build(BuildContext context) {
-    // return Column(children: <Widget>[
-    //   ListView.builder(
-    //       shrinkWrap: true,
-    //       itemCount: _selectedMyProperties.length,
-    //       // scrollDirection: Axis.horizontal,
-    //       itemBuilder: ((context, index) {
-    //         Properties item =
-    //             _selectedMyProperties[index % _selectedMyProperties.length];
-    //         return propertyBox(item.property);
-    //       })),
-    // ]);
-    return propertyBox(_selectedMyProperties[0].property);
-  }
-
-  Widget propertyBox(e) {
-    return Container(
-        decoration: HgtBox.test,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-          child: Text(e),
-        ));
   }
 }
