@@ -21,7 +21,6 @@ func (r repository) UpdateProperty(ctx context.Context, studentId string, proper
 	out, err := r.db.
 		Collection("property").
 		UpdateOne(ctx, bson.M{"userId": result.ID}, bson.M{"$set": in})
-	fmt.Println("out", out)
 	if err != nil {
 		return model.Property{}, err
 	}
