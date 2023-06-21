@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "792861237507",
+    "project_id": "hgtt-e0a99",
+    "storage_bucket": "hgtt-e0a99.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:792861237507:android:9587d2f117ec7b7ebc8936",
+        "android_client_info": {
+          "package_name": "com.example.hgt"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "792861237507-kom1fa2sjuv2sp5rj68gdnggvjcjfaht.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKCSOYALuQv2ll2sNejm2Z5hKvN3aEM2Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "792861237507-kom1fa2sjuv2sp5rj68gdnggvjcjfaht.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "792861237507-53uejsijutua0kpasqf9cho4bjqvh26e.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.hgt.RunnerTests"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

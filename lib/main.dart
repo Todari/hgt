@@ -14,8 +14,15 @@ import 'package:hgt/object/user.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hgt/http/customException.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  print("가보자고");
   runApp(
     Hgt(),
   );
