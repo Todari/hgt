@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:hgt/screens/login.dart';
 import 'dart:async';
 import 'home.dart';
-import 'chat.dart';
+import 'chatting.dart';
 import 'profile.dart';
 
 import 'package:hgt/services/loginDataControl.dart';
@@ -16,7 +16,7 @@ class Menu extends StatefulWidget {
 class _MenuState extends State<Menu> {
   List<Widget> data = [
     Home(),
-    Chat(),
+    Chatting(),
     Profile(),
   ];
 

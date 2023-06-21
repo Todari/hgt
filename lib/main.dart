@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hgt/const/theme.dart';
 import 'package:hgt/screens/home.dart';
-import './screens/chat.dart';
+import './screens/chatting.dart';
 import './screens/profile.dart';
 import 'package:hgt/screens/login.dart';
 import 'dart:async';
@@ -36,7 +36,7 @@ class _HgtState extends State<Hgt> {
       routes: {
         '/menu': (context) => Menu(),
         '/home': (context) => Home(),
-        '/chat': (context) => Chat(),
+        '/chat': (context) => Chatting(),
         '/profile': (context) => Profile(),
       },
       home: Login(),

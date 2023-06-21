@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:hgt/object/chat.dart';
 import 'package:hgt/object/user.dart';
+import 'package:hgt/screens/chatting.dart';
 import 'package:http/http.dart' as http;
 
 class HgtHttp {
@@ -34,13 +36,14 @@ class HgtHttp {
     }
   }
 
-  Future<int> getUser(id) async {
+  Future<String> getUserID(id) async {
     final url = Uri.http(hgtURL, '/user/$id');
     print("sending getUserGet");
     print(id);
     var response = await http.get(url);
-    print(response.body);
-    return response.statusCode;
+    var result = jsonDecode(response.body);
+    print(result["user"]["id"]);
+    return result["user"]["id"];
   }
 
   Future<int> updateProperty(studentId, property) async {
@@ -66,6 +69,19 @@ class HgtHttp {
     var response = await http.get(url);
     print(response.body);
     return response.statusCode;
+  }
+
+  Future<List<Chat>> getChats(studentId) async {
+    final url = Uri.http(hgtURL, '/chatroom/chats/$studentId');
+    final List<Chat> results = [];
+    var response = await http.get(url);
+    var result = jsonDecode(response.body);
+    print(result["chats"]);
+    for (int i = 0; i < result["chats"].length; i++) {
+      var chat = Chat.fromJson(result["chats"][i]);
+      results.add(chat);
+    }
+    return results;
   }
 
   // yumDelete() async {
