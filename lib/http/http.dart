@@ -64,11 +64,12 @@ class HgtHttp {
     return response.statusCode;
   }
 
-  Future<int> getChatroom(studentId) async {
+  Future<String> getChatroomID(studentId) async {
     final url = Uri.http(hgtURL, '/chatroom/$studentId');
     var response = await http.get(url);
-    print(response.body);
-    return response.statusCode;
+    var result = jsonDecode(response.body);
+    print(result["chatroom"]["id"]);
+    return result["chatroom"]["id"];
   }
 
   Future<List<Chat>> getChats(studentId) async {

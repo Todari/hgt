@@ -1,3 +1,12 @@
+class Chatroom {
+  List<String> users;
+
+  Chatroom(this.users);
+
+  Chatroom.fromJson(Map<String, List<String>> json) : users = json["users"]!;
+  Map<String, List<String>> toJson() => {"users": users};
+}
+
 class Chat {
   String chatroomId;
   String createdAt;

@@ -104,7 +104,6 @@ class _LoginState extends State<Login> {
           builder: (context) => Menu(),
         ),
       );
-      _isLogined = true;
     } else {
       print("학번 / 비밀번호를 확인하세요");
     }
