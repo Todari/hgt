@@ -71,12 +71,16 @@ class _MyInfoState extends State<MyInfo> {
   int _selectedSmoke = 0;
   var smoke = "-";
   var user = GetIt.I<HgtUser>(instanceName: "userInfo");
-  var height = "170";
+
   List<String> p = [];
   var http = HgtHttp();
 
+  Property userProperty = Property("", "", "", []);
+  var height = userProperty.height;
+
   @override
   void initState() {
+    _getProperty(user.studentId);
     _heightController = TextEditingController();
     super.initState();
   }
@@ -173,7 +177,7 @@ class _MyInfoState extends State<MyInfo> {
           ),
         ),
         GestureDetector(
-          child: infoItem("종교", religion),
+          child: infoItem("종교", userProperty.religion),
           onTap: () {
             _showDialog(
               CupertinoPicker(
@@ -200,7 +204,7 @@ class _MyInfoState extends State<MyInfo> {
           },
         ),
         GestureDetector(
-          child: infoItem("흡연여부", smoke),
+          child: infoItem("흡연여부", userProperty.smoke),
           onTap: () {
             _showDialog(
               CupertinoPicker(
@@ -297,5 +301,13 @@ class _MyInfoState extends State<MyInfo> {
         ),
       ),
     );
+  }
+
+  Future<void> _getProperty(studentId) async {
+    var property = await http.getProperty(studentId);
+    print(property);
+    setState(() {
+      userProperty = property;
+    });
   }
 }

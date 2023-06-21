@@ -15,7 +15,7 @@ class Chat {
 
   Chat(this.chatroomId, this.createdAt, this.sender, this.content);
 
-  Chat.fromJson(Map<String, dynamic> json)
+  Chat.fromJson(Map<String, String> json)
       : chatroomId = json["chatroomId"]!,
         createdAt = json["createdAt"]!,
         sender = json["sender"]!,

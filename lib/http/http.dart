@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:hgt/object/chat.dart';
+import 'package:hgt/object/property.dart';
 import 'package:hgt/object/user.dart';
 import 'package:hgt/screens/chatting.dart';
 import 'package:http/http.dart' as http;
@@ -44,6 +45,16 @@ class HgtHttp {
     var result = jsonDecode(response.body);
     print(result["user"]["id"]);
     return result["user"]["id"];
+  }
+
+  Future<Property> getProperty(studentId) async {
+    final url = Uri.http(hgtURL, '/property/$studentId');
+    var response = await http.get(url);
+    var result = jsonDecode(response.body);
+    final Property results;
+    print(result["property"]);
+    results = Property.fromJson(result["property"]);
+    return results;
   }
 
   Future<int> updateProperty(studentId, property) async {

@@ -75,22 +75,28 @@ class _ChattingState extends State<Chatting> {
                 },
               ),
               Container(
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: CupertinoTextField(
-                        onSubmitted: _handleSubmit,
-                        placeholder: "Enter a message...",
-                        controller: _chatController,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24.0, 8, 24, 8),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: CupertinoTextField(
+                          onSubmitted: _handleSubmit,
+                          placeholder: "Enter a message...",
+                          controller: _chatController,
+                        ),
                       ),
-                    ),
-                    SendButton(
-                      text: "Send",
-                      callback: () {
-                        _handleSubmit(_chatController.text);
-                      },
-                    )
-                  ],
+                      SizedBox(
+                        width: 16,
+                      ),
+                      SendButton(
+                        text: "Send",
+                        callback: () {
+                          _handleSubmit(_chatController.text);
+                        },
+                      )
+                    ],
+                  ),
                 ),
               )
             ],
@@ -98,88 +104,18 @@ class _ChattingState extends State<Chatting> {
         ],
       ),
     );
-
-    // @override
-    // Widget build(BuildContext context) {
-    //   return SafeArea(
-    //     child: Stack(
-    //       children: [
-    //         Column(
-    //           mainAxisAlignment: MainAxisAlignment.center,
-    //           children: <Widget>[
-    //             Expanded(
-    //               child: ListView.builder(
-    //                 shrinkWrap: true,
-    //                 itemCount: chatList.length,
-    //                 itemBuilder: (context, index) {
-    //                   Chat chat = chatList[index % chatList.length];
-    //                   String createdAt = chat.createdAt;
-    //                   String sender = chat.sender;
-    //                   String content = chat.content;
-    //                   if (sender == userID) {
-    //                     return Padding(
-    //                       padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-    //                       child: Container(
-    //                         // height: 48,
-    //                         width: double.infinity,
-    //                         alignment: Alignment.centerRight,
-    //                         child: Container(
-    //                           constraints: BoxConstraints(
-    //                             maxWidth: 280,
-    //                           ),
-    //                           decoration: HgtBox.test,
-    //                           child: Padding(
-    //                             padding: const EdgeInsets.all(12.0),
-    //                             child: Text(
-    //                               content,
-    //                               style: HgtText.p,
-    //                             ),
-    //                           ),
-    //                         ),
-    //                       ),
-    //                     );
-    //                   } else {
-    //                     return Container(
-    //                       // height: 48,
-    //                       width: double.infinity,
-    //                       alignment: Alignment.centerLeft,
-    //                       child: Padding(
-    //                         padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-    //                         child: Container(
-    //                           constraints: BoxConstraints(
-    //                             maxWidth: 280,
-    //                           ),
-    //                           decoration: HgtBox.test,
-    //                           child: Padding(
-    //                             padding: const EdgeInsets.all(12.0),
-    //                             child: Text(
-    //                               content,
-    //                               style: HgtText.p,
-    //                             ),
-    //                           ),
-    //                         ),
-    //                       ),
-    //                     );
-    //                   }
-    //                 },
-    //               ),
-    //             )
-    //           ],
-    //         ),
-    //       ],
-    //     ),
-    //   );
   }
 
   void _handleSubmit(String text) {
+    if (_chatController.text.trim() != "") {
+      _chatCollection.add({
+        'chatroomId': chatroomID,
+        'content': text,
+        'sender': userID,
+        'createdAt': DateTime.now().toUtc().millisecondsSinceEpoch,
+      });
+    }
     _chatController.clear();
-
-    _chatCollection.add({
-      'chatroomId': chatroomID,
-      'content': text,
-      'sender': userID,
-      'createdAt': DateTime.now().toUtc().millisecondsSinceEpoch,
-    });
   }
 
   Future<void> _getChatroomID(String studentId) async {
@@ -191,7 +127,7 @@ class _ChattingState extends State<Chatting> {
   }
 
   Future<void> _getUserID(studentId) async {
-    var id = await http.getUserID(user.studentId);
+    var id = await http.getUserID(studentId);
     var splitId = id.split("\"")[1];
     setState(() {
       userID = id;
@@ -255,9 +191,15 @@ class SendButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoButton.filled(
-      onPressed: callback,
-      child: Text(text),
+    return Container(
+      width: 80,
+      height: 36,
+      child: CupertinoButton.filled(
+        minSize: 0,
+        padding: EdgeInsets.all(0),
+        onPressed: callback,
+        child: Text(text),
+      ),
     );
   }
 }
