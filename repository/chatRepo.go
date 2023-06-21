@@ -14,15 +14,15 @@ import (
 )
 
 func (r repository) GetChatroom(ctx context.Context, studentId string) (model.Chatroom, error) {
-	var result user
-	err := r.db.Collection("hgtUser").FindOne(ctx, bson.M{"studentId": studentId}).Decode(&result)
+	var user user
+	err := r.db.Collection("hgtUser").FindOne(ctx, bson.M{"studentId": studentId}).Decode(&user)
 	if err != nil {
 		return model.Chatroom{}, ErrUserNotFound
 	}
 	var out chatroom
 	err2 := r.db.
 		Collection("chatroom").
-		FindOne(ctx, bson.M{"users": result.ID}).
+		FindOne(ctx, bson.M{"users": user.ID}).
 		Decode(&out)
 	if err2 != nil {
 		if errors.Is(err2, mongo.ErrNoDocuments) {

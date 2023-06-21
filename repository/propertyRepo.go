@@ -2,12 +2,36 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/Todari/hgt-server/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
+
+func (r repository) GetProperty(ctx context.Context, studentId string) (model.Property, error) {
+	var user user
+	err := r.db.Collection("hgtUser").FindOne(ctx, bson.M{"studentId": studentId}).Decode(&user)
+	if err != nil {
+		return model.Property{}, ErrUserNotFound
+	}
+	var out property
+	err2 := r.db.
+		Collection("property").
+		FindOne(ctx, bson.M{"userId": user.ID}).
+		Decode(&out)
+	fmt.Println(out)
+	if err2 != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return model.Property{}, ErrPropertyNotFound
+		}
+		return model.Property{}, err
+	}
+	return toModelProperty(out), nil
+}
 
 func (r repository) UpdateProperty(ctx context.Context, studentId string, property model.Property) (model.Property, error) {
 	var result user
@@ -40,7 +64,7 @@ type property struct {
 }
 
 func fromModelProperty(in model.Property) property {
-	UserID, err := primitive.ObjectIDFromHex(in.UserID)
+	UserID, err := primitive.ObjectIDFromHex(strings.Split(in.UserID, "\"")[1])
 	if err != nil {
 		fmt.Println(err)
 	}

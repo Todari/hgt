@@ -13,6 +13,7 @@ type Repository interface {
 	DeleteUser(ctx context.Context, studentId string) error
 
 	UpdateProperty(ctx context.Context, studentId string, in model.Property) (model.Property, error)
+	GetProperty(ctx context.Context, studentId string) (model.Property, error)
 
 	GetChatroom(ctx context.Context, studentId string) (model.Chatroom, error)
 	GetChatsInChatroom(ctx context.Context, chatroom model.Chatroom) ([]model.Chat, error)

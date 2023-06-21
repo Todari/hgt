@@ -36,6 +36,7 @@ func main() {
 		router.PUT("/user/:studentId", server.UpdateUser)
 		router.DELETE("/user/:studentId", server.DeleteUser)
 
+		router.GET("/property/:studentId", server.GetProperty)
 		router.PUT("/property/:studentId", server.UpdateProperty)
 
 		router.GET("/chatroom/:studentId", server.GetChatroom)

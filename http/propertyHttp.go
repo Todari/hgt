@@ -9,6 +9,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func (s Server) GetProperty(ctx *gin.Context) {
+	studentId := ctx.Param("studentId")
+	if studentId == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid argument studentId"})
+		return
+	}
+	property, err := s.repository.GetProperty(ctx, studentId)
+	if err != nil {
+		if errors.Is(err, repository.ErrUserNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"property": property})
+}
+
 func (s Server) UpdateProperty(ctx *gin.Context) {
 	studentId := ctx.Param("studentId")
 	var property model.Property
