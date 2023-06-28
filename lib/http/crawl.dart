@@ -36,7 +36,7 @@ class Crawl with ChangeNotifier {
       'Refer': 'https://cn.hongik.ac.kr',
     };
 
-    final url = 'https://ap.hongik.ac.kr/login/LoginExec3.php';
+    const url = 'https://ap.hongik.ac.kr/login/LoginExec3.php';
     final response = await _getResponse("POST", url, headers, body);
     final rBody = await response.stream.bytesToString();
     int index = rBody.indexOf('SetCookie');

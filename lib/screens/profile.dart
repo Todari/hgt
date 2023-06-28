@@ -11,6 +11,7 @@ import '../const/textStyle.dart';
 import '../object/property.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../http/http.dart';
+import 'package:flutter_multi_select_items/flutter_multi_select_items.dart';
 
 class Profile extends StatefulWidget {
   _ProfileState createState() => _ProfileState();
@@ -66,22 +67,29 @@ class _MyInfoState extends State<MyInfo> {
   double _kItemExtent = 32.0;
   List<String> _religions = ["무교", "기독교", "천주교", "불교", "이슬람교", "기타"];
   int _selectedReligion = 0;
-  var religion = "-";
   List<String> _smokes = ["흡연", "술마실 때만", "전자담배", "비흡연"];
   int _selectedSmoke = 0;
-  var smoke = "-";
   var user = GetIt.I<HgtUser>(instanceName: "userInfo");
 
-  List<String> p = [];
+  List<String> p = [
+    "열정맨",
+    "지능캐",
+    "핫바디",
+    "너드미",
+    "과탑",
+    "인싸",
+    "존잘존예",
+    "훈남훈녀",
+    "취미부자"
+  ];
   var http = HgtHttp();
 
   Property userProperty = Property("", "", "", []);
-  var height = userProperty.height;
 
   @override
   void initState() {
     _getProperty(user.studentId);
-    _heightController = TextEditingController();
+    _heightController = TextEditingController(text: userProperty.height);
     super.initState();
   }
 
@@ -158,6 +166,9 @@ class _MyInfoState extends State<MyInfo> {
                             _heightController.text = value;
                           });
                         }
+                        setState(() {
+                          userProperty.height = _heightController.text;
+                        });
                       },
                       onSubmitted: (value) {
                         if (int.parse(value) < 130) {
@@ -166,7 +177,9 @@ class _MyInfoState extends State<MyInfo> {
                             _heightController.text = value;
                           });
                         }
-                        height = _heightController.text;
+                        setState(() {
+                          userProperty.height = _heightController.text;
+                        });
                       },
                       suffix: Text("cm"),
                     ),
@@ -193,7 +206,7 @@ class _MyInfoState extends State<MyInfo> {
                 onSelectedItemChanged: (int selectedItem) {
                   setState(() {
                     _selectedReligion = selectedItem;
-                    religion = _religions[_selectedReligion];
+                    userProperty.religion = _religions[_selectedReligion];
                   });
                 },
                 children: List<Widget>.generate(_religions.length, (int index) {
@@ -220,7 +233,7 @@ class _MyInfoState extends State<MyInfo> {
                 onSelectedItemChanged: (int selectedItem) {
                   setState(() {
                     _selectedSmoke = selectedItem;
-                    smoke = _smokes[_selectedSmoke];
+                    userProperty.smoke = _smokes[_selectedSmoke];
                   });
                 },
                 children: List<Widget>.generate(_smokes.length, (int index) {
@@ -230,14 +243,14 @@ class _MyInfoState extends State<MyInfo> {
             );
           },
         ),
+        multiSelector(p),
         CupertinoButton.filled(
           child: Text(
             "변경완료",
             style: HgtText.p,
           ),
           onPressed: () async {
-            final Property property = Property(height, smoke, religion, p);
-            await http.updateProperty(user.studentId, property);
+            await http.updateProperty(user.studentId, userProperty);
           },
         ),
       ],
@@ -308,6 +321,20 @@ class _MyInfoState extends State<MyInfo> {
     print(property);
     setState(() {
       userProperty = property;
+      _heightController.text = property.height;
     });
+  }
+
+  Widget multiSelector(list) {
+    return MultiSelectContainer(items: [
+      MultiSelectCard(
+        value: list[0],
+        label: list[0],
+      ),
+      MultiSelectCard(
+        value: list[1],
+        label: list[1],
+      )
+    ], onChange: (allSelectedItems, selectedItem) {});
   }
 }
