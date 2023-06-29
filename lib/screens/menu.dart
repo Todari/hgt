@@ -31,9 +31,7 @@ class _MenuState extends State<Menu> {
       tabBuilder: (BuildContext context, int index) {
         return CupertinoTabView(
           builder: (context) {
-            return CupertinoPageScaffold(
-              child: data[index],
-            );
+            return data[index];
           },
         );
       },

@@ -1,14 +1,15 @@
 import 'package:flutter/cupertino.dart';
+import 'package:hgt/const/colorStyle.dart';
 
 class HgtTheme {
-  static const light = CupertinoThemeData(
+  static final light = CupertinoThemeData(
     brightness: Brightness.light,
-    primaryColor: CupertinoColors.activeOrange,
+    primaryColor: HgtColor.p,
     // scaffoldBackgroundColor: CupertinoColors.activeGreen
     // textTheme: creator CupertinoTextThemeData()
   );
-  static const dark = CupertinoThemeData(
+  static final dark = CupertinoThemeData(
     brightness: Brightness.dark,
-    primaryColor: CupertinoColors.activeOrange,
+    primaryColor: HgtColor.p,
   );
 }

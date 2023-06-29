@@ -12,6 +12,7 @@ import '../object/property.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../http/http.dart';
 import 'package:flutter_multi_select_items/flutter_multi_select_items.dart';
+import 'package:cupertino_range_slider_improved/cupertino_range_slider.dart';
 
 class Profile extends StatefulWidget {
   _ProfileState createState() => _ProfileState();
@@ -20,37 +21,43 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   List<String> selectedP = [];
   final ctrl = LoginDataCtrl();
+  late ScrollController _scrollController;
   // HgtUser hgtUser = HgtUser("", "", "", 0);
 
   @override
   void initState() {
-    // TODO: implement initState
+    _scrollController = ScrollController();
     super.initState();
     // HgtUser hgtUser = GetIt.I<HgtUser>(instanceName: "userInfo");
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            MyInfo(),
-            SizedBox(
-              height: 64,
-            ), // MyProperty(),
-            CupertinoButton.filled(
-              child: Text(
-                "로그아웃",
-                style: HgtText.p,
-              ),
-              onPressed: () {
-                ctrl.removeLoginData();
-                Navigator.pop(context);
-              },
-            )
-          ],
+    return CupertinoPageScaffold(
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: ListView(
+            children: [
+              MyInfo(), // MyProperty(),
+              CupertinoButton.filled(
+                child: Text(
+                  "로그아웃",
+                  style: HgtText.p,
+                ),
+                onPressed: () {
+                  ctrl.removeLoginData();
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -72,6 +79,17 @@ class _MyInfoState extends State<MyInfo> {
   var user = GetIt.I<HgtUser>(instanceName: "userInfo");
 
   List<String> p = [
+    "열정맨",
+    "지능캐",
+    "핫바디",
+    "너드미",
+    "과탑",
+    "인싸",
+    "존잘존예",
+    "훈남훈녀",
+    "취미부자"
+  ];
+  List<String> hobby = [
     "열정맨",
     "지능캐",
     "핫바디",
@@ -130,63 +148,61 @@ class _MyInfoState extends State<MyInfo> {
             user.major.substring(
               user.major.split(' ')[0].length + 1,
             )),
-        Padding(
+        Container(
           padding: const EdgeInsets.symmetric(
             vertical: 16.0,
           ),
-          child: Container(
-            decoration: HgtBox.bg,
-            child: Row(
-              children: [
-                Container(
-                  alignment: Alignment.centerLeft,
+          decoration: HgtBox.bg,
+          child: Row(
+            children: [
+              Container(
+                alignment: Alignment.centerLeft,
+                // decoration: HgtBox.test,
+                width: 80,
+                child: Text(
+                  "키",
+                  style: HgtText.p,
+                ),
+              ),
+              SizedBox(
+                width: 16,
+              ),
+              Expanded(
+                child: Container(
                   // decoration: HgtBox.test,
-                  width: 80,
-                  child: Text(
-                    "키",
+                  alignment: Alignment.centerRight,
+                  child: CupertinoTextField.borderless(
+                    maxLength: 3,
+                    controller: _heightController,
                     style: HgtText.p,
+                    textAlign: TextAlign.right,
+                    onChanged: (value) {
+                      if (int.parse(value) > 230) {
+                        setState(() {
+                          value = "230";
+                          _heightController.text = value;
+                        });
+                      }
+                      setState(() {
+                        userProperty.height = _heightController.text;
+                      });
+                    },
+                    onSubmitted: (value) {
+                      if (int.parse(value) < 130) {
+                        setState(() {
+                          value = "130";
+                          _heightController.text = value;
+                        });
+                      }
+                      setState(() {
+                        userProperty.height = _heightController.text;
+                      });
+                    },
+                    suffix: Text("cm"),
                   ),
                 ),
-                SizedBox(
-                  width: 16,
-                ),
-                Expanded(
-                  child: Container(
-                    // decoration: HgtBox.test,
-                    alignment: Alignment.centerRight,
-                    child: CupertinoTextField.borderless(
-                      maxLength: 3,
-                      controller: _heightController,
-                      style: HgtText.p,
-                      textAlign: TextAlign.right,
-                      onChanged: (value) {
-                        if (int.parse(value) > 230) {
-                          setState(() {
-                            value = "230";
-                            _heightController.text = value;
-                          });
-                        }
-                        setState(() {
-                          userProperty.height = _heightController.text;
-                        });
-                      },
-                      onSubmitted: (value) {
-                        if (int.parse(value) < 130) {
-                          setState(() {
-                            value = "130";
-                            _heightController.text = value;
-                          });
-                        }
-                        setState(() {
-                          userProperty.height = _heightController.text;
-                        });
-                      },
-                      suffix: Text("cm"),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         GestureDetector(
@@ -244,6 +260,8 @@ class _MyInfoState extends State<MyInfo> {
           },
         ),
         multiSelector(p),
+        multiSelector(hobby),
+        rangeSelector("", 130.0, 230.0, 130.0, 230.0),
         CupertinoButton.filled(
           child: Text(
             "변경완료",
@@ -326,15 +344,55 @@ class _MyInfoState extends State<MyInfo> {
   }
 
   Widget multiSelector(list) {
-    return MultiSelectContainer(items: [
-      MultiSelectCard(
-        value: list[0],
-        label: list[0],
+    return Container(
+      padding: EdgeInsets.symmetric(
+        vertical: 16,
       ),
-      MultiSelectCard(
-        value: list[1],
-        label: list[1],
-      )
-    ], onChange: (allSelectedItems, selectedItem) {});
+      width: double.infinity,
+      // decoration: HgtBox.test,
+      child: MultiSelectContainer(
+          itemsPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+          maxSelectableCount: 5,
+          itemsDecoration: MultiSelectDecorations(
+            decoration: HgtBox.chip,
+            selectedDecoration: HgtBox.chipSelected,
+          ),
+          textStyles: MultiSelectTextStyles(
+            textStyle: HgtText.p2b8,
+            selectedTextStyle: HgtText.p2w,
+          ),
+          items: [
+            for (var i in list)
+              MultiSelectCard(
+                // textStyles: MultiSelectItemTextStyles(
+                //   textStyle: HgtText.p,
+                //   selectedTextStyle: HgtText.p,
+                // ),
+                value: i,
+                label: i,
+                // decorations:
+                // MultiSelectItemDecorations(decoration: HgtBox.test),
+              )
+          ],
+          onChange: (allSelectedItems, selectedItem) {
+            print("allSelectedItems : $allSelectedItems");
+            print("selectedItem : $selectedItem");
+          }),
+    );
+  }
+
+  Widget rangeSelector(title, minV, maxV, min, max) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 16),
+      width: double.infinity,
+      child: CupertinoRangeSlider(
+        minValue: minV,
+        maxValue: maxV,
+        min: min,
+        max: max,
+        onMinChanged: (minVal) {},
+        onMaxChanged: (maxVal) {},
+      ),
+    );
   }
 }

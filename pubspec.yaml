@@ -50,6 +50,7 @@ dependencies:
   firebase_auth: ^4.6.3
   cloud_firestore: ^4.8.1
   flutter_multi_select_items: ^0.4.2
+  cupertino_range_slider_improved: ^2.0.1
 
 dev_dependencies:
   flutter_test:

@@ -19,4 +19,14 @@ class HgtText {
     fontFamily: font,
     fontSize: 14,
   );
+  static TextStyle p2w = TextStyle(
+    fontFamily: font,
+    fontSize: 14,
+  );
+
+  static TextStyle p2b8 = TextStyle(
+    color: HgtColor.b8,
+    fontFamily: font,
+    fontSize: 14,
+  );
 }
