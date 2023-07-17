@@ -12,13 +12,52 @@ class HgtBox {
   );
 
   static BoxDecoration chip = BoxDecoration(
-    border: Border.all(color: HgtColor.b8),
+    border: Border.all(color: HgtColor.grey),
     borderRadius: BorderRadius.circular(8),
   );
 
   static BoxDecoration chipSelected = BoxDecoration(
-    color: HgtColor.p,
-    border: Border.all(color: HgtColor.p),
+    color: HgtColor.primary,
+    border: Border.all(color: HgtColor.primary),
     borderRadius: BorderRadius.circular(8),
   );
+
+  static BoxDecoration myChat = BoxDecoration(
+    color: HgtColor.primary,
+    borderRadius: BorderRadius.circular(16),
+  );
+
+  static BoxDecoration otherChat = BoxDecoration(
+    color: HgtColor.white,
+    border: Border.all(color: HgtColor.primary),
+    borderRadius: BorderRadius.circular(16),
+  );
+
+  static BoxDecoration largeFilled(filledColor) {
+    return BoxDecoration(
+      color: filledColor,
+      borderRadius: BorderRadius.circular(16),
+    );
+  }
+
+  static BoxDecoration smallFilled(filledColor) {
+    return BoxDecoration(
+      color: filledColor,
+      borderRadius: BorderRadius.circular(8),
+    );
+  }
+
+  static BoxDecoration largeBorder(color) {
+    return BoxDecoration(
+      border: Border.all(color: color, width: 3.0),
+      borderRadius: BorderRadius.circular(16),
+    );
+  }
+
+  static BoxDecoration smallBorder(color) {
+    return BoxDecoration(
+      border: Border.all(color: color),
+      borderRadius: BorderRadius.circular(8),
+    );
+  }
 }

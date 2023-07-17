@@ -4,29 +4,36 @@ import 'package:hgt/const/colorStyle.dart';
 String font = "Spoqa";
 
 class HgtText {
-  static TextStyle Title = TextStyle(
-    fontFamily: font,
-    fontSize: 24,
-    // fontWeight: FontWeight.bold,
-  );
+  static TextStyle title(Color? color) {
+    return TextStyle(
+      fontFamily: font,
+      fontSize: 24,
+      color: color,
+    );
+  }
 
-  static TextStyle p = TextStyle(
-    fontFamily: font,
-    fontSize: 18,
-  );
+  static TextStyle large(Color? color) {
+    return TextStyle(
+      fontFamily: font,
+      fontSize: 18,
+      fontWeight: FontWeight.normal,
+      color: color,
+    );
+  }
 
-  static TextStyle p2 = TextStyle(
-    fontFamily: font,
-    fontSize: 14,
-  );
-  static TextStyle p2w = TextStyle(
-    fontFamily: font,
-    fontSize: 14,
-  );
+  static TextStyle medium(Color? color) {
+    return TextStyle(
+      fontFamily: font,
+      fontSize: 14,
+      color: color,
+    );
+  }
 
-  static TextStyle p2b8 = TextStyle(
-    color: HgtColor.b8,
-    fontFamily: font,
-    fontSize: 14,
-  );
+  static TextStyle small(Color? color) {
+    return TextStyle(
+      fontFamily: font,
+      fontSize: 12,
+      color: color,
+    );
+  }
 }

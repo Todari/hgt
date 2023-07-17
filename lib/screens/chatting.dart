@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hgt/const/boxStyle.dart';
 import 'package:hgt/const/textStyle.dart';
+import 'package:hgt/const/colorStyle.dart';
 import '../http/http.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hgt/object/user.dart';
@@ -28,7 +29,6 @@ class _ChattingState extends State<Chatting> {
   @override
   void initState() {
     _getUserID(user.studentId);
-    // _getChats(user.studentId);
     _getChatroomID(user.studentId);
     print("chatroomID :$chatroomID");
     super.initState();
@@ -36,72 +36,82 @@ class _ChattingState extends State<Chatting> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Stack(
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              StreamBuilder<QuerySnapshot>(
-                stream: _chatCollection
-                    .where('chatroomId', isEqualTo: chatroomID)
-                    .orderBy('createdAt', descending: true)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  print(snapshot);
-                  if (!snapshot.hasData) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  } else {
-                    List<DocumentSnapshot> docs = snapshot.data!.docs;
-                    List<Widget> messages = docs
-                        .map((doc) => Message(
-                              sender: doc['sender'],
-                              content: doc['content'],
-                              me: userID == doc['sender'],
-                            ))
-                        .toList();
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          "채팅",
+          style: HgtText.large(HgtColor.black),
+        ),
+        backgroundColor: HgtColor.white,
+      ),
+      child: SafeArea(
+        child: Stack(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                StreamBuilder<QuerySnapshot>(
+                  stream: _chatCollection
+                      .where('chatroomId', isEqualTo: chatroomID)
+                      .orderBy('createdAt', descending: true)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    print(snapshot);
+                    if (!snapshot.hasData) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else {
+                      List<DocumentSnapshot> docs = snapshot.data!.docs;
+                      List<Widget> messages = docs
+                          .map((doc) => Message(
+                                sender: doc['sender'],
+                                content: doc['content'],
+                                me: userID == doc['sender'],
+                              ))
+                          .toList();
 
-                    return Expanded(
-                      child: ListView(
-                        reverse: true,
-                        children: <Widget>[
-                          ...messages,
-                        ],
-                      ),
-                    );
-                  }
-                },
-              ),
-              Container(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24.0, 8, 24, 8),
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: CupertinoTextField(
-                          onSubmitted: _handleSubmit,
-                          placeholder: "Enter a message...",
-                          controller: _chatController,
+                      return Expanded(
+                        child: ListView(
+                          reverse: true,
+                          children: <Widget>[
+                            ...messages,
+                          ],
                         ),
-                      ),
-                      SizedBox(
-                        width: 16,
-                      ),
-                      SendButton(
-                        text: "Send",
-                        callback: () {
-                          _handleSubmit(_chatController.text);
-                        },
-                      )
-                    ],
-                  ),
+                      );
+                    }
+                  },
                 ),
-              )
-            ],
-          ),
-        ],
+                Container(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24.0, 8, 24, 8),
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: CupertinoTextField(
+                            onSubmitted: _handleSubmit,
+                            placeholder: "Enter a message...",
+                            placeholderStyle: HgtText.medium(HgtColor.grey2),
+                            controller: _chatController,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 16,
+                        ),
+                        SendButton(
+                          text: "Send",
+                          callback: () {
+                            _handleSubmit(_chatController.text);
+                          },
+                        )
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -123,6 +133,7 @@ class _ChattingState extends State<Chatting> {
     var splitId = id.split("\"")[1];
     setState(() {
       chatroomID = splitId;
+      print("chatroomID : $chatroomID");
     });
   }
 
@@ -131,6 +142,7 @@ class _ChattingState extends State<Chatting> {
     var splitId = id.split("\"")[1];
     setState(() {
       userID = id;
+      print("getUserID : $userID");
     });
   }
 
@@ -152,7 +164,7 @@ class Message extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4.0),
       child: Container(
         child: Column(
           crossAxisAlignment:
@@ -161,18 +173,15 @@ class Message extends StatelessWidget {
             // Text(sender),
             Container(
               constraints: BoxConstraints(maxWidth: 280),
-              decoration: BoxDecoration(
-                color: me
-                    ? CupertinoColors.activeOrange
-                    : CupertinoColors.systemGrey,
-                borderRadius: BorderRadius.circular(16.0),
-              ),
+              decoration: me ? HgtBox.myChat : HgtBox.otherChat,
               // elevation: 6.0,
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                 child: Text(
                   content,
-                  style: HgtText.p,
+                  style: me
+                      ? HgtText.medium(HgtColor.white)
+                      : HgtText.medium(HgtColor.black),
                 ),
               ),
             )
@@ -194,11 +203,15 @@ class SendButton extends StatelessWidget {
     return Container(
       width: 80,
       height: 36,
+      decoration: HgtBox.smallFilled(HgtColor.primary),
       child: CupertinoButton.filled(
         minSize: 0,
         padding: EdgeInsets.all(0),
         onPressed: callback,
-        child: Text(text),
+        child: Text(
+          text,
+          style: HgtText.medium(HgtColor.white),
+        ),
       ),
     );
   }

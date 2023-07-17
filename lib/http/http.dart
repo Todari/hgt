@@ -12,7 +12,8 @@ class HgtHttp {
   // HgtHttp(this._uid);
   // String hgtURL = '127.0.0.1:8888';
   String hgtURL = '3.112.248.108:8888';
-
+  // String hgtURL = '192.168.0.15:8080';
+//
   Future<int> addUser(user) async {
     final url = Uri.http(hgtURL, '/user');
     final getUrl = Uri.http(hgtURL, '/user/${user.studentId}');
@@ -67,7 +68,8 @@ class HgtHttp {
           "height": property.height,
           "smoke": property.smoke,
           "religion": property.religion,
-          "p": property.p,
+          "keywords": property.keywords,
+          "hobbies": property.hobbies,
         },
       ),
     );

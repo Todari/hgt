@@ -20,5 +20,6 @@ class LoginDataCtrl {
     final prefs = FlutterSecureStorage();
     await prefs.delete(key: 'user_id');
     await prefs.delete(key: 'user_pw');
+    print("removed login data");
   }
 }
