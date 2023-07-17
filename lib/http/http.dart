@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hgt/object/chat.dart';
 import 'package:hgt/object/property.dart';
 import 'package:hgt/object/user.dart';
@@ -8,11 +9,8 @@ import 'package:http/http.dart' as http;
 
 class HgtHttp {
   late String _cookie;
-  // String _uid;
-  // HgtHttp(this._uid);
-  // String hgtURL = '127.0.0.1:8888';
-  String hgtURL = '3.112.248.108:8888';
-  // String hgtURL = '192.168.0.15:8080';
+
+  String hgtURL = dotenv.get("hgtURL");
 //
   Future<int> addUser(user) async {
     final url = Uri.http(hgtURL, '/user');
