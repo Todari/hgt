@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hgt/screens/chatting.dart';
 import 'package:provider/provider.dart';
 
-class userProvider with ChangeNotifier {
+class UserProvider with ChangeNotifier {
   final FirebaseAuth auth = FirebaseAuth.instance;
   QueryDocumentSnapshot<Object?>? peerUserData;
 
@@ -20,7 +20,7 @@ class userProvider with ChangeNotifier {
       Navigator.push(
         context,
         CupertinoPageRoute(
-          builder: (context) => Chatting(),
+          builder: (context) => const Chatting(),
         ),
       );
     });
@@ -30,7 +30,7 @@ class userProvider with ChangeNotifier {
   void recentChatClickListener(AsyncSnapshot<QuerySnapshot<Object?>> snapshot,
       int index, BuildContext context) {
     if (snapshot.data!.docs[index]['messageSenderId'].toString() ==
-        Provider.of<userProvider>(context, listen: false)
+        Provider.of<UserProvider>(context, listen: false)
             .auth
             .currentUser!
             .uid) {
@@ -45,7 +45,7 @@ class userProvider with ChangeNotifier {
         Navigator.push(
           context,
           CupertinoPageRoute(
-            builder: (context) => Chatting(),
+            builder: (context) => const Chatting(),
           ),
         );
       });
@@ -62,7 +62,7 @@ class userProvider with ChangeNotifier {
         Navigator.push(
           context,
           CupertinoPageRoute(
-            builder: (context) => Chatting(),
+            builder: (context) => const Chatting(),
           ),
         );
       });
@@ -71,15 +71,15 @@ class userProvider with ChangeNotifier {
   }
 
   String getChatId(BuildContext context) {
-    return Provider.of<userProvider>(context, listen: false)
+    return Provider.of<UserProvider>(context, listen: false)
                 .auth
                 .currentUser!
                 .uid
                 .hashCode <=
-            Provider.of<userProvider>(context, listen: false)
+            Provider.of<UserProvider>(context, listen: false)
                 .peerUserData!["userId"]
                 .hashCode
-        ? "${Provider.of<userProvider>(context, listen: false).auth.currentUser!.uid} - ${Provider.of<userProvider>(context, listen: false).peerUserData!["userId"]}"
-        : "${Provider.of<userProvider>(context, listen: false).peerUserData!["userId"]} - ${Provider.of<userProvider>(context, listen: false).auth.currentUser!.uid}";
+        ? "${Provider.of<UserProvider>(context, listen: false).auth.currentUser!.uid} - ${Provider.of<UserProvider>(context, listen: false).peerUserData!["userId"]}"
+        : "${Provider.of<UserProvider>(context, listen: false).peerUserData!["userId"]} - ${Provider.of<UserProvider>(context, listen: false).auth.currentUser!.uid}";
   }
 }

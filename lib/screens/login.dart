@@ -1,20 +1,21 @@
 import 'package:flutter/cupertino.dart';
 import 'dart:async';
-
-import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:hgt/const/boxStyle.dart';
-import 'package:hgt/const/textStyle.dart';
-import 'package:hgt/const/colorStyle.dart';
+import 'package:hgt/const/box_style.dart';
+import 'package:hgt/const/text_style.dart';
+import 'package:hgt/const/color_style.dart';
 import 'package:hgt/http/customException.dart';
 import 'package:hgt/http/http.dart';
 import 'package:hgt/object/user.dart';
 import 'package:hgt/screens/home.dart';
-import 'package:hgt/services/loginDataControl.dart';
+import 'package:hgt/services/login_data_control.dart';
 import '../http/Crawl.dart';
 
 class Login extends StatefulWidget {
-  _LoginState createState() => _LoginState();
+  const Login({super.key});
+
+  @override
+  State<Login> createState() => _LoginState();
 }
 
 class _LoginState extends State<Login> {
@@ -23,7 +24,7 @@ class _LoginState extends State<Login> {
   late FocusNode _pwFocusNode;
   // NyanUser userInfo = NyanUser('', '');
   // List<Lecture> classesInfo = [];
-  String saved_id = "", saved_pw = "";
+  String savedId = "", savedPw = "";
   HgtUser userInfo = HgtUser("", "", "", "", "");
 
   var ctrl = LoginDataCtrl();
@@ -59,11 +60,11 @@ class _LoginState extends State<Login> {
 
     // await ctrl.saveLoginData("b513077", "Suramjam0428");
     var assurance = await ctrl.loadLoginData();
-    saved_id = assurance["user_id"] ?? "";
-    saved_pw = assurance["user_pw"] ?? "";
-    print("### saved id????? ${saved_id}");
+    savedId = assurance["user_id"] ?? "";
+    savedPw = assurance["user_pw"] ?? "";
+    print("### saved id????? ${savedId}");
 
-    if (saved_id == "") {
+    if (savedId == "") {
       setState(() {
         _isLogined = false;
       });
@@ -71,7 +72,7 @@ class _LoginState extends State<Login> {
       setState(() {
         _isLogined = true;
       });
-      _login(saved_id, saved_pw);
+      _login(savedId, savedPw);
     }
   }
 
@@ -95,10 +96,11 @@ class _LoginState extends State<Login> {
     if (userInfo.name != "") {
       await http.addUser(userInfo);
       //@*TODO: DB 정보가 최신화 되어있지 않을때 최신화 시키기
+      if (!context.mounted) return;
       Navigator.push(
         context,
         CupertinoPageRoute(
-          builder: (context) => Home(),
+          builder: (context) => const Home(),
         ),
       );
     } else {
@@ -124,7 +126,7 @@ class _LoginState extends State<Login> {
                 height: 120,
                 decoration: HgtBox.test,
               ),
-              SizedBox(
+              const SizedBox(
                 height: 64,
               ),
               SizedBox(
@@ -135,7 +137,7 @@ class _LoginState extends State<Login> {
                       "* 클래스넷 로그인 정보는 저장되지 않으며",
                       style: HgtText.medium(HgtColor.grey),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 4,
                     ),
                     Text(
@@ -162,7 +164,7 @@ class _LoginState extends State<Login> {
                   },
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 16,
               ),
               SizedBox(
@@ -196,12 +198,9 @@ class _LoginState extends State<Login> {
                           }
                         });
                       },
-                      child: Container(
-                        // decoration: HgtBox.test,
-                        child: Text(
-                          "로그인 상태 유지",
-                          style: HgtText.medium(HgtColor.grey),
-                        ),
+                      child: Text(
+                        "로그인 상태 유지",
+                        style: HgtText.medium(HgtColor.grey),
                       ),
                     ),
                     CupertinoCheckbox(
@@ -216,7 +215,7 @@ class _LoginState extends State<Login> {
                   ],
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 16,
               ),
               SizedBox(

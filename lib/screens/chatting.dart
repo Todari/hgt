@@ -1,15 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:hgt/const/boxStyle.dart';
-import 'package:hgt/const/textStyle.dart';
-import 'package:hgt/const/colorStyle.dart';
+import 'package:hgt/const/box_style.dart';
+import 'package:hgt/const/text_style.dart';
+import 'package:hgt/const/color_style.dart';
 import '../http/http.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hgt/object/user.dart';
 
 class Chatting extends StatefulWidget {
-  _ChattingState createState() => _ChattingState();
+  const Chatting({super.key});
+  @override
+  State<Chatting> createState() => _ChattingState();
 }
 
 class _ChattingState extends State<Chatting> {
@@ -56,7 +58,7 @@ class _ChattingState extends State<Chatting> {
                   builder: (context, snapshot) {
                     print(snapshot);
                     if (!snapshot.hasData) {
-                      return Center(
+                      return const Center(
                         child: CircularProgressIndicator(),
                       );
                     } else {
@@ -80,30 +82,28 @@ class _ChattingState extends State<Chatting> {
                     }
                   },
                 ),
-                Container(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24.0, 8, 24, 8),
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: CupertinoTextField(
-                            onSubmitted: _handleSubmit,
-                            placeholder: "Enter a message...",
-                            placeholderStyle: HgtText.medium(HgtColor.grey2),
-                            controller: _chatController,
-                          ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24.0, 8, 24, 8),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: CupertinoTextField(
+                          onSubmitted: _handleSubmit,
+                          placeholder: "Enter a message...",
+                          placeholderStyle: HgtText.medium(HgtColor.grey2),
+                          controller: _chatController,
                         ),
-                        SizedBox(
-                          width: 16,
-                        ),
-                        SendButton(
-                          text: "Send",
-                          callback: () {
-                            _handleSubmit(_chatController.text);
-                          },
-                        )
-                      ],
-                    ),
+                      ),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      SendButton(
+                        text: "Send",
+                        callback: () {
+                          _handleSubmit(_chatController.text);
+                        },
+                      )
+                    ],
                   ),
                 )
               ],
@@ -157,34 +157,37 @@ class Message extends StatelessWidget {
   final String content;
   final bool me;
 
-  Message({required this.sender, required this.content, required this.me});
+  const Message(
+      {required this.sender,
+      required this.content,
+      required this.me,
+      super.key});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4.0),
-      child: Container(
-        child: Column(
-          crossAxisAlignment:
-              me ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: <Widget>[
-            // Text(sender),
-            Container(
-              constraints: BoxConstraints(maxWidth: 280),
-              decoration: me ? HgtBox.myChat : HgtBox.otherChat,
-              // elevation: 6.0,
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                child: Text(
-                  content,
-                  style: me
-                      ? HgtText.medium(HgtColor.white)
-                      : HgtText.medium(HgtColor.black),
-                ),
+      child: Column(
+        crossAxisAlignment:
+            me ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: <Widget>[
+          // Text(sender),
+          Container(
+            constraints: const BoxConstraints(maxWidth: 280),
+            decoration: me ? HgtBox.myChat : HgtBox.otherChat,
+            // elevation: 6.0,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+              child: Text(
+                content,
+                style: me
+                    ? HgtText.medium(HgtColor.white)
+                    : HgtText.medium(HgtColor.black),
               ),
-            )
-          ],
-        ),
+            ),
+          )
+        ],
       ),
     );
   }
@@ -194,7 +197,7 @@ class SendButton extends StatelessWidget {
   final String text;
   final VoidCallback callback;
 
-  const SendButton({required this.text, required this.callback});
+  const SendButton({required this.text, required this.callback, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -204,7 +207,7 @@ class SendButton extends StatelessWidget {
       decoration: HgtBox.smallFilled(HgtColor.primary),
       child: CupertinoButton.filled(
         minSize: 0,
-        padding: EdgeInsets.all(0),
+        padding: const EdgeInsets.all(0),
         onPressed: callback,
         child: Text(
           text,

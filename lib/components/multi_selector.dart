@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_multi_select_items/flutter_multi_select_items.dart';
-import 'package:hgt/const/boxStyle.dart';
-import 'package:hgt/const/colorStyle.dart';
-import 'package:hgt/const/textStyle.dart';
+import 'package:hgt/const/box_style.dart';
+import 'package:hgt/const/color_style.dart';
+import 'package:hgt/const/text_style.dart';
 
 class MultiSelector extends StatefulWidget {
-  MultiSelector(
+  const MultiSelector(
       {required this.list,
       required this.onSelectionChange,
       required this.initialSelectedList,
@@ -18,7 +18,7 @@ class MultiSelector extends StatefulWidget {
   final Function(bool) onErrorChange;
 
   @override
-  _MultiSelectorState createState() => _MultiSelectorState();
+  State<MultiSelector> createState() => _MultiSelectorState();
 }
 
 class _MultiSelectorState extends State<MultiSelector> {
@@ -28,14 +28,13 @@ class _MultiSelectorState extends State<MultiSelector> {
   @override
   void initState() {
     _controller = MultiSelectController();
-    // selectedList = widget.initialSelectedList; // TODO: implement initState
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         vertical: 16,
       ),
       width: double.infinity,
@@ -44,7 +43,7 @@ class _MultiSelectorState extends State<MultiSelector> {
 
           // isMaxSelectableWithPerpetualSelects: true,
           controller: _controller,
-          itemsPadding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+          itemsPadding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
           maxSelectableCount: 5,
           itemsDecoration: MultiSelectDecorations(
             decoration: HgtBox.chip,

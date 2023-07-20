@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import 'package:hgt/components/multiSelector.dart';
-import 'package:hgt/const/colorStyle.dart';
-import 'package:hgt/const/textStyle.dart';
+import 'package:hgt/components/multi_selector.dart';
+import 'package:hgt/const/color_style.dart';
+import 'package:hgt/const/text_style.dart';
 
 class MultiSelectorBottomSheet extends StatefulWidget {
   const MultiSelectorBottomSheet(
@@ -61,7 +61,6 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
 
   @override
   void initState() {
-    // TODO: implement initState
     selectingKeyword = widget.selectedKeywords;
     selectingHobby = widget.selectedHobbies;
     super.initState();
@@ -76,17 +75,17 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
           Container(
             alignment: Alignment.centerLeft,
             child: GestureDetector(
-              child: Icon(CupertinoIcons.xmark),
+              child: const Icon(CupertinoIcons.xmark),
               onTap: () {
                 Navigator.pop(context);
               },
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 24,
           ),
           Container(
-            padding: EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             alignment: Alignment.centerLeft,
             child: Text(
               "키워드",
@@ -95,7 +94,7 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
             ),
           ),
           Container(
-            padding: EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             alignment: Alignment.centerLeft,
             child: Text(
               "자신을 나타내는 키워드를 2~5가지 선택해 주세요",
@@ -104,8 +103,9 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
             ),
           ),
           Visibility(
+            visible: _keywordVisibility,
             child: Container(
-              padding: EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               alignment: Alignment.centerLeft,
               child: Text(
                 "키워드는 5개 까지만 선택할 수 있어요",
@@ -113,7 +113,6 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
                 textAlign: TextAlign.left,
               ),
             ),
-            visible: _keywordVisibility,
           ),
           MultiSelector(
             list: keywords,
@@ -130,11 +129,11 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
               });
             },
           ),
-          SizedBox(
+          const SizedBox(
             height: 24,
           ),
           Container(
-            padding: EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             alignment: Alignment.centerLeft,
             child: Text(
               "취미",
@@ -143,7 +142,7 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
             ),
           ),
           Container(
-            padding: EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             alignment: Alignment.centerLeft,
             child: Text(
               "즐겨하는 취미활동을 2~5가지 선택해 주세요",
@@ -152,8 +151,9 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
             ),
           ),
           Visibility(
+            visible: _hobbyVisibility,
             child: Container(
-              padding: EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               alignment: Alignment.centerLeft,
               child: Text(
                 "취미는 5개 까지만 선택할 수 있어요",
@@ -161,7 +161,6 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
                 textAlign: TextAlign.left,
               ),
             ),
-            visible: _hobbyVisibility,
           ),
           MultiSelector(
             list: hobbies,
@@ -179,11 +178,10 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
               });
             },
           ),
-          SizedBox(
+          const SizedBox(
             height: 24,
           ),
           CupertinoButton.filled(
-            child: Text("선택 완료"),
             onPressed:
                 (selectingHobby.length >= 2 && selectingKeyword.length >= 2)
                     ? () {
@@ -195,6 +193,7 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
                         Navigator.pop(context);
                       }
                     : null,
+            child: const Text("선택 완료"),
           )
         ],
       ),

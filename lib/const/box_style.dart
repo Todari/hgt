@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:hgt/const/colorStyle.dart';
+import 'package:hgt/const/color_style.dart';
 
 class HgtBox {
   static BoxDecoration test = BoxDecoration(
     border: Border.all(color: Colors.black),
   );
 
-  static BoxDecoration bg = BoxDecoration(
+  static BoxDecoration bg = const BoxDecoration(
     color: CupertinoColors.white,
   );
 

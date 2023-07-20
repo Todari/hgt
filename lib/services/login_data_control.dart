@@ -2,13 +2,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LoginDataCtrl {
   Future<void> saveLoginData(String id, String pw) async {
-    final prefs = FlutterSecureStorage();
+    const prefs = FlutterSecureStorage();
     await prefs.write(key: 'user_id', value: id);
     await prefs.write(key: 'user_pw', value: pw);
   }
 
   Future<Map<String, String>> loadLoginData() async {
-    final prefs = FlutterSecureStorage();
+    const prefs = FlutterSecureStorage();
 
     return {
       'user_id': (await prefs.read(key: 'user_id')) ?? '',
@@ -17,7 +17,7 @@ class LoginDataCtrl {
   }
 
   Future<void> removeLoginData() async {
-    final prefs = FlutterSecureStorage();
+    const prefs = FlutterSecureStorage();
     await prefs.delete(key: 'user_id');
     await prefs.delete(key: 'user_pw');
     print("removed login data");

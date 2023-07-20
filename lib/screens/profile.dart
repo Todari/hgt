@@ -1,19 +1,18 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
-import 'package:hgt/components/mutiSelectorBottomSheet.dart';
-import 'package:hgt/const/colorStyle.dart';
+import 'package:hgt/components/multi_selector_bottom_sheet.dart';
+import 'package:hgt/const/color_style.dart';
 import 'package:hgt/object/user.dart';
 import 'package:hgt/screens/login.dart';
-import 'package:hgt/services/loginDataControl.dart';
-import '../const/textStyle.dart';
+import 'package:hgt/services/login_data_control.dart';
+import '../const/text_style.dart';
 import '../object/property.dart';
 import '../http/http.dart';
 import 'package:cupertino_range_slider_improved/cupertino_range_slider.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class Profile extends StatefulWidget {
+  const Profile({super.key});
   @override
   State<Profile> createState() => _ProfileState();
 }
@@ -21,7 +20,7 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   final ctrl = LoginDataCtrl();
   late ScrollController _scrollController;
-  double _kItemExtent = 32.0;
+  final double _kItemExtent = 32.0;
   final List<String> _religions = ["무교", "기독교", "천주교", "불교", "이슬람교", "기타"];
   int _selectedReligion = 0;
   final List<String> _smokes = ["흡연", "술마실 때만", "전자담배", "비흡연"];
@@ -73,16 +72,18 @@ class _ProfileState extends State<Profile> {
               child: Column(
                 children: [
                   infoItem("이름", user.name),
-                  infoItem(
-                      "학번 / 나이",
-                      user.studentId
-                              .substring(0, 2)
-                              .replaceAll('A', '0')
-                              .replaceAll('B', '1')
-                              .replaceAll('C', '2') +
-                          "학번 / " +
-                          user.age +
-                          " 세"),
+                  // infoItem(
+                  //     "학번 / 나이",
+                  //     user.studentId
+                  //             .substring(0, 2)
+                  //             .replaceAll('A', '0')
+                  //             .replaceAll('B', '1')
+                  //             .replaceAll('C', '2') +
+                  //         "학번 / " +
+                  //         user.age +
+                  //         " 세"),
+                  infoItem("학번 / 나이",
+                      "${user.studentId.substring(0, 2).replaceAll('A', '0').replaceAll('B', '1').replaceAll('C', '2')}학번 / ${user.age}세"),
                   infoItem("단과대", user.major.split(' ')[0]),
                   infoItem(
                       "전공",
@@ -93,7 +94,7 @@ class _ProfileState extends State<Profile> {
               ),
             ),
             titleWidget("개인정보"),
-            SizedBox(
+            const SizedBox(
               height: 8,
             ),
             GestureDetector(
@@ -190,7 +191,7 @@ class _ProfileState extends State<Profile> {
                 );
               },
             ),
-            SizedBox(
+            const SizedBox(
               height: 8,
             ),
             titleWidget("키워드"),
@@ -267,7 +268,7 @@ class _ProfileState extends State<Profile> {
               onPressed: () async {
                 ctrl.removeLoginData();
                 Navigator.pushReplacement(context,
-                    CupertinoPageRoute(builder: ((context) => Login())));
+                    CupertinoPageRoute(builder: ((context) => const Login())));
               },
             ),
           ],
@@ -314,7 +315,7 @@ class _ProfileState extends State<Profile> {
               style: HgtText.medium(HgtColor.black),
             ),
           ),
-          SizedBox(
+          const SizedBox(
             width: 16,
           ),
           Expanded(
@@ -350,7 +351,7 @@ class _ProfileState extends State<Profile> {
               style: HgtText.medium(HgtColor.black),
             ),
           ),
-          SizedBox(
+          const SizedBox(
             width: 16,
           ),
           Expanded(
@@ -364,8 +365,8 @@ class _ProfileState extends State<Profile> {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
+          const Padding(
+            padding: EdgeInsets.only(left: 8.0),
             child: Icon(CupertinoIcons.chevron_forward),
           )
         ],
@@ -390,8 +391,8 @@ class _ProfileState extends State<Profile> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
+          const Padding(
+            padding: EdgeInsets.only(left: 8.0),
             child: Icon(CupertinoIcons.chevron_forward),
           )
         ],
@@ -433,7 +434,7 @@ class _ProfileState extends State<Profile> {
 
   Widget rangeSelector(title, minV, maxV, min, max) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       width: double.infinity,
       child: CupertinoRangeSlider(
         activeColor: HgtColor.primary,

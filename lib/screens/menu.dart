@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:hgt/const/colorStyle.dart';
-import 'package:hgt/const/textStyle.dart';
+import 'package:hgt/const/color_style.dart';
+import 'package:hgt/const/text_style.dart';
 
 class Menu extends StatefulWidget {
-  _MenuState createState() => _MenuState();
+  const Menu({super.key});
+
+  @override
+  State<Menu> createState() => _MenuState();
 }
 
 class _MenuState extends State<Menu> {
@@ -18,7 +20,7 @@ class _MenuState extends State<Menu> {
           ),
           backgroundColor: HgtColor.white,
         ),
-        child: Text("아"));
+        child: const Text("아"));
   }
 }
 // 

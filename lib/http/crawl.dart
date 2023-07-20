@@ -7,7 +7,6 @@ import 'package:cookie_jar/cookie_jar.dart';
 import 'package:get_it/get_it.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
-import 'customException.dart';
 import '../object/user.dart';
 
 class Crawl with ChangeNotifier {
@@ -44,11 +43,13 @@ class Crawl with ChangeNotifier {
     try {
       final list = rBody.substring(index).split("'");
       for (int i = 0; i < 12; i++) {
-        cookie = list[6 * i + 1] +
-            '=' +
-            Uri.encodeComponent(list[6 * i + 3]) +
-            '; ' +
-            cookie;
+        // cookie = list[6 * i + 1] +
+        //     '=' +
+        //     Uri.encodeComponent(list[6 * i + 3]) +
+        //     '; ' +
+        //     cookie;
+        cookie =
+            "${list[6 * i + 1]}=${Uri.encodeComponent(list[6 * i + 3])};$cookie";
         cookies
             .add(Cookie(list[6 * i + 1], Uri.encodeComponent(list[6 * i + 3])));
         cookies[i].httpOnly = false;
@@ -72,9 +73,9 @@ class Crawl with ChangeNotifier {
     if (cookie.length < 10) {
       print("학번 / 비밀번호를 확인하세요");
     } else {
-      final url1 = 'https://cn.hongik.ac.kr/';
-      final url2 = 'https://cn.hongik.ac.kr/stud/';
-      final url3 = 'https://cn.hongik.ac.kr/stud/A/01000/01000.jsp';
+      const url1 = 'https://cn.hongik.ac.kr/';
+      const url2 = 'https://cn.hongik.ac.kr/stud/';
+      const url3 = 'https://cn.hongik.ac.kr/stud/A/01000/01000.jsp';
 
       await cookieJar.saveFromResponse(Uri.parse(url2), cookies);
       // final directed = await dio.get(url2);
@@ -120,10 +121,10 @@ class Crawl with ChangeNotifier {
     return user;
   }
 
-  Future<void> _logout() async {
-    if (this.cookie == '')
-      throw new CustomException(300, 'Already Logout');
-    else
-      this.cookie = '';
-  }
+  // Future<void> _logout() async {
+  //   if (this.cookie == '')
+  //     throw new CustomException(300, 'Already Logout');
+  //   else
+  //     this.cookie = '';
+  // }
 }

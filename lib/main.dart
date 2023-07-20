@@ -1,6 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-
 import 'package:hgt/const/theme.dart';
 import 'package:hgt/screens/home.dart';
 import './screens/chatting.dart';
@@ -19,12 +17,15 @@ void main() async {
   await dotenv.load(fileName: ".env");
   print("가보자고");
   runApp(
-    Hgt(),
+    const Hgt(),
   );
 }
 
 class Hgt extends StatefulWidget {
-  _HgtState createState() => _HgtState();
+  const Hgt({super.key});
+
+  @override
+  State<Hgt> createState() => _HgtState();
 }
 
 class _HgtState extends State<Hgt> {
@@ -36,15 +37,14 @@ class _HgtState extends State<Hgt> {
       debugShowCheckedModeBanner: false,
       initialRoute: "/splash",
       routes: {
-        '/menu': (context) => Menu(),
-        '/home': (context) => Home(),
-        '/chat': (context) => Chatting(),
-        '/profile': (context) => Profile(),
+        '/menu': (context) => const Menu(),
+        '/home': (context) => const Home(),
+        '/chat': (context) => const Chatting(),
+        '/profile': (context) => const Profile(),
       },
-      home: Login(),
+      home: const Login(),
       // home: Menu(),
       // home: CupertinoPageScaffold(child: Text("hi")),
     );
   }
 }
-// 
