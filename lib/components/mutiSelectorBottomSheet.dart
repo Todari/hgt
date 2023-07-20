@@ -1,20 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:hgt/components/multiSelector.dart';
-import 'package:hgt/const/boxStyle.dart';
 import 'package:hgt/const/colorStyle.dart';
 import 'package:hgt/const/textStyle.dart';
 
 class MultiSelectorBottomSheet extends StatefulWidget {
-  MultiSelectorBottomSheet(
+  const MultiSelectorBottomSheet(
       {required this.selectedKeywords,
       required this.selectedHobbies,
       required this.onKeywordChanged,
       required this.onHobbyChanged,
       super.key});
-  late List<dynamic> selectedKeywords;
-  late List<dynamic> selectedHobbies;
-  Function(List<dynamic>) onKeywordChanged;
-  Function(List<dynamic>) onHobbyChanged;
+  final List<dynamic> selectedKeywords;
+  final List<dynamic> selectedHobbies;
+  final Function(List<dynamic>) onKeywordChanged;
+  final Function(List<dynamic>) onHobbyChanged;
 
   @override
   State<MultiSelectorBottomSheet> createState() =>
@@ -59,7 +58,6 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
 
   late bool _keywordVisibility = false;
   late bool _hobbyVisibility = false;
-  late bool _buttonActivated = false;
 
   @override
   void initState() {

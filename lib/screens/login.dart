@@ -1,8 +1,5 @@
-import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -15,8 +12,6 @@ import 'package:hgt/object/user.dart';
 import 'package:hgt/screens/home.dart';
 import 'package:hgt/services/loginDataControl.dart';
 import '../http/Crawl.dart';
-
-import 'menu.dart';
 
 class Login extends StatefulWidget {
   _LoginState createState() => _LoginState();

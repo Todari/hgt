@@ -3,13 +3,9 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hgt/object/chat.dart';
 import 'package:hgt/object/property.dart';
-import 'package:hgt/object/user.dart';
-import 'package:hgt/screens/chatting.dart';
 import 'package:http/http.dart' as http;
 
 class HgtHttp {
-  late String _cookie;
-
   String hgtURL = dotenv.get("hgtURL");
 //
   Future<int> addUser(user) async {

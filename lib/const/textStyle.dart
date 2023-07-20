@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hgt/const/colorStyle.dart';
 
 String font = "Spoqa";
 

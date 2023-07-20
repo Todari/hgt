@@ -3,21 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hgt/components/mutiSelectorBottomSheet.dart';
-import 'package:hgt/const/boxStyle.dart';
 import 'package:hgt/const/colorStyle.dart';
-import 'package:hgt/main.dart';
 import 'package:hgt/object/user.dart';
 import 'package:hgt/screens/login.dart';
 import 'package:hgt/services/loginDataControl.dart';
-import 'package:provider/provider.dart';
 import '../const/textStyle.dart';
 import '../object/property.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../http/http.dart';
-import 'package:flutter_multi_select_items/flutter_multi_select_items.dart';
 import 'package:cupertino_range_slider_improved/cupertino_range_slider.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:hgt/components/multiSelector.dart';
 
 class Profile extends StatefulWidget {
   @override
@@ -27,7 +21,6 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   final ctrl = LoginDataCtrl();
   late ScrollController _scrollController;
-  late TextEditingController _heightController;
   double _kItemExtent = 32.0;
   final List<String> _religions = ["무교", "기독교", "천주교", "불교", "이슬람교", "기타"];
   int _selectedReligion = 0;

@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hgt/const/boxStyle.dart';
@@ -8,7 +7,6 @@ import 'package:hgt/const/colorStyle.dart';
 import '../http/http.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hgt/object/user.dart';
-import '../object/chat.dart';
 
 class Chatting extends StatefulWidget {
   _ChattingState createState() => _ChattingState();
@@ -139,7 +137,7 @@ class _ChattingState extends State<Chatting> {
 
   Future<void> _getUserID(studentId) async {
     var id = await http.getUserID(studentId);
-    var splitId = id.split("\"")[1];
+    // var splitId = id.split("\"")[1];
     setState(() {
       userID = id;
       print("getUserID : $userID");

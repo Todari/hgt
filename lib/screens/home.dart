@@ -1,9 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:hgt/const/boxStyle.dart';
-import 'package:hgt/const/textStyle.dart';
-import 'package:hgt/const/colorStyle.dart';
-import 'package:provider/provider.dart';
 import 'profile.dart';
 import 'chatting.dart';
 import 'menu.dart';
