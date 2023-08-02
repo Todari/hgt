@@ -31,14 +31,14 @@ type User struct {
 	CanCC bool `json:"canCC,omitempty" validate:"required"` // 동일 Major 허용
 
 	// 2차 우선
-	Hobbies  []Property `json:"hobbies"`
-	Keywords []Property `json:"keywords"`
+	Hobbies  []Property `json:"hobbies,omitempty"`
+	Keywords []Property `json:"keywords,omitempty"`
 
 	// Target
-	Target []Property `json:"target"`
+	Target []Property `json:"target,omitempty"`
 
 	// 제외
-	ExPartner []User `json:"exPartner"`
+	ExPartner []User `json:"exPartner,omitempty"`
 
-	Partner *User `json:"partner"`
+	Partner *User `json:"partner,omitempty"`
 }

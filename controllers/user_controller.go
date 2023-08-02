@@ -2,22 +2,18 @@ package controllers
 
 import (
 	"context"
-	"fmt"
+	"github.com/Todari/hgt-server/services"
+	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/Todari/hgt-server/configs"
 	"github.com/Todari/hgt-server/models"
 	"github.com/Todari/hgt-server/structs"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var userCollection = configs.GetCollection(configs.DB, "hgtUser")
 var validate = validator.New()
 
 func CreateUser() gin.HandlerFunc {
@@ -27,6 +23,17 @@ func CreateUser() gin.HandlerFunc {
 		defer cancel()
 
 		// validate the request body
+		user.Name = ctx_.Param("name")
+		user.StudentId = ctx_.Param("location")
+		user.Major = ctx_.Param("major")
+		user.Gender = ctx_.Param("gender") == "남"
+		user.Army = ctx_.Param("army") == "필"
+
+		var age models.Property
+
+		err := services.FindProperty(ctx, models.Age, ctx_.Param("age")).Decode(&age)
+		user.Age = age
+
 		if err := ctx_.BindJSON(&user); err != nil {
 			ctx_.JSON(
 				http.StatusBadRequest,
@@ -53,16 +60,8 @@ func CreateUser() gin.HandlerFunc {
 			)
 		}
 
-		newUser := models.User{
-			Id:        primitive.NewObjectID(),
-			Name:      user.Name,
-			StudentId: user.StudentId,
-			Major:     user.Major,
-			Age:       user.Age,
-			Gender:    user.Gender,
-		}
+		result, err := services.CreateUser(ctx, user)
 
-		result, err := userCollection.InsertOne(ctx, newUser)
 		if err != nil {
 			ctx_.JSON(
 				http.StatusInternalServerError,
@@ -93,7 +92,7 @@ func GetUsers() gin.HandlerFunc {
 		var users []models.User
 		defer cancel()
 
-		results, err := userCollection.Find(ctx, bson.M{})
+		results, err := services.FindUserList(ctx)
 		if err != nil {
 			ctx_.JSON(
 				http.StatusInternalServerError,
@@ -142,53 +141,53 @@ func GetUsers() gin.HandlerFunc {
 	}
 }
 
-func GetUserById() gin.HandlerFunc {
-	return func(ctx_ *gin.Context) {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-
-		// get userId from params
-		userId := ctx_.Param("userId")
-
-		var user models.User
-		defer cancel()
-
-		_id, objectIdErr := primitive.ObjectIDFromHex(userId)
-		if objectIdErr != nil {
-			ctx_.JSON(
-				http.StatusBadRequest,
-				structs.HttpResponse{
-					Success: false,
-					Data: map[string]interface{}{
-						"data": objectIdErr.Error(),
-					},
-				},
-			)
-			return
-		}
-
-		err := userCollection.FindOne(ctx, bson.M{"_id": _id}).Decode(&user)
-		if err != nil {
-			ctx_.JSON(
-				http.StatusInternalServerError,
-				structs.HttpResponse{
-					Success: false,
-					Data: map[string]interface{}{
-						"data": err.Error(),
-					},
-				},
-			)
-			return
-		}
-
-		fmt.Println(user)
-		ctx_.JSON(
-			http.StatusOK,
-			structs.HttpResponse{
-				Success: true,
-				Data: map[string]interface{}{
-					"data": user,
-				},
-			},
-		)
-	}
-}
+//func GetUserById() gin.HandlerFunc {
+//	return func(ctx_ *gin.Context) {
+//		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+//
+//		// get userId from params
+//		userId := ctx_.Param("userId")
+//
+//		var user models.User
+//		defer cancel()
+//
+//		_id, objectIdErr := primitive.ObjectIDFromHex(userId)
+//		if objectIdErr != nil {
+//			ctx_.JSON(
+//				http.StatusBadRequest,
+//				structs.HttpResponse{
+//					Success: false,
+//					Data: map[string]interface{}{
+//						"data": objectIdErr.Error(),
+//					},
+//				},
+//			)
+//			return
+//		}
+//
+//		err := userCollection.FindOne(ctx, bson.M{"_id": _id}).Decode(&user)
+//		if err != nil {
+//			ctx_.JSON(
+//				http.StatusInternalServerError,
+//				structs.HttpResponse{
+//					Success: false,
+//					Data: map[string]interface{}{
+//						"data": err.Error(),
+//					},
+//				},
+//			)
+//			return
+//		}
+//
+//		fmt.Println(user)
+//		ctx_.JSON(
+//			http.StatusOK,
+//			structs.HttpResponse{
+//				Success: true,
+//				Data: map[string]interface{}{
+//					"data": user,
+//				},
+//			},
+//		)
+//	}
+//}
