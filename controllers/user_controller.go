@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github.com/Todari/hgt-server/services"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
@@ -19,59 +20,65 @@ var validate = validator.New()
 func CreateUser() gin.HandlerFunc {
 	return func(ctx_ *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		var user models.User
 		defer cancel()
 
-		// validate the request body
-		user.Name = ctx_.Param("name")
-		user.StudentId = ctx_.Param("location")
-		user.Major = ctx_.Param("major")
-		user.Gender = ctx_.Param("gender") == "남"
-		user.Army = ctx_.Param("army") == "필"
+		var userDto models.UserDto
 
 		var age models.Property
+		bindUserDtoErr := ctx_.BindJSON(&userDto)
+		fmt.Println("bindUserDtoErr ====================================> ")
+		fmt.Println(bindUserDtoErr)
 
-		err := services.FindProperty(ctx, models.Age, ctx_.Param("age")).Decode(&age)
+		var user models.User
+		user.Name = userDto.Name
+		user.StudentId = userDto.StudentId
+		user.Major = userDto.Major
+		user.Gender = userDto.Gender == "남"
+		user.Army = userDto.Army == "필"
+		fmt.Println(user.Name)
+		fmt.Println(user.StudentId)
+		fmt.Println(user.Major)
+		fmt.Println(user.Gender)
+		fmt.Println(user.Army)
+
+		findPropertyErr := services.FindOneProperty(ctx, models.Age, userDto.Age).Decode(&age)
+		fmt.Println("findPropertyErr ====================================> ")
+		fmt.Println(findPropertyErr)
+
 		user.Age = age
-
-		if err := ctx_.BindJSON(&user); err != nil {
-			ctx_.JSON(
-				http.StatusBadRequest,
-				structs.HttpResponse{
-					Success: false,
-					Data: map[string]interface{}{
-						"data": err.Error(),
-					},
-				},
-			)
-			return
-		}
+		fmt.Println(user.Age)
 
 		// use the validator library to validate required fields
-		if validationErr := validate.Struct(&user); validationErr != nil {
-			ctx_.JSON(
-				http.StatusBadRequest,
-				structs.HttpResponse{
-					Success: false,
-					Data: map[string]interface{}{
-						"data": validationErr.Error(),
-					},
-				},
-			)
-		}
+		//if validationErr := validate.Struct(&user); validationErr != nil {
+		//	fmt.Println("validationErr ====================================> ")
+		//	fmt.Println(validationErr)
+		//	ctx_.JSON(
+		//		http.StatusBadRequest,
+		//		structs.HttpResponse{
+		//			Success: false,
+		//			Data: map[string]interface{}{
+		//				"data": validationErr.Error(),
+		//			},
+		//		},
+		//	)
+		//	return
+		//}
 
-		result, err := services.CreateUser(ctx, user)
+		result, insertUserErr := services.InsertOneUser(ctx, user)
 
-		if err != nil {
+		if insertUserErr != nil {
+			fmt.Println("insertUserErr ====================================> ")
+			fmt.Println(insertUserErr)
 			ctx_.JSON(
 				http.StatusInternalServerError,
 				structs.HttpResponse{
 					Success: false,
 					Data: map[string]interface{}{
-						"data": err.Error(),
+						"data": insertUserErr.Error(),
 					},
 				},
 			)
+			return
 		}
 
 		ctx_.JSON(
@@ -92,7 +99,7 @@ func GetUsers() gin.HandlerFunc {
 		var users []models.User
 		defer cancel()
 
-		results, err := services.FindUserList(ctx)
+		results, err := services.FindManyUsers(ctx)
 		if err != nil {
 			ctx_.JSON(
 				http.StatusInternalServerError,

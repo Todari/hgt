@@ -22,13 +22,13 @@ type User struct {
 
 	// 우선 property
 	Age      Property `json:"age,omitempty" validate:"required"` // 중요
-	Height   Property `json:"height,omitempty" validate:"required"`
-	Smoke    Property `json:"smoke,omitempty" validate:"required"`
-	Religion Property `json:"religion,omitempty" validate:"required"`
-	MBTI     Property `json:"mbti,omitempty" validate:"required"`
+	Height   Property `json:"height,omitempty"`
+	Smoke    Property `json:"smoke,omitempty"`
+	Religion Property `json:"religion,omitempty"`
+	MBTI     Property `json:"mbti,omitempty"`
 
 	// 필수 조건
-	CanCC bool `json:"canCC,omitempty" validate:"required"` // 동일 Major 허용
+	CanCC bool `json:"canCC,omitempty"` // 동일 Major 허용
 
 	// 2차 우선
 	Hobbies  []Property `json:"hobbies,omitempty"`
@@ -41,4 +41,13 @@ type User struct {
 	ExPartner []User `json:"exPartner,omitempty"`
 
 	Partner *User `json:"partner,omitempty"`
+}
+
+type UserDto struct {
+	Name      string
+	StudentId string
+	Major     string
+	Age       string
+	Gender    string
+	Army      string
 }

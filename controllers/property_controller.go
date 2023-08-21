@@ -6,7 +6,6 @@ import (
 	"github.com/Todari/hgt-server/services"
 	"github.com/Todari/hgt-server/structs"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 	"net/http"
@@ -18,50 +17,46 @@ func CreateProperty() gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		propertyType := models.StringToPropertyType(ctx_.Param("type"))
-		propertyValue := ctx_.Param("value")
+		var newProperty models.Property
 
-		newProperty := models.Property{
-			Id:    primitive.NewObjectID(),
-			Type:  propertyType,
-			Value: propertyValue,
+		if err := ctx_.BindJSON(&newProperty); err != nil {
+			ctx_.JSON(
+				http.StatusBadRequest,
+				structs.HttpResponse{
+					Success: false,
+					Data: map[string]interface{}{
+						"type":   "Bind property error",
+						"result": err.Error(),
+					},
+				},
+			)
+			return
 		}
 
-		// validate the request body
-		//if err := ctx_.BindJSON(&property); err != nil {
-		//	ctx_.JSON(
-		//		http.StatusBadRequest,
-		//		structs.HttpResponse{
-		//			Success: false,
-		//			Data: map[string]interface{}{
-		//				"data": err.Error(),
-		//			},
-		//		},
-		//	)
-		//	return
-		//}
-
 		// use the validator library to validate required fields
-		//if validationErr := validate.Struct(&property); validationErr != nil {
-		//	ctx_.JSON(
-		//		http.StatusBadRequest,
-		//		structs.HttpResponse{
-		//			Success: false,
-		//			Data: map[string]interface{}{
-		//				"data": validationErr.Error(),
-		//			},
-		//		},
-		//	)
-		//}
+		if validationErr := validate.Struct(&newProperty); validationErr != nil {
+			ctx_.JSON(
+				http.StatusBadRequest,
+				structs.HttpResponse{
+					Success: false,
+					Data: map[string]interface{}{
+						"type":   "Validate error",
+						"result": validationErr.Error(),
+					},
+				},
+			)
+			return
+		}
 
-		result, err := services.CreateProperty(ctx, newProperty)
+		result, err := services.InsertOneProperty(ctx, newProperty)
 		if err != nil {
 			ctx_.JSON(
 				http.StatusInternalServerError,
 				structs.HttpResponse{
 					Success: false,
 					Data: map[string]interface{}{
-						"data": err.Error(),
+						"type":   "InsertOneProperty error",
+						"result": err.Error(),
 					},
 				},
 			)
@@ -72,45 +67,8 @@ func CreateProperty() gin.HandlerFunc {
 			http.StatusCreated,
 			structs.HttpResponse{
 				Success: true,
-				Data:    result,
-			},
-		)
-	}
-}
-
-func GetProperty() gin.HandlerFunc {
-	return func(ctx_ *gin.Context) {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		propertyType := models.StringToPropertyType(ctx_.Param("type"))
-		value := ctx_.Query("value")
-
-		var result interface{}
-
-		err := services.FindProperty(ctx, propertyType, value).Decode(&result)
-
-		if err != nil {
-			ctx_.JSON(
-				http.StatusInternalServerError,
-				structs.HttpResponse{
-					Success: false,
-					Data: map[string]interface{}{
-						"data": err.Error(),
-					},
-				},
-			)
-			return
-		}
-
-		var property models.Property
-
-		ctx_.JSON(
-			http.StatusOK,
-			structs.HttpResponse{
-				Success: true,
 				Data: map[string]interface{}{
-					"data": property,
+					"result": result.InsertedID,
 				},
 			},
 		)
@@ -123,7 +81,7 @@ func GetProperties() gin.HandlerFunc {
 		var properties []models.Property
 		defer cancel()
 
-		results, err := services.FindProperties(ctx)
+		results, err := services.FindManyProperties(ctx)
 		if err != nil {
 			ctx_.JSON(
 				http.StatusInternalServerError,
@@ -166,6 +124,44 @@ func GetProperties() gin.HandlerFunc {
 				Success: true,
 				Data: map[string]interface{}{
 					"data": properties,
+				},
+			},
+		)
+	}
+}
+
+func GetProperty() gin.HandlerFunc {
+	return func(ctx_ *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		propertyType := models.StringToPropertyType(ctx_.Param("type"))
+		value := ctx_.Query("value")
+
+		var property models.Property
+
+		err := services.FindOneProperty(ctx, propertyType, value).Decode(&property)
+
+		if err != nil {
+			ctx_.JSON(
+				http.StatusInternalServerError,
+				structs.HttpResponse{
+					Success: false,
+					Data: map[string]interface{}{
+						"type":   "FindOneProperty error",
+						"result": err.Error(),
+					},
+				},
+			)
+			return
+		}
+
+		ctx_.JSON(
+			http.StatusOK,
+			structs.HttpResponse{
+				Success: true,
+				Data: map[string]interface{}{
+					"result": property,
 				},
 			},
 		)

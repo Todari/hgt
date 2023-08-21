@@ -10,36 +10,19 @@ type Property struct {
 	Value string             `json:"value,omitempty" validate:"required"`
 }
 
-type PropertyType int
+type PropertyType string
 
 const (
-	Age PropertyType = iota
-	Smoke
+	Age   PropertyType = "age"
+	Smoke PropertyType = "smoke"
 )
 
 var (
-	propertyTypeArray = [...]string{
-		"age",
-		"smoke",
-	}
 	propertyTypeMap = map[string]PropertyType{
 		"age":   Age,
 		"smoke": Smoke,
 	}
 )
-
-func (t_ PropertyType) String() string {
-	return propertyTypeArray[t_%4]
-}
-
-func (t_ PropertyType) Int() int {
-	for i_, v_ := range propertyTypeArray {
-		if v_ == t_.String() {
-			return i_
-		}
-	}
-	return -1
-}
 
 func StringToPropertyType(v_ string) PropertyType {
 	return propertyTypeMap[v_]

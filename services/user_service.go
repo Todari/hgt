@@ -11,7 +11,7 @@ import (
 
 var userCollection = configs.GetCollection(configs.DB, "hgtUser")
 
-func CreateUser(ctx_ context.Context, user_ models.User) (*mongo.InsertOneResult, error) {
+func InsertOneUser(ctx_ context.Context, user_ models.User) (*mongo.InsertOneResult, error) {
 	newUser := models.User{
 		Id:        primitive.NewObjectID(),
 		Name:      user_.Name,
@@ -24,6 +24,10 @@ func CreateUser(ctx_ context.Context, user_ models.User) (*mongo.InsertOneResult
 	return userCollection.InsertOne(ctx_, newUser)
 }
 
-func FindUserList(ctx_ context.Context) (*mongo.Cursor, error) {
+func FindManyUsers(ctx_ context.Context) (*mongo.Cursor, error) {
 	return userCollection.Find(ctx_, bson.M{})
+}
+
+func FindOneUser(ctx_ context.Context) *mongo.SingleResult {
+	return userCollection.FindOne(ctx_, bson.M{})
 }
