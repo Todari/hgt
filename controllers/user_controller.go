@@ -2,11 +2,16 @@ package controllers
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"github.com/Todari/hgt-server/configs"
 	"github.com/Todari/hgt-server/services"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Todari/hgt-server/models"
@@ -22,31 +27,69 @@ func CreateUser() gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		var userDto models.UserDto
+		var userDto models.CreateUserDto
 
-		var age models.Property
 		bindUserDtoErr := ctx_.BindJSON(&userDto)
-		fmt.Println("bindUserDtoErr ====================================> ")
-		fmt.Println(bindUserDtoErr)
+		if bindUserDtoErr != nil {
+
+			fmt.Println("bindUserDtoErr ====================================> ")
+
+			fmt.Println(bindUserDtoErr)
+			ctx_.JSON(
+				http.StatusInternalServerError,
+				structs.HttpResponse{
+					Success: false,
+					Data: map[string]interface{}{
+						"message": bindUserDtoErr.Error(),
+					},
+				},
+			)
+			return
+		}
 
 		var user models.User
+
+		// get new Object Id
+		id := primitive.NewObjectID()
+		user.Id = id
+
+		// get Secure Key
+		time := time.Now().Unix()
+		hash := sha256.New()
+		hashString := id.Hex() + strconv.Itoa(int(time))
+		fmt.Println(hashString)
+		hash.Write([]byte(hashString))
+		md := hash.Sum([]byte(configs.HashKey()))
+		fmt.Println(md)
+		user.Session = hex.EncodeToString(md)
+		fmt.Println(user.Session)
+
 		user.Name = userDto.Name
 		user.StudentId = userDto.StudentId
 		user.Major = userDto.Major
 		user.Gender = userDto.Gender == "남"
 		user.Army = userDto.Army == "필"
-		fmt.Println(user.Name)
-		fmt.Println(user.StudentId)
-		fmt.Println(user.Major)
-		fmt.Println(user.Gender)
-		fmt.Println(user.Army)
+
+		// get Property Age
+		var age models.Property
 
 		findPropertyErr := services.FindOneProperty(ctx, models.Age, userDto.Age).Decode(&age)
-		fmt.Println("findPropertyErr ====================================> ")
-		fmt.Println(findPropertyErr)
+		if findPropertyErr != nil {
+			fmt.Println("findPropertyErr ====================================> ")
+			fmt.Println(findPropertyErr)
+			ctx_.JSON(
+				http.StatusInternalServerError,
+				structs.HttpResponse{
+					Success: false,
+					Data: map[string]interface{}{
+						"message": findPropertyErr.Error(),
+					},
+				},
+			)
+			return
+		}
 
 		user.Age = age
-		fmt.Println(user.Age)
 
 		// use the validator library to validate required fields
 		//if validationErr := validate.Struct(&user); validationErr != nil {
@@ -74,7 +117,7 @@ func CreateUser() gin.HandlerFunc {
 				structs.HttpResponse{
 					Success: false,
 					Data: map[string]interface{}{
-						"data": insertUserErr.Error(),
+						"message": insertUserErr.Error(),
 					},
 				},
 			)
@@ -85,14 +128,79 @@ func CreateUser() gin.HandlerFunc {
 			http.StatusCreated,
 			structs.HttpResponse{
 				Success: true,
-				Data: map[string]interface{}{
-					"data": result,
-				},
+				Data:    result,
 			},
 		)
 	}
 }
 
+func UpdateUserById() gin.HandlerFunc {
+	return func(ctx_ *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		var userDto models.CreateUserDto
+
+		var age models.Property
+		bindUserDtoErr := ctx_.BindJSON(&userDto)
+		fmt.Println("bindUserDtoErr ====================================> ")
+		fmt.Println(bindUserDtoErr)
+
+		var user models.User
+		user.Name = userDto.Name
+		user.StudentId = userDto.StudentId
+		user.Major = userDto.Major
+		user.Gender = userDto.Gender == "남"
+		user.Army = userDto.Army == "필"
+
+		findPropertyErr := services.FindOneProperty(ctx, models.Age, userDto.Age).Decode(&age)
+		fmt.Println("findPropertyErr ====================================> ")
+		fmt.Println(findPropertyErr)
+
+		user.Age = age
+
+		// use the validator library to validate required fields
+		//if validationErr := validate.Struct(&user); validationErr != nil {
+		//	fmt.Println("validationErr ====================================> ")
+		//	fmt.Println(validationErr)
+		//	ctx_.JSON(
+		//		http.StatusBadRequest,
+		//		structs.HttpResponse{
+		//			Success: false,
+		//			Data: map[string]interface{}{
+		//				"data": validationErr.Error(),
+		//			},
+		//		},
+		//	)
+		//	return
+		//}
+
+		result, insertUserErr := services.InsertOneUser(ctx, user)
+
+		if insertUserErr != nil {
+			fmt.Println("insertUserErr ====================================> ")
+			fmt.Println(insertUserErr)
+			ctx_.JSON(
+				http.StatusInternalServerError,
+				structs.HttpResponse{
+					Success: false,
+					Data: map[string]interface{}{
+						"message": insertUserErr.Error(),
+					},
+				},
+			)
+			return
+		}
+
+		ctx_.JSON(
+			http.StatusCreated,
+			structs.HttpResponse{
+				Success: true,
+				Data:    result,
+			},
+		)
+	}
+}
 func GetUsers() gin.HandlerFunc {
 	return func(ctx_ *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -128,7 +236,7 @@ func GetUsers() gin.HandlerFunc {
 					structs.HttpResponse{
 						Success: false,
 						Data: map[string]interface{}{
-							"data": err.Error(),
+							"message": err.Error(),
 						},
 					},
 				)
@@ -140,61 +248,58 @@ func GetUsers() gin.HandlerFunc {
 			http.StatusOK,
 			structs.HttpResponse{
 				Success: true,
-				Data: map[string]interface{}{
-					"data": users,
-				},
+				Data:    users,
 			},
 		)
 	}
 }
 
-//func GetUserById() gin.HandlerFunc {
-//	return func(ctx_ *gin.Context) {
-//		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-//
-//		// get userId from params
-//		userId := ctx_.Param("userId")
-//
-//		var user models.User
-//		defer cancel()
-//
-//		_id, objectIdErr := primitive.ObjectIDFromHex(userId)
-//		if objectIdErr != nil {
-//			ctx_.JSON(
-//				http.StatusBadRequest,
-//				structs.HttpResponse{
-//					Success: false,
-//					Data: map[string]interface{}{
-//						"data": objectIdErr.Error(),
-//					},
-//				},
-//			)
-//			return
-//		}
-//
-//		err := userCollection.FindOne(ctx, bson.M{"_id": _id}).Decode(&user)
-//		if err != nil {
-//			ctx_.JSON(
-//				http.StatusInternalServerError,
-//				structs.HttpResponse{
-//					Success: false,
-//					Data: map[string]interface{}{
-//						"data": err.Error(),
-//					},
-//				},
-//			)
-//			return
-//		}
-//
-//		fmt.Println(user)
-//		ctx_.JSON(
-//			http.StatusOK,
-//			structs.HttpResponse{
-//				Success: true,
-//				Data: map[string]interface{}{
-//					"data": user,
-//				},
-//			},
-//		)
-//	}
-//}
+func GetUserById() gin.HandlerFunc {
+	return func(ctx_ *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+		// get userId from params
+		userId := ctx_.Param("userId")
+
+		var user models.User
+		defer cancel()
+
+		objectId, objectIdErr := primitive.ObjectIDFromHex(userId)
+		if objectIdErr != nil {
+			ctx_.JSON(
+				http.StatusBadRequest,
+				structs.HttpResponse{
+					Success: false,
+					Data: map[string]interface{}{
+						"message": objectIdErr.Error(),
+					},
+				},
+			)
+			return
+		}
+
+		err := services.FindOneUser(ctx, objectId).Decode(&user)
+		if err != nil {
+			ctx_.JSON(
+				http.StatusInternalServerError,
+				structs.HttpResponse{
+					Success: false,
+					Data: map[string]interface{}{
+						"message": err.Error(),
+					},
+				},
+			)
+			return
+		}
+
+		fmt.Println(user)
+
+		ctx_.JSON(
+			http.StatusOK,
+			structs.HttpResponse{
+				Success: true,
+				Data:    user,
+			},
+		)
+	}
+}

@@ -12,7 +12,6 @@ func EnvMongoURI() string {
 	if err != nil {
 		log.Fatal(".env file not found")
 	}
-
 	return os.Getenv("MONGODB_URI")
 }
 
@@ -21,6 +20,13 @@ func EnvDB() string {
 	if err != nil {
 		log.Fatal(".env file not found")
 	}
-
 	return os.Getenv("DB_NAME")
+}
+
+func HashKey() string {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(".env file not found")
+	}
+	return os.Getenv("HASH_KEY")
 }

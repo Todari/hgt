@@ -13,7 +13,8 @@ var userCollection = configs.GetCollection(configs.DB, "hgtUser")
 
 func InsertOneUser(ctx_ context.Context, user_ models.User) (*mongo.InsertOneResult, error) {
 	newUser := models.User{
-		Id:        primitive.NewObjectID(),
+		Id:        user_.Id,
+		Session:   user_.Session,
 		Name:      user_.Name,
 		StudentId: user_.StudentId,
 		Major:     user_.Major,
@@ -28,6 +29,6 @@ func FindManyUsers(ctx_ context.Context) (*mongo.Cursor, error) {
 	return userCollection.Find(ctx_, bson.M{})
 }
 
-func FindOneUser(ctx_ context.Context) *mongo.SingleResult {
-	return userCollection.FindOne(ctx_, bson.M{})
+func FindOneUser(ctx_ context.Context, objectId primitive.ObjectID) *mongo.SingleResult {
+	return userCollection.FindOne(ctx_, bson.M{"_id": objectId})
 }
