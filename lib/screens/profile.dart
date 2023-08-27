@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hgt/components/multi_selector_bottom_sheet.dart';
+import 'package:hgt/const/box_style.dart';
 import 'package:hgt/const/color_style.dart';
 import 'package:hgt/object/user.dart';
 import 'package:hgt/screens/login.dart';
@@ -30,6 +32,7 @@ class _ProfileState extends State<Profile> {
   var user = GetIt.I<HgtUser>(instanceName: "userInfo");
   List<dynamic> _selectedKeywords = [];
   List<dynamic> _selectedHobbies = [];
+  var _isChecked = false;
 
   var http = HgtHttp();
 
@@ -86,10 +89,33 @@ class _ProfileState extends State<Profile> {
                       "${user.studentId.substring(0, 2).replaceAll('A', '0').replaceAll('B', '1').replaceAll('C', '2')}학번 / ${user.age}세"),
                   infoItem("단과대", user.major.split(' ')[0]),
                   infoItem(
-                      "전공",
-                      user.major.substring(
-                        user.major.split(' ')[0].length + 1,
-                      )),
+                    "전공",
+                    user.major.substring(
+                      user.major.split(' ')[0].length + 1,
+                    ),
+                  ),
+                  Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "같은 전공 만나지 않기",
+                          style: HgtText.small(HgtColor.grey),
+                          textAlign: TextAlign.right,
+                        ),
+                        CupertinoCheckbox(
+                          value: _isChecked,
+                          onChanged: (isChecked) {
+                            setState(() {
+                              _isChecked = isChecked!;
+                            });
+                            print(_isChecked);
+                          },
+                        ),
+                      ],
+                    ),
+                  )
                 ],
               ),
             ),
@@ -250,7 +276,10 @@ class _ProfileState extends State<Profile> {
                         ));
               },
             ),
-            rangeSelector("", 130.0, 230.0, 130.0, 230.0),
+            // rangeSelector("", 130.0, 230.0, 130.0, 230.0),
+            SizedBox(
+              height: 32,
+            ),
             CupertinoButton.filled(
               child: Text(
                 "변경완료",
@@ -259,6 +288,9 @@ class _ProfileState extends State<Profile> {
               onPressed: () async {
                 await http.updateProperty(user.studentId, userProperty);
               },
+            ),
+            SizedBox(
+              height: 16,
             ),
             CupertinoButton.filled(
               child: Text(
@@ -301,7 +333,7 @@ class _ProfileState extends State<Profile> {
   Widget infoItem(title, text) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        vertical: 8.0,
+        vertical: 12.0,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -337,7 +369,7 @@ class _ProfileState extends State<Profile> {
   Widget infoItemSelectable(title, text) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        vertical: 8.0,
+        vertical: 12.0,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,

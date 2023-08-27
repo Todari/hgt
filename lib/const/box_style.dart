@@ -47,6 +47,16 @@ class HgtBox {
     );
   }
 
+  static BoxDecoration largeGrad = BoxDecoration(
+    gradient: HgtColor.primaryGrad,
+    borderRadius: BorderRadius.circular(16),
+  );
+
+  static BoxDecoration smallGrad = BoxDecoration(
+    gradient: HgtColor.primaryGrad,
+    borderRadius: BorderRadius.circular(8),
+  );
+
   static BoxDecoration largeBorder(color) {
     return BoxDecoration(
       border: Border.all(color: color, width: 3.0),

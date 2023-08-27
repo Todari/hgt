@@ -20,8 +20,13 @@ class HgtColor {
   // static Color tertiaryT(a) {
   //   return Color.fromARGB((a / 100 * 255).round(), 163, 213, 255);
   // }
-
-  static const Color primary = Color.fromARGB(255, 218, 143, 255);
+  static const Gradient primaryGrad = LinearGradient(colors: [
+    Color.fromARGB(255, 221, 196, 249),
+    Color.fromARGB(255, 204, 207, 249),
+    Color.fromARGB(255, 158, 215, 242)
+  ]);
+  // static const Color primary = Color.fromARGB(255, 218, 143, 255);
+  static const Color primary = CupertinoColors.systemOrange;
   static const Color secondary = Color.fromARGB(255, 255, 105, 97);
   static const Color tertiary = Color.fromARGB(255, 225, 204, 236);
   static const Color bg = Color.fromARGB(255, 241, 241, 246);
