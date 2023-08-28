@@ -289,20 +289,20 @@ class _ProfileState extends State<Profile> {
                 await http.updateProperty(user.studentId, userProperty);
               },
             ),
-            SizedBox(
-              height: 16,
-            ),
-            CupertinoButton.filled(
-              child: Text(
-                "로그아웃",
-                style: HgtText.large(HgtColor.white),
-              ),
-              onPressed: () async {
-                ctrl.removeLoginData();
-                Navigator.pushReplacement(context,
-                    CupertinoPageRoute(builder: ((context) => const Login())));
-              },
-            ),
+            // SizedBox(
+            //   height: 16,
+            // ),
+            // CupertinoButton.filled(
+            //   child: Text(
+            //     "로그아웃",
+            //     style: HgtText.large(HgtColor.white),
+            //   ),
+            //   onPressed: () async {
+            //     ctrl.removeLoginData();
+            //     Navigator.pushReplacement(context,
+            //         CupertinoPageRoute(builder: ((context) => const Login())));
+            //   },
+            // ),
           ],
         ),
       ]),
@@ -333,7 +333,7 @@ class _ProfileState extends State<Profile> {
   Widget infoItem(title, text) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        vertical: 12.0,
+        vertical: 16.0,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,

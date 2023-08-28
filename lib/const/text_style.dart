@@ -14,7 +14,7 @@ class HgtText {
   static TextStyle large(Color? color) {
     return TextStyle(
       fontFamily: font,
-      fontSize: 18,
+      fontSize: 20,
       fontWeight: FontWeight.normal,
       color: color,
     );
@@ -23,7 +23,7 @@ class HgtText {
   static TextStyle medium(Color? color) {
     return TextStyle(
       fontFamily: font,
-      fontSize: 14,
+      fontSize: 16,
       color: color,
     );
   }
@@ -31,7 +31,7 @@ class HgtText {
   static TextStyle small(Color? color) {
     return TextStyle(
       fontFamily: font,
-      fontSize: 12,
+      fontSize: 14,
       color: color,
     );
   }
