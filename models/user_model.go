@@ -1,46 +1,57 @@
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"fmt"
+	"github.com/golang-jwt/jwt/v5"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"os"
+	"time"
+)
+
+var (
+	jwtKey    = os.Getenv("jwtKey")
+	expiredAt = time.Date(9999, time.December, 31, 0, 0, 0, 0, time.UTC)
+)
 
 type User struct {
 	// 보안
-	Session string `json:"session,omitempty"` // login 시 갱신, session 유지 확인, Header Auth 통해 수신
+	Session string `bson:"session,omitempty"` // login 시 갱신, session 유지 확인, Header Auth 통해 수신
 
 	// 기본
-	Id        primitive.ObjectID `bson:"_id" json:"id,omitempty"`
-	Name      string             `json:"name,omitempty" validate:"required"`
-	StudentId string             `bson:"student_id" json:"studentId,omitempty" validate:"required"`
-	Major     string             `json:"major,omitempty" validate:"required"`
-	Gender    bool               `json:"gender,omitempty" validate:"required"` // 필수
-	Army      bool               `json:"army,omitempty" validate:"required"`   // 필수
-	Age       Property           `json:"age,omitempty" validate:"required"`    // 필수
+	Id        primitive.ObjectID `bson:"_id"`
+	Name      string             `bson:"name" validate:"required"`
+	StudentId string             `bson:"student_id" validate:"required"`
+	Major     string             `bson:"major" validate:"required"`
+	Gender    bool               `bson:"gender" validate:"required"` // 필수
+	Army      bool               `bson:"army" validate:"required"`   // 필수
+	Age       Property           `bson:"age" validate:"required"`    // 필수
 
 	// 옵션
-	Description string `json:"description,omitempty"`
+	Description string `bson:"description,omitempty"`
 
 	// 필수
-	Explore bool `json:"explore,omitempty"`
+	Explore bool `bson:"explore,omitempty"`
 
 	// 우선 property
-	Height   Property `json:"height,omitempty"`
-	Smoke    Property `json:"smoke,omitempty"`
-	Religion Property `json:"religion,omitempty"`
-	MBTI     Property `json:"mbti,omitempty"`
+	Height   Property `bson:"height,omitempty"`
+	Smoke    Property `bson:"smoke,omitempty"`
+	Religion Property `bson:"religion,omitempty"`
+	MBTI     Property `bson:"mbti,omitempty"`
 
 	// 필수 조건
-	CanCC bool `json:"canCC,omitempty"` // 동일 Major 허용
+	CanCC bool `bson:"canCC,omitempty"` // 동일 Major 허용
 
 	// 2차 우선
-	Hobbies  []Property `json:"hobbies,omitempty"`
-	Keywords []Property `json:"keywords,omitempty"`
+	Hobbies  []Property `bson:"hobbies,omitempty"`
+	Keywords []Property `bson:"keywords,omitempty"`
 
 	// Target
-	Target []Property `json:"target,omitempty"`
+	Target []Property `bson:"target,omitempty"`
 
 	// 제외
-	ExPartner []User `json:"exPartner,omitempty"`
+	ExPartner []User `bson:"exPartner,omitempty"`
 
-	Partner *User `json:"partner,omitempty"`
+	Partner *User `bson:"partner,omitempty"`
 }
 
 type CreateUserDto struct {
@@ -64,4 +75,26 @@ type UpdateUserDto struct {
 	Hobbies     []string
 	Keywords    []string
 	Target      []string
+}
+
+type Claims struct {
+	UserId primitive.ObjectID
+	jwt.MapClaims
+}
+
+func (user *User) GenerateJwtToken() (string, error) {
+	claims := &Claims{
+		UserId: user.Id,
+		MapClaims: jwt.MapClaims{
+			"exp": expiredAt,
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims.MapClaims)
+	tokenString, err := token.SignedString(jwtKey)
+
+	if err != nil {
+		return "", fmt.Errorf("jwt sign token error")
+	}
+
+	return tokenString, nil
 }

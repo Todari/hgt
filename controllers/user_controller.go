@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"github.com/Todari/hgt-server/configs"
 	"github.com/Todari/hgt-server/services"
@@ -53,7 +52,7 @@ func CreateUser() gin.HandlerFunc {
 		id := primitive.NewObjectID()
 		user.Id = id
 
-		// get Secure Key
+		// TODO: get Secure Key
 		time := time.Now().Unix()
 		hash := sha256.New()
 		hashString := id.Hex() + strconv.Itoa(int(time))
@@ -61,8 +60,8 @@ func CreateUser() gin.HandlerFunc {
 		hash.Write([]byte(hashString))
 		md := hash.Sum([]byte(configs.HashKey()))
 		fmt.Println(md)
-		user.Session = hex.EncodeToString(md)
-		fmt.Println(user.Session)
+		//user.Session = hex.EncodeToString(md)
+		//fmt.Println(user.Session)
 
 		user.Name = userDto.Name
 		user.StudentId = userDto.StudentId
