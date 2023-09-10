@@ -39,7 +39,9 @@ type User struct {
 	MBTI     Property `bson:"mbti,omitempty"`
 
 	// 필수 조건
-	CanCC bool `bson:"canCC,omitempty"` // 동일 Major 허용
+	CanCC        bool `bson:"canCC,omitempty"` // 동일 Major 허용
+	TargetAgeMin int `bson:"target_age_min,omitempty"`
+	TargetAgeMax int `bson:"target_age_max,omitempty"`
 
 	// 2차 우선
 	Hobbies  []Property `bson:"hobbies,omitempty"`
@@ -71,8 +73,11 @@ type UpdateUserDto struct {
 	MBTI        string
 	Description string
 	CanCC       bool
+	TargetAgeMin int
+	TargetAgeMax int
 	Explore     bool
 	Hobbies     []string
+
 	Keywords    []string
 	Target      []string
 }

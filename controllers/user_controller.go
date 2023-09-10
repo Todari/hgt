@@ -70,25 +70,25 @@ func CreateUser() gin.HandlerFunc {
 		user.Army = userDto.Army == "필"
 
 		// get Property Age
-		var age models.Property
+		//var age models.Property
 
-		findPropertyErr := services.FindOneProperty(ctx, models.Age, userDto.Age).Decode(&age)
-		if findPropertyErr != nil {
-			fmt.Println("findPropertyErr ====================================> ")
-			fmt.Println(findPropertyErr)
-			ctx_.JSON(
-				http.StatusInternalServerError,
-				structs.HttpResponse{
-					Success: false,
-					Data: map[string]interface{}{
-						"message": findPropertyErr.Error(),
-					},
-				},
-			)
-			return
-		}
+		//findPropertyErr := services.FindOneProperty(ctx, models.Age, userDto.Age).Decode(&age)
+		//if findPropertyErr != nil {
+		//	fmt.Println("findPropertyErr ====================================> ")
+		//	fmt.Println(findPropertyErr)
+		//	ctx_.JSON(
+		//		http.StatusInternalServerError,
+		//		structs.HttpResponse{
+		//			Success: false,
+		//			Data: map[string]interface{}{
+		//				"message": findPropertyErr.Error(),
+		//			},
+		//		},
+		//	)
+		//	return
+		//}
 
-		user.Age = age
+		//user.Age = age
 
 		// use the validator library to validate required fields
 		//if validationErr := validate.Struct(&user); validationErr != nil {
