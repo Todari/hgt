@@ -24,7 +24,7 @@ type User struct {
 	Major     string             `bson:"major" validate:"required"`
 	Gender    bool               `bson:"gender" validate:"required"` // 필수
 	Army      bool               `bson:"army" validate:"required"`   // 필수
-	Age       Property           `bson:"age" validate:"required"`    // 필수
+	Age       int                `bson:"age" validate:"required"`    // 필수
 
 	// 옵션
 	Description string `bson:"description,omitempty"`
@@ -33,27 +33,27 @@ type User struct {
 	Explore bool `bson:"explore,omitempty"`
 
 	// 우선 property
-	Height   Property `bson:"height,omitempty"`
-	Smoke    Property `bson:"smoke,omitempty"`
-	Religion Property `bson:"religion,omitempty"`
-	MBTI     Property `bson:"mbti,omitempty"`
+	Height   primitive.ObjectID `bson:"height,omitempty"`
+	Smoke    primitive.ObjectID `bson:"smoke,omitempty"`
+	Religion primitive.ObjectID `bson:"religion,omitempty"`
+	MBTI     primitive.ObjectID `bson:"mbti,omitempty"`
 
 	// 필수 조건
-	CanCC        bool `bson:"canCC,omitempty"` // 동일 Major 허용
-	TargetMinAge int `bson:"target_min_age,omitempty"`
-	TargetMaxAge int `bson:"target_max_age,omitempty"`
+	CanCC        bool `bson:"can_cc,omitempty"` // 동일 Major 허용
+	TargetMinAge int  `bson:"target_min_age,omitempty"`
+	TargetMaxAge int  `bson:"target_max_age,omitempty"`
 
 	// 2차 우선
-	Hobbies  []Property `bson:"hobbies,omitempty"`
-	Keywords []Property `bson:"keywords,omitempty"`
+	Hobbies  []primitive.ObjectID `bson:"hobbies,omitempty"`
+	Keywords []primitive.ObjectID `bson:"keywords,omitempty"`
 
 	// Target
-	Target []Property `bson:"target,omitempty"`
+	Target []primitive.ObjectID `bson:"target,omitempty"`
 
 	// 제외
-	ExPartner []User `bson:"exPartner,omitempty"`
+	ExPartner []primitive.ObjectID `bson:"ex_partner,omitempty"`
 
-	Partner *User `bson:"partner,omitempty"`
+	Partner primitive.ObjectID `bson:"partner,omitempty"`
 }
 
 type CreateUserDto struct {
@@ -66,20 +66,20 @@ type CreateUserDto struct {
 }
 
 type UpdateUserDto struct {
-	Id          string
-	Height      string
-	Smoke       string
-	Religion    string
-	MBTI        string
-	Description string
-	CanCC       bool
+	Id           string
+	Height       string
+	Smoke        string
+	Religion     string
+	MBTI         string
+	Description  string
+	CanCC        bool
 	TargetMinAge int
 	TargetMaxAge int
-	Explore     bool
-	Hobbies     []string
+	Explore      bool
+	Hobbies      []string
 
-	Keywords    []string
-	Target      []string
+	Keywords []string
+	Target   []string
 }
 
 type Claims struct {

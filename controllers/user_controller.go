@@ -30,9 +30,7 @@ func CreateUser() gin.HandlerFunc {
 
 		bindUserDtoErr := ctx_.BindJSON(&userDto)
 		if bindUserDtoErr != nil {
-
 			fmt.Println("bindUserDtoErr ====================================> ")
-
 			fmt.Println(bindUserDtoErr)
 			ctx_.JSON(
 				http.StatusInternalServerError,
@@ -66,6 +64,23 @@ func CreateUser() gin.HandlerFunc {
 		user.Name = userDto.Name
 		user.StudentId = userDto.StudentId
 		user.Major = userDto.Major
+
+		ageInt, strToIntErr := strconv.Atoi(userDto.Age)
+		if strToIntErr != nil {
+			fmt.Println("strToIntErr  ====================================> ")
+			fmt.Println(strToIntErr)
+			ctx_.JSON(
+				http.StatusInternalServerError,
+				structs.HttpResponse{
+					Success: false,
+					Data: map[string]interface{}{
+						"message": strToIntErr.Error(),
+					},
+				},
+			)
+			return
+		}
+		user.Age = ageInt
 		user.Gender = userDto.Gender == "남"
 		user.Army = userDto.Army == "필"
 
@@ -140,7 +155,7 @@ func UpdateUserById() gin.HandlerFunc {
 
 		var userDto models.CreateUserDto
 
-		var age models.Property
+		//var age models.Property
 		bindUserDtoErr := ctx_.BindJSON(&userDto)
 		fmt.Println("bindUserDtoErr ====================================> ")
 		fmt.Println(bindUserDtoErr)
@@ -152,11 +167,11 @@ func UpdateUserById() gin.HandlerFunc {
 		user.Gender = userDto.Gender == "남"
 		user.Army = userDto.Army == "필"
 
-		findPropertyErr := services.FindOneProperty(ctx, models.Age, userDto.Age).Decode(&age)
-		fmt.Println("findPropertyErr ====================================> ")
-		fmt.Println(findPropertyErr)
+		//findPropertyErr := services.FindOneProperty(ctx, models.Age, userDto.Age).Decode(&age)
+		//fmt.Println("findPropertyErr ====================================> ")
+		//fmt.Println(findPropertyErr)
 
-		user.Age = age
+		//user.Age = age
 
 		// use the validator library to validate required fields
 		//if validationErr := validate.Struct(&user); validationErr != nil {
@@ -225,6 +240,7 @@ func GetUsers() gin.HandlerFunc {
 			if err != nil {
 				log.Fatal(err)
 			}
+			return
 		}(results, ctx)
 
 		for results.Next(ctx) {
@@ -239,6 +255,7 @@ func GetUsers() gin.HandlerFunc {
 						},
 					},
 				)
+				return
 			}
 			users = append(users, user)
 		}
