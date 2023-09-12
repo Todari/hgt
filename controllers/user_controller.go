@@ -3,9 +3,11 @@ package controllers
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"github.com/Todari/hgt-server/configs"
 	"github.com/Todari/hgt-server/services"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
@@ -37,7 +39,7 @@ func CreateUser() gin.HandlerFunc {
 				structs.HttpResponse{
 					Success: false,
 					Data: map[string]interface{}{
-						"message": bindUserDtoErr.Error(),
+						"message": "[Bing UserDto Error] => " + bindUserDtoErr.Error(),
 					},
 				},
 			)
@@ -51,15 +53,12 @@ func CreateUser() gin.HandlerFunc {
 		user.Id = id
 
 		// TODO: get Secure Key
-		time := time.Now().Unix()
+		currTime := time.Now().Unix()
 		hash := sha256.New()
-		hashString := id.Hex() + strconv.Itoa(int(time))
-		fmt.Println(hashString)
+		hashString := id.Hex() + strconv.Itoa(int(currTime))
 		hash.Write([]byte(hashString))
 		md := hash.Sum([]byte(configs.HashKey()))
-		fmt.Println(md)
-		//user.Session = hex.EncodeToString(md)
-		//fmt.Println(user.Session)
+		user.Session = hex.EncodeToString(md)
 
 		user.Name = userDto.Name
 		user.StudentId = userDto.StudentId
@@ -74,7 +73,7 @@ func CreateUser() gin.HandlerFunc {
 				structs.HttpResponse{
 					Success: false,
 					Data: map[string]interface{}{
-						"message": strToIntErr.Error(),
+						"message": "[Convert String to Int Error] => " + strToIntErr.Error(),
 					},
 				},
 			)
@@ -124,14 +123,12 @@ func CreateUser() gin.HandlerFunc {
 		result, insertUserErr := services.InsertOneUser(ctx, user)
 
 		if insertUserErr != nil {
-			fmt.Println("insertUserErr ====================================> ")
-			fmt.Println(insertUserErr)
 			ctx_.JSON(
 				http.StatusInternalServerError,
 				structs.HttpResponse{
 					Success: false,
 					Data: map[string]interface{}{
-						"message": insertUserErr.Error(),
+						"message": "[Insert User Error] => " + insertUserErr.Error(),
 					},
 				},
 			)
@@ -294,7 +291,7 @@ func GetUserById() gin.HandlerFunc {
 			return
 		}
 
-		err := services.FindOneUser(ctx, objectId).Decode(&user)
+		err := services.FindOneUser(ctx, bson.M{"_id": objectId}).Decode(&user)
 		if err != nil {
 			ctx_.JSON(
 				http.StatusInternalServerError,

@@ -5,7 +5,6 @@ import (
 	"github.com/Todari/hgt-server/configs"
 	"github.com/Todari/hgt-server/models"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -29,6 +28,6 @@ func FindManyUsers(ctx_ context.Context) (*mongo.Cursor, error) {
 	return userCollection.Find(ctx_, bson.M{})
 }
 
-func FindOneUser(ctx_ context.Context, objectId primitive.ObjectID) *mongo.SingleResult {
-	return userCollection.FindOne(ctx_, bson.M{"_id": objectId})
+func FindOneUser(ctx_ context.Context, match bson.M) *mongo.SingleResult {
+	return userCollection.FindOne(ctx_, match)
 }

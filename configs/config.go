@@ -59,12 +59,12 @@ func ConnectDB() *mongo.Client {
 var DB = ConnectDB()
 
 // GetCollection getting database collections
-func GetCollection(client_ *mongo.Client, collectionName_ string) *mongo.Collection {
+func GetCollection(client *mongo.Client, collectionName string) *mongo.Collection {
 	db := EnvDB()
 	if db == "" {
 		log.Fatal("DB_NAME not found")
 	}
 
-	collection := client_.Database(db).Collection(collectionName_)
+	collection := client.Database(db).Collection(collectionName)
 	return collection
 }
