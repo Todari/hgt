@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var propertyCollection = configs.GetCollection(configs.DB, "hgtProperty")
+var propertyCollection = configs.GetCollection(configs.DB, "properties")
 
 func InsertOneProperty(ctx_ context.Context, property_ models.Property) (*mongo.InsertOneResult, error) {
 	newProperty := models.Property{
@@ -20,11 +20,11 @@ func InsertOneProperty(ctx_ context.Context, property_ models.Property) (*mongo.
 	return propertyCollection.InsertOne(ctx_, newProperty)
 }
 
-func FindManyProperties(ctx_ context.Context) (*mongo.Cursor, error) {
+func SelectManyProperties(ctx_ context.Context) (*mongo.Cursor, error) {
 	return propertyCollection.Find(ctx_, bson.M{})
 }
 
-func FindOneProperty(ctx_ context.Context, propertyType_ models.PropertyType, value_ string) *mongo.SingleResult {
+func SelectOneProperty(ctx_ context.Context, propertyType_ models.PropertyType, value_ string) *mongo.SingleResult {
 	return propertyCollection.FindOne(ctx_, bson.M{
 		"type":  propertyType_,
 		"value": value_,

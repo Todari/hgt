@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var userCollection = configs.GetCollection(configs.DB, "hgtUser")
+var userCollection = configs.GetCollection(configs.DB, "users")
 
 func InsertOneUser(ctx_ context.Context, user_ models.User) (*mongo.InsertOneResult, error) {
 	newUser := models.User{

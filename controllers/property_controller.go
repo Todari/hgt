@@ -81,7 +81,7 @@ func GetProperties() gin.HandlerFunc {
 		var properties []models.Property
 		defer cancel()
 
-		results, err := services.FindManyProperties(ctx)
+		results, err := services.SelectManyProperties(ctx)
 		if err != nil {
 			ctx_.JSON(
 				http.StatusInternalServerError,
@@ -140,7 +140,7 @@ func GetProperty() gin.HandlerFunc {
 
 		var property models.Property
 
-		err := services.FindOneProperty(ctx, propertyType, value).Decode(&property)
+		err := services.SelectOneProperty(ctx, propertyType, value).Decode(&property)
 
 		if err != nil {
 			ctx_.JSON(

@@ -20,6 +20,7 @@ func main() {
 	})
 
 	// routers
+	routes.AuthRouter(router)
 	routes.UserRouter(router)
 	routes.PropertyRouter(router)
 
