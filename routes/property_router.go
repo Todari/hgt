@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func PropertyRouter(router_ *gin.Engine) {
+func PropertyRouter(router_ *gin.RouterGroup) {
 	router_.POST("/property", controllers.CreateProperty())
 	router_.GET("/property", controllers.GetProperties())
 	router_.GET("/property/:type", controllers.GetProperty())

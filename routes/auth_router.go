@@ -5,6 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthRouter(router *gin.Engine) {
+func AuthRouter(router *gin.RouterGroup) {
 	router.POST("/signin", controllers.SignIn())
 }

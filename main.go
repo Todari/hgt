@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Todari/hgt-server/middlewares"
 	"net/http"
 
 	"github.com/Todari/hgt-server/configs"
@@ -19,10 +20,17 @@ func main() {
 		ctx_.String(http.StatusOK, "Hello, World!")
 	})
 
-	// routers
-	routes.AuthRouter(router)
-	routes.UserRouter(router)
-	routes.PropertyRouter(router)
+	public := router.Group("/")
+	routes.AuthRouter(public)
 
-	router.Run("localhost:8080")
+	protected := router.Group("/")
+	protected.Use(middlewares.AuthMiddleware())
+	routes.UserRouter(protected)
+	routes.PropertyRouter(protected)
+
+	err := router.Run("localhost:8080")
+
+	if err != nil {
+		return
+	}
 }
