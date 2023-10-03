@@ -1,14 +1,16 @@
 package middlewares
 
 import (
-	"github.com/Todari/hgt-server/controllers"
+	"fmt"
+	"github.com/Todari/hgt-server/utils/token"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
-		err := controllers.TokenValid(ginContext)
+		fmt.Println("Check Token Middleware ====================================> ")
+		err := token.CheckTokenValidation(ginContext)
 		if err != nil {
 			ginContext.String(http.StatusUnauthorized, "Token expired")
 			ginContext.Abort()

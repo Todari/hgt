@@ -10,24 +10,28 @@ import (
 
 var userCollection = configs.GetCollection(configs.DB, "users")
 
-func InsertOneUser(ctx_ context.Context, user_ models.User) (*mongo.InsertOneResult, error) {
+func InsertOneUser(ctx context.Context, user models.User) (*mongo.InsertOneResult, error) {
 	newUser := models.User{
-		Id:        user_.Id,
-		Session:   user_.Session,
-		Name:      user_.Name,
-		StudentId: user_.StudentId,
-		Major:     user_.Major,
-		Gender:    user_.Gender,
-		Age:       user_.Age,
+		Id:        user.Id,
+		Session:   user.Session,
+		Name:      user.Name,
+		StudentId: user.StudentId,
+		Major:     user.Major,
+		Gender:    user.Gender,
+		Age:       user.Age,
 	}
 
-	return userCollection.InsertOne(ctx_, newUser)
+	return userCollection.InsertOne(ctx, newUser)
 }
 
-func FindManyUsers(ctx_ context.Context) (*mongo.Cursor, error) {
-	return userCollection.Find(ctx_, bson.M{})
+func FindManyUsers(ctx context.Context) (*mongo.Cursor, error) {
+	return userCollection.Find(ctx, bson.M{})
 }
 
-func FindOneUser(ctx_ context.Context, match bson.M) *mongo.SingleResult {
-	return userCollection.FindOne(ctx_, match)
+func FindOneUser(ctx context.Context, match bson.M) *mongo.SingleResult {
+	return userCollection.FindOne(ctx, match)
+}
+
+func UpdateOneUser(ctx context.Context, match bson.M, user models.User) (*mongo.UpdateResult, error) {
+	return userCollection.UpdateOne(ctx, match, user)
 }

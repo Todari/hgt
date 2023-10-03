@@ -30,3 +30,19 @@ func HashKey() string {
 	}
 	return os.Getenv("HASH_KEY")
 }
+
+func CipherKey() string {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(".env file not found")
+	}
+	return os.Getenv("CIPHER_KEY")
+}
+
+func CipherIvKey() string {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(".env file not found")
+	}
+	return os.Getenv("CIPHER_IV_KEY")
+}

@@ -4,21 +4,43 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	"github.com/Todari/hgt-server/configs"
 	"github.com/gin-gonic/gin"
+	"strconv"
 	"strings"
+	"time"
 )
 
-// The createToken function create session token by hashing id using SHA-256
-func createToken(idString string) {
-
+var cryptoKeys = cryptoKeyStruct{
+	cipherKey:   configs.CipherKey(),
+	cipherIvKey: configs.CipherIvKey(),
 }
 
-// The TokenValid check token if valid
-func TokenValid(c *gin.Context) error {
-	token := ExtractToken(c)
-	fmt.Println(token)
+// The CreateSession function create session token by hashing id using SHA-256
+func CreateSession(idString string) string {
+	milliSec := time.Now().UnixMilli()
+	fmt.Println(milliSec)
+	text := idString + "_" + strconv.Itoa(int(milliSec)) + configs.HashKey()
+	hash := sha256.New()
+	hash.Write([]byte(text))
+	md := hash.Sum(nil)
+	mdStr := hex.EncodeToString(md)
+	fmt.Println(mdStr)
+	return mdStr
+}
+
+// The CheckTokenValidation check token if valid
+func CheckTokenValidation(ginContext *gin.Context) error {
+	token := ExtractToken(ginContext)
+	text, err := cryptoKeys.Decrypt(token)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(text)
 	return nil
 }
 
@@ -35,13 +57,13 @@ func ExtractToken(c *gin.Context) string {
  * Crypto func
  */
 // The cryptoKeys struct
-type cryptoKeys struct {
+type cryptoKeyStruct struct {
 	cipherKey   string
 	cipherIvKey string
 }
 
 // The Encrypt function encrypt text by AES
-func (c cryptoKeys) Encrypt(plainText string) (string, error) {
+func (c cryptoKeyStruct) Encrypt(plainText string) (string, error) {
 	if strings.TrimSpace(plainText) == "" {
 		return plainText, nil
 	}
@@ -63,7 +85,7 @@ func (c cryptoKeys) Encrypt(plainText string) (string, error) {
 }
 
 // The Decrypt function decrypt text from crypto by AES
-func (c cryptoKeys) Decrypt(cipherText string) (string, error) {
+func (c cryptoKeyStruct) Decrypt(cipherText string) (string, error) {
 	if strings.TrimSpace(cipherText) == "" {
 		return cipherText, nil
 	}
