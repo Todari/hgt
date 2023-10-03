@@ -116,15 +116,17 @@ func SignIn() gin.HandlerFunc {
 				return
 			}
 		}
+
 		fmt.Println("user ====================================> start ")
 		fmt.Println(user)
 		fmt.Println("user ====================================> end ")
+
 		ginCtx.JSON(
 			http.StatusInternalServerError,
 			structs.HttpResponse{
 				Success: true,
 				Data: map[string]interface{}{
-					"message": user,
+					"message": token.CryptoKeys.Encrypt(user.Session),
 				},
 			},
 		)

@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-var cryptoKeys = cryptoKeyStruct{
+var CryptoKeys = cryptoKeyStruct{
 	cipherKey:   configs.CipherKey(),
 	cipherIvKey: configs.CipherIvKey(),
 }
@@ -36,7 +36,7 @@ func CreateSession(idString string) string {
 // The CheckTokenValidation check token if valid
 func CheckTokenValidation(ginContext *gin.Context) error {
 	token := ExtractToken(ginContext)
-	text, err := cryptoKeys.Decrypt(token)
+	text, err := CryptoKeys.Decrypt(token)
 	if err != nil {
 		fmt.Println(err)
 	}
