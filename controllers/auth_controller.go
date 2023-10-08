@@ -40,7 +40,7 @@ func SignIn() gin.HandlerFunc {
 		findUserResult := services.FindOneUser(ctx, bson.M{"student_id": userDto.StudentId})
 
 		// if user not exist
-		if findUserResult == nil {
+		if findUserResult.Err() != nil {
 			// new Id
 			id := primitive.NewObjectID()
 
@@ -98,12 +98,15 @@ func SignIn() gin.HandlerFunc {
 				)
 				return
 			}
+			fmt.Println(user)
 
 			// add session
 			user.Session = token.CreateSession(user.Id.Hex())
 
-			_, updateUserErr := services.UpdateOneUser(ctx, bson.M{"_id": user.Id}, user)
+			_, updateUserErr := services.UpdateOneUser(ctx, bson.M{"_id": user.Id}, bson.M{"session": user.Session})
 			if updateUserErr != nil {
+				errR := fmt.Errorf("[updateUserErr] => %s", updateUserErr.Error())
+				fmt.Println(errR)
 				ginCtx.JSON(
 					http.StatusInternalServerError,
 					structs.HttpResponse{
@@ -117,16 +120,12 @@ func SignIn() gin.HandlerFunc {
 			}
 		}
 
-		fmt.Println("user ====================================> start ")
-		fmt.Println(user)
-		fmt.Println("user ====================================> end ")
-
 		ginCtx.JSON(
 			http.StatusInternalServerError,
 			structs.HttpResponse{
 				Success: true,
 				Data: map[string]interface{}{
-					"message": token.CryptoKeys.Encrypt(user.Session),
+					"message": user.Session,
 				},
 			},
 		)

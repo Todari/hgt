@@ -32,6 +32,6 @@ func FindOneUser(ctx context.Context, match bson.M) *mongo.SingleResult {
 	return userCollection.FindOne(ctx, match)
 }
 
-func UpdateOneUser(ctx context.Context, match bson.M, user models.User) (*mongo.UpdateResult, error) {
-	return userCollection.UpdateOne(ctx, match, user)
+func UpdateOneUser(ctx context.Context, match bson.M, update bson.M) (*mongo.UpdateResult, error) {
+	return userCollection.UpdateOne(ctx, match, bson.D{{"$set", update}})
 }
