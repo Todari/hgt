@@ -6,6 +6,7 @@ import 'package:hgt/const/box_style.dart';
 import 'package:hgt/const/color_style.dart';
 import 'package:hgt/object/user.dart';
 import 'package:hgt/screens/login.dart';
+import 'package:hgt/components/mbti_picker_bottomsheet.dart';
 import 'package:hgt/services/login_data_control.dart';
 import '../const/text_style.dart';
 import '../object/property.dart';
@@ -36,7 +37,7 @@ class _ProfileState extends State<Profile> {
 
   var http = HgtHttp();
 
-  Property userProperty = Property("", "", "", [], []);
+  Property userProperty = Property([], "", "", "", [], []);
 
   @override
   void initState() {
@@ -60,7 +61,7 @@ class _ProfileState extends State<Profile> {
       navigationBar: CupertinoNavigationBar(
         middle: Text(
           "내 프로필",
-          style: HgtText.large(HgtColor.black),
+          style: HgtText.titleLarge(HgtColor.black),
         ),
         backgroundColor: HgtColor.white,
       ),
@@ -101,7 +102,7 @@ class _ProfileState extends State<Profile> {
                       children: [
                         Text(
                           "같은 전공 만나지 않기",
-                          style: HgtText.small(HgtColor.grey),
+                          style: HgtText.bodyTinyRegular(HgtColor.grey),
                           textAlign: TextAlign.right,
                         ),
                         CupertinoCheckbox(
@@ -122,6 +123,15 @@ class _ProfileState extends State<Profile> {
             titleWidget("개인정보"),
             const SizedBox(
               height: 8,
+            ),
+            GestureDetector(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: infoItemSelectable("MBTI", userProperty.mbti),
+              ),
+              onTap: () {
+                _showDialog(const MbtiSelectBottomSheet());
+              },
             ),
             GestureDetector(
               child: Padding(
@@ -283,7 +293,7 @@ class _ProfileState extends State<Profile> {
             CupertinoButton.filled(
               child: Text(
                 "변경완료",
-                style: HgtText.large(HgtColor.white),
+                style: HgtText.bodyLargeMedium(HgtColor.white),
               ),
               onPressed: () async {
                 await http.updateProperty(user.studentId, userProperty);
@@ -323,7 +333,7 @@ class _ProfileState extends State<Profile> {
           child: Text(
             title,
             textAlign: TextAlign.left,
-            style: HgtText.small(HgtColor.black),
+            style: HgtText.bodyMediumRegular(HgtColor.black),
           ),
         ),
       ],
@@ -344,7 +354,7 @@ class _ProfileState extends State<Profile> {
             width: 80,
             child: Text(
               title,
-              style: HgtText.medium(HgtColor.black),
+              style: HgtText.bodyLargeMedium(HgtColor.black),
             ),
           ),
           const SizedBox(
@@ -356,7 +366,7 @@ class _ProfileState extends State<Profile> {
               alignment: Alignment.centerRight,
               child: Text(
                 text,
-                style: HgtText.medium(HgtColor.grey),
+                style: HgtText.bodyLargeMedium(HgtColor.grey),
                 textAlign: TextAlign.right,
               ),
             ),
@@ -380,7 +390,7 @@ class _ProfileState extends State<Profile> {
             // width: 80,
             child: Text(
               title,
-              style: HgtText.medium(HgtColor.black),
+              style: HgtText.bodyLargeMedium(HgtColor.black),
             ),
           ),
           const SizedBox(
@@ -392,7 +402,7 @@ class _ProfileState extends State<Profile> {
               alignment: Alignment.centerRight,
               child: Text(
                 text,
-                style: HgtText.medium(HgtColor.grey),
+                style: HgtText.bodyLargeMedium(HgtColor.grey),
                 textAlign: TextAlign.right,
               ),
             ),
@@ -418,7 +428,7 @@ class _ProfileState extends State<Profile> {
                   ? ""
                   : list.toString().substring(1, list.toString().length - 1),
               textAlign: TextAlign.right,
-              style: HgtText.medium(HgtColor.grey),
+              style: HgtText.bodyLargeMedium(HgtColor.grey),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

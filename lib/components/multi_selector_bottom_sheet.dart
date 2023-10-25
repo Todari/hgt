@@ -89,7 +89,7 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
             alignment: Alignment.centerLeft,
             child: Text(
               "키워드",
-              style: HgtText.large(HgtColor.black),
+              style: HgtText.titleLarge(HgtColor.black),
               textAlign: TextAlign.left,
             ),
           ),
@@ -98,7 +98,7 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
             alignment: Alignment.centerLeft,
             child: Text(
               "자신을 나타내는 키워드를 2~5가지 선택해 주세요",
-              style: HgtText.medium(HgtColor.grey),
+              style: HgtText.bodyLargeMedium(HgtColor.grey),
               textAlign: TextAlign.left,
             ),
           ),
@@ -109,7 +109,7 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
               alignment: Alignment.centerLeft,
               child: Text(
                 "키워드는 5개 까지만 선택할 수 있어요",
-                style: HgtText.medium(HgtColor.secondary),
+                style: HgtText.bodyLargeMedium(HgtColor.secondary),
                 textAlign: TextAlign.left,
               ),
             ),
@@ -137,7 +137,7 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
             alignment: Alignment.centerLeft,
             child: Text(
               "취미",
-              style: HgtText.large(HgtColor.black),
+              style: HgtText.titleLarge(HgtColor.black),
               textAlign: TextAlign.left,
             ),
           ),
@@ -146,7 +146,7 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
             alignment: Alignment.centerLeft,
             child: Text(
               "즐겨하는 취미활동을 2~5가지 선택해 주세요",
-              style: HgtText.medium(HgtColor.grey),
+              style: HgtText.bodyLargeMedium(HgtColor.grey),
               textAlign: TextAlign.left,
             ),
           ),
@@ -157,7 +157,7 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
               alignment: Alignment.centerLeft,
               child: Text(
                 "취미는 5개 까지만 선택할 수 있어요",
-                style: HgtText.medium(HgtColor.secondary),
+                style: HgtText.bodyLargeMedium(HgtColor.secondary),
                 textAlign: TextAlign.left,
               ),
             ),
@@ -193,7 +193,10 @@ class _MultiSelectorBottomSheetState extends State<MultiSelectorBottomSheet> {
                         Navigator.pop(context);
                       }
                     : null,
-            child: const Text("선택 완료"),
+            child: Text(
+              "선택 완료",
+              style: HgtText.titleSmall(HgtColor.white),
+            ),
           )
         ],
       ),

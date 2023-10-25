@@ -26,7 +26,7 @@ class HgtColor {
     Color.fromARGB(255, 158, 215, 242)
   ]);
   // static const Color primary = Color.fromARGB(255, 218, 143, 255);
-  static const Color primary = CupertinoColors.systemOrange;
+  static const Color primary = Color.fromARGB(255, 255, 149, 0);
   static const Color secondary = Color.fromARGB(255, 255, 105, 97);
   static const Color tertiary = Color.fromARGB(255, 225, 204, 236);
   static const Color bg = Color.fromARGB(255, 241, 241, 246);

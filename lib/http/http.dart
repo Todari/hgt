@@ -8,6 +8,17 @@ import 'package:http/http.dart' as http;
 class HgtHttp {
   String hgtURL = dotenv.get("hgtURL");
 //
+  Future<int> getToken(studentId) async {
+    final url = Uri.http(hgtURL, '/signin');
+    var response = await http.post(url,
+        body: jsonEncode(<String, String>{
+          'student_id': studentId,
+        }));
+    var result = jsonDecode(response.body);
+    print(response.body);
+    return response.statusCode;
+  }
+
   Future<int> addUser(user) async {
     final url = Uri.http(hgtURL, '/user');
     final getUrl = Uri.http(hgtURL, '/user/${user.studentId}');
@@ -59,6 +70,7 @@ class HgtHttp {
       body: jsonEncode(
         <String, dynamic>{
           "studentId": studentId,
+          "mbti": property.mbti,
           "height": property.height,
           "smoke": property.smoke,
           "religion": property.religion,

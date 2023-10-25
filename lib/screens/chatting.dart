@@ -40,7 +40,7 @@ class _ChattingState extends State<Chatting> {
       navigationBar: CupertinoNavigationBar(
         middle: Text(
           "채팅",
-          style: HgtText.large(HgtColor.black),
+          style: HgtText.titleLarge(HgtColor.black),
         ),
         backgroundColor: HgtColor.white,
       ),
@@ -90,7 +90,8 @@ class _ChattingState extends State<Chatting> {
                         child: CupertinoTextField(
                           onSubmitted: _handleSubmit,
                           placeholder: "Enter a message...",
-                          placeholderStyle: HgtText.medium(HgtColor.grey2),
+                          placeholderStyle:
+                              HgtText.bodyMediumRegular(HgtColor.grey2),
                           controller: _chatController,
                         ),
                       ),
@@ -182,8 +183,8 @@ class Message extends StatelessWidget {
               child: Text(
                 content,
                 style: me
-                    ? HgtText.medium(HgtColor.white)
-                    : HgtText.medium(HgtColor.black),
+                    ? HgtText.bodyMediumRegular(HgtColor.white)
+                    : HgtText.bodyMediumRegular(HgtColor.black),
               ),
             ),
           )
@@ -211,7 +212,7 @@ class SendButton extends StatelessWidget {
         onPressed: callback,
         child: Text(
           text,
-          style: HgtText.medium(HgtColor.white),
+          style: HgtText.bodyMediumRegular(HgtColor.white),
         ),
       ),
     );

@@ -50,8 +50,8 @@ class _MultiSelectorState extends State<MultiSelector> {
             selectedDecoration: HgtBox.chipSelected,
           ),
           textStyles: MultiSelectTextStyles(
-            textStyle: HgtText.medium(HgtColor.grey),
-            selectedTextStyle: HgtText.medium(HgtColor.white),
+            textStyle: HgtText.bodySmallRegular(HgtColor.grey),
+            selectedTextStyle: HgtText.bodySmallRegular(HgtColor.white),
           ),
           items: [
             for (var i in widget.list)

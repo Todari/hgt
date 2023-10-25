@@ -95,6 +95,8 @@ class _LoginState extends State<Login> {
     print(userInfo);
     if (userInfo.name != "") {
       await http.addUser(userInfo);
+      await http.getToken(userInfo.studentId);
+
       //@*TODO: DB 정보가 최신화 되어있지 않을때 최신화 시키기
       if (!context.mounted) return;
       Navigator.push(
@@ -135,14 +137,14 @@ class _LoginState extends State<Login> {
                   children: [
                     Text(
                       "* 클래스넷 로그인 정보는 저장되지 않으며",
-                      style: HgtText.medium(HgtColor.grey),
+                      style: HgtText.bodySmallRegular(HgtColor.grey),
                     ),
                     const SizedBox(
                       height: 4,
                     ),
                     Text(
                       "홍익대 학생임을 증명하는데만 사용돼요 :)",
-                      style: HgtText.medium(HgtColor.grey),
+                      style: HgtText.bodySmallRegular(HgtColor.grey),
                     )
                   ],
                 ),
@@ -151,7 +153,7 @@ class _LoginState extends State<Login> {
                 width: 240,
                 child: CupertinoTextField(
                   controller: _idController,
-                  style: HgtText.large(HgtColor.black),
+                  style: HgtText.bodyMediumRegular(HgtColor.black),
                   placeholder: "학번",
                   clearButtonMode: OverlayVisibilityMode.editing,
                   maxLength: 8,
@@ -171,7 +173,7 @@ class _LoginState extends State<Login> {
                 width: 240,
                 child: CupertinoTextField(
                   controller: _pwController,
-                  style: HgtText.large(HgtColor.black),
+                  style: HgtText.bodyMediumRegular(HgtColor.black),
                   placeholder: "클래스넷 비밀번호",
                   obscureText: true,
                   clearButtonMode: OverlayVisibilityMode.editing,
@@ -200,7 +202,7 @@ class _LoginState extends State<Login> {
                       },
                       child: Text(
                         "로그인 상태 유지",
-                        style: HgtText.medium(HgtColor.grey),
+                        style: HgtText.bodySmallRegular(HgtColor.grey),
                       ),
                     ),
                     CupertinoCheckbox(
@@ -224,7 +226,7 @@ class _LoginState extends State<Login> {
                 child: CupertinoButton.filled(
                   child: Text(
                     "로그인",
-                    style: HgtText.large(HgtColor.black),
+                    style: HgtText.bodyLargeMedium(HgtColor.black),
                   ),
                   onPressed: () async {
                     print(_idController.text + _pwController.text);

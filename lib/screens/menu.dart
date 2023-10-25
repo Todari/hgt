@@ -15,7 +15,10 @@ class Menu extends StatefulWidget {
 class _MenuState extends State<Menu> {
   final ctrl = LoginDataCtrl();
   List<String> menuList = [
+    "서비스 이용약관",
+    "개인정정보 처리방침",
     "설정",
+    "버전 정보",
     "로그아웃"
   ]; //TODO : List<Map<String, Widget>> -> text, widget
   @override
@@ -47,10 +50,16 @@ class _MenuState extends State<Menu> {
             vertical: 16,
             horizontal: 24,
           ),
-          child: Text(
-            text,
-            style: HgtText.medium(HgtColor.black),
-            textAlign: TextAlign.left,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                text,
+                style: HgtText.bodyLargeMedium(HgtColor.black),
+                textAlign: TextAlign.left,
+              ),
+              Icon(CupertinoIcons.chevron_forward)
+            ],
           ),
         ),
         onTap: text == "로그아웃"

@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:hgt/const/color_style.dart';
+import 'package:hgt/const/text_style.dart';
 import 'profile.dart';
 import 'chatting.dart';
 import 'menu.dart';
@@ -38,7 +40,10 @@ class _HomeState extends State<Home> {
                       child: Container(
                         alignment: Alignment.center,
                         padding: const EdgeInsets.only(left: 16),
-                        child: const Text("대충 로고임"),
+                        child: Text(
+                          "대충 로고임",
+                          style: HgtText.titleLarge(HgtColor.black),
+                        ),
                       ),
                     ),
                     Padding(
