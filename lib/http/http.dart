@@ -8,15 +8,19 @@ import 'package:http/http.dart' as http;
 class HgtHttp {
   String hgtURL = dotenv.get("hgtURL");
 //
-  Future<int> getToken(studentId) async {
+  Future<String> getToken(id, age) async {
     final url = Uri.http(hgtURL, '/signin');
     var response = await http.post(url,
         body: jsonEncode(<String, String>{
-          'student_id': studentId,
+          'student_id': id,
+          'age': age,
         }));
     var result = jsonDecode(response.body);
-    print(response.body);
-    return response.statusCode;
+    if (response.statusCode != 404) {
+      return result["data"]["message"];
+    } else {
+      return "no tokens";
+    }
   }
 
   Future<int> addUser(user) async {

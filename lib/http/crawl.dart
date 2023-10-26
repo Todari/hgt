@@ -112,10 +112,20 @@ class Crawl with ChangeNotifier {
       'major': major,
       'age': age,
       'gender': gender,
+      'army': "",
+      'session': "",
+      // TODO : army 추가하기....
     };
     GetIt.I.registerSingleton<HgtUser>(
-        HgtUser(user["name"], user["studentId"], user["major"], user["age"],
-            user["gender"]),
+        HgtUser(
+          user["name"],
+          user["studentId"],
+          user["major"],
+          user["age"],
+          user["gender"],
+          user["army"],
+          user["session"],
+        ),
         instanceName: "userInfo");
     print(user);
     return user;
