@@ -25,7 +25,7 @@ class _LoginState extends State<Login> {
   // NyanUser userInfo = NyanUser('', '');
   // List<Lecture> classesInfo = [];
   String savedId = "", savedPw = "";
-  HgtUser userInfo = HgtUser("", "", "", "", "", "", "");
+  HgtUser userInfo = HgtUser("", "", "", "", "", "", "", "");
 
   var ctrl = LoginDataCtrl();
   bool _isChecked = false;
@@ -92,10 +92,11 @@ class _LoginState extends State<Login> {
     } on CustomException {
       print("customexception");
     }
-    print(userInfo);
     if (userInfo.name != "") {
       await http.addUser(userInfo);
-      userInfo.session = await http.getToken(userInfo.studentId, userInfo.age);
+      userInfo.session =
+          await http.getSession(userInfo.studentId, userInfo.age);
+      print('userinfo : $userInfo');
 
       //@*TODO: DB 정보가 최신화 되어있지 않을때 최신화 시키기
       if (!context.mounted) return;

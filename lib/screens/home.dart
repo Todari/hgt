@@ -20,61 +20,61 @@ class _HomeState extends State<Home> {
         child: Column(
           children: [
             Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: Row(
-                  children: [
-                    GestureDetector(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    child: const Icon(
+                      CupertinoIcons.profile_circled,
+                      size: 32,
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              builder: ((context) => const Profile())));
+                    },
+                  ),
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.only(left: 16),
+                      child: Text(
+                        "대충 로고임",
+                        style: HgtText.titleLarge(HgtColor.black),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: GestureDetector(
                       child: const Icon(
-                        CupertinoIcons.profile_circled,
+                        CupertinoIcons.chat_bubble,
                         size: 32,
                       ),
                       onTap: () {
                         Navigator.push(
                             context,
                             CupertinoPageRoute(
-                                builder: ((context) => const Profile())));
+                                builder: ((context) => const Chatting())));
                       },
                     ),
-                    Expanded(
-                      child: Container(
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.only(left: 16),
-                        child: Text(
-                          "대충 로고임",
-                          style: HgtText.titleLarge(HgtColor.black),
-                        ),
-                      ),
+                  ),
+                  GestureDetector(
+                    child: const Icon(
+                      CupertinoIcons.list_bullet,
+                      size: 32,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: GestureDetector(
-                        child: const Icon(
-                          CupertinoIcons.chat_bubble,
-                          size: 32,
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                  builder: ((context) => const Chatting())));
-                        },
-                      ),
-                    ),
-                    GestureDetector(
-                      child: const Icon(
-                        CupertinoIcons.list_bullet,
-                        size: 32,
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                                builder: (context) => const Menu()));
-                      },
-                    ),
-                  ],
-                ))
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              builder: (context) => const Menu()));
+                    },
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 class HgtHttp {
   String hgtURL = dotenv.get("hgtURL");
 //
-  Future<String> getToken(id, age) async {
+  Future<String> getSession(id, age) async {
     final url = Uri.http(hgtURL, '/signin');
     var response = await http.post(url,
         body: jsonEncode(<String, String>{
@@ -27,10 +27,10 @@ class HgtHttp {
     final url = Uri.http(hgtURL, '/user');
     final getUrl = Uri.http(hgtURL, '/user/${user.studentId}');
     final getResponse = await http.get(getUrl);
-    print(getResponse);
+    // print(getResponse);
     if (getResponse.statusCode == 404) {
-      print("sending addUserPost");
-      print(user);
+      // print("sending addUserPost");
+      // print(user);
       var response = await http.post(url,
           body: jsonEncode(<String, String>{
             "name": user.name,
@@ -39,10 +39,10 @@ class HgtHttp {
             "age": user.age,
             "gender": user.gender
           }));
-      print(response.body);
+      // print(response.body);
       return response.statusCode;
     } else {
-      print("existed user");
+      // print("existed user");
       return 808;
     }
   }

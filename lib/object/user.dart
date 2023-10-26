@@ -1,4 +1,5 @@
 class HgtUser {
+  String id;
   String name;
   String studentId;
   String major;
@@ -7,9 +8,9 @@ class HgtUser {
   String army;
   String session;
 
-  HgtUser(this.name, this.studentId, this.major, this.age, this.gender,
+  HgtUser(this.id, this.name, this.studentId, this.major, this.age, this.gender,
       this.army, this.session);
   @override
   String toString() =>
-      '$name , $studentId, $major, $age, $gender, $army, $session';
+      '$id, $name , $studentId, $major, $age, $gender, $army, $session';
 }

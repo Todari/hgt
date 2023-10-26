@@ -57,7 +57,7 @@ class Crawl with ChangeNotifier {
     } catch (e) {
       print("학번 / 비밀번호를 확인하세요");
     }
-    print("내가만든 쿠키 : $cookie");
+    // print("내가만든 쿠키 : $cookie");
   }
 
   Future<Map<String, dynamic>> crawlUser() async {
@@ -96,17 +96,18 @@ class Crawl with ChangeNotifier {
       }
       // print(contents);
       !contents.contains("군복무여부") ? gender = "여" : gender = "남";
-      print(gender);
+      // print(gender);
       studentId = contents[1];
       name = contents[3];
       major = contents[9];
-      print(contents[7].toString().trim().substring(0, 4));
+      // print(contents[7].toString().trim().substring(0, 4));
       age = (2024 - int.parse(contents[7].toString().trim().substring(0, 4)))
           .toString();
       // print(
       //     "학번 : $studentId, 이름 : $name, 만 나이 : $age, 전공 : $major, 성별 : $gender");
     }
     Map<String, dynamic> user = {
+      'id': "",
       'name': name,
       'studentId': studentId,
       'major': major,
@@ -118,6 +119,7 @@ class Crawl with ChangeNotifier {
     };
     GetIt.I.registerSingleton<HgtUser>(
         HgtUser(
+          user["id"],
           user["name"],
           user["studentId"],
           user["major"],
@@ -127,7 +129,7 @@ class Crawl with ChangeNotifier {
           user["session"],
         ),
         instanceName: "userInfo");
-    print(user);
+    // print(user);
     return user;
   }
 
