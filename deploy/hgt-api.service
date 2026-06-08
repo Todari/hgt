@@ -1,0 +1,20 @@
+# /etc/systemd/system/hgt-api.service
+# sudo cp deploy/hgt-api.service /etc/systemd/system/ && sudo systemctl daemon-reload
+# sudo systemctl enable --now hgt-api
+[Unit]
+Description=HGT API (Hono)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/hgt-client
+# Login shell so corepack/pnpm are on PATH. Env is loaded from apps/api/.env by dotenv.
+ExecStart=/bin/bash -lc 'pnpm --filter api start'
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

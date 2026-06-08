@@ -1,0 +1,7 @@
+# /etc/caddy/Caddyfile  — Caddy gives the EC2 backend automatic HTTPS (Let's Encrypt).
+# Point an A record (e.g. api.yourdomain.com) at the EC2 public IP first.
+# Open the EC2 security group for inbound 80 and 443.
+
+api.yourdomain.com {
+    reverse_proxy localhost:8080
+}
