@@ -1,0 +1,24 @@
+# Local development services.
+# Production uses AWS RDS (PostgreSQL) — see apps/api/.env.example.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hgt-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hgt
+      POSTGRES_PASSWORD: hgt_local_dev
+      POSTGRES_DB: hgt
+    ports:
+      # Host 5433 -> container 5432, to avoid colliding with a local Postgres on 5432.
+      - "5433:5432"
+    volumes:
+      - hgt-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hgt -d hgt"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  hgt-pgdata:

@@ -1,0 +1,10 @@
+{
+  "extends": "@hgt-client/typescript-config/base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}
