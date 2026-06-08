@@ -5,6 +5,7 @@ import {
   boolean,
   integer,
   timestamp,
+  date,
   primaryKey,
   unique,
   type AnyPgColumn,
@@ -125,4 +126,76 @@ export const userExPartners = pgTable(
       .references((): AnyPgColumn => users.id, { onDelete: "cascade" }),
   },
   (t) => ({ pk: primaryKey({ columns: [t.userId, t.exPartnerUserId] }) }),
+);
+
+/* =====================================================================
+ * Keyword-based matching (current product design)
+ * ===================================================================== */
+
+/** Curated keyword catalog. `category` enables partial-credit scoring. */
+export const keywords = pgTable("keywords", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  value: text("value").notNull().unique(),
+  category: text("category").notNull(), // 성격 / 취미 / 관심사 / 라이프스타일 / 가치관
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Keywords describing the user themselves. */
+export const userSelfKeywords = pgTable(
+  "user_self_keywords",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    keywordId: uuid("keyword_id")
+      .notNull()
+      .references(() => keywords.id, { onDelete: "cascade" }),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.userId, t.keywordId] }) }),
+);
+
+/** Keywords describing the user's ideal partner. */
+export const userIdealKeywords = pgTable(
+  "user_ideal_keywords",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    keywordId: uuid("keyword_id")
+      .notNull()
+      .references(() => keywords.id, { onDelete: "cascade" }),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.userId, t.keywordId] }) }),
+);
+
+/** Weekly matching round. One row per week (keyed by the week's Monday). */
+export const matchRounds = pgTable("match_rounds", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  weekStart: date("week_start").notNull().unique(),
+  status: text("status").notNull().default("pending"), // pending / completed
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** A 1:1 (남↔여) match produced by a round. */
+export const matches = pgTable(
+  "matches",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    roundId: uuid("round_id")
+      .notNull()
+      .references(() => matchRounds.id, { onDelete: "cascade" }),
+    maleUserId: uuid("male_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    femaleUserId: uuid("female_user_id")
+      .notNull()
+      .references((): AnyPgColumn => users.id, { onDelete: "cascade" }),
+    score: integer("score").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    // each user is matched at most once per round
+    roundMaleUnique: unique("matches_round_male_unique").on(t.roundId, t.maleUserId),
+    roundFemaleUnique: unique("matches_round_female_unique").on(t.roundId, t.femaleUserId),
+  }),
 );

@@ -13,6 +13,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx scripts/seed-keywords.ts",
     "test:hongik": "tsx scripts/test-hongik-login.ts"
   },
   "dependencies": {

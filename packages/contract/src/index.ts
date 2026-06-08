@@ -93,3 +93,47 @@ export const hongikLoginResponseSchema = z.object({
   user: userSchema,
 });
 export type HongikLoginResponse = z.infer<typeof hongikLoginResponseSchema>;
+
+/* ------------------------------------------------------------------ */
+/* Keywords & profile                                                  */
+/* ------------------------------------------------------------------ */
+
+export const keywordCategorySchema = z.enum([
+  "성격",
+  "취미",
+  "관심사",
+  "라이프스타일",
+  "가치관",
+]);
+export type KeywordCategory = z.infer<typeof keywordCategorySchema>;
+
+export const keywordSchema = z.object({
+  id: z.string().uuid(),
+  value: z.string(),
+  category: z.string(),
+});
+export type Keyword = z.infer<typeof keywordSchema>;
+
+/** Profile fields the user can edit (identity is verified from the portal). */
+export const updateProfileSchema = z.object({
+  selfKeywordIds: z.array(z.string().uuid()).max(20).optional(),
+  idealKeywordIds: z.array(z.string().uuid()).max(20).optional(),
+  description: z.string().max(500).nullable().optional(),
+  army: z.boolean().nullable().optional(),
+  canCc: z.boolean().optional(),
+  targetMinAge: z.number().int().min(18).max(99).nullable().optional(),
+  targetMaxAge: z.number().int().min(18).max(99).nullable().optional(),
+  explore: z.boolean().optional(),
+  heightId: z.string().uuid().nullable().optional(),
+  smokeId: z.string().uuid().nullable().optional(),
+  religionId: z.string().uuid().nullable().optional(),
+  mbtiId: z.string().uuid().nullable().optional(),
+});
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
+/** The authenticated user's full profile (`GET /me`). */
+export const meProfileSchema = userSchema.extend({
+  selfKeywords: z.array(keywordSchema),
+  idealKeywords: z.array(keywordSchema),
+});
+export type MeProfile = z.infer<typeof meProfileSchema>;
