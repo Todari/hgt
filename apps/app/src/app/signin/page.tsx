@@ -1,13 +1,8 @@
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { css } from "_panda/css";
-import {
-  signInSchema,
-  genderSchema,
-  armySchema,
-  type User,
-} from "@hgt-client/contract";
+import { hongikLoginSchema, type HongikLoginResponse } from "@hgt-client/contract";
 import { api, ApiError } from "@/lib/api";
 
 const fieldCss = css({ display: "flex", flexDirection: "column", gap: "1" });
@@ -16,71 +11,48 @@ const inputCss = css({
   border: "1px solid",
   borderColor: "gray.300",
   borderRadius: "md",
-  padding: "2",
+  padding: "2.5",
   fontSize: "md",
 });
 
-type FormState = {
-  name: string;
-  studentId: string;
-  major: string;
-  age: string;
-  gender: string;
-  army: string;
-};
-
-const initialForm: FormState = {
-  name: "",
-  studentId: "",
-  major: "",
-  age: "",
-  gender: "남",
-  army: "필",
-};
-
 export default function SignInPage() {
-  const [form, setForm] = useState<FormState>(initialForm);
-  const [session, setSession] = useState<string | null>(null);
-  const [users, setUsers] = useState<User[] | null>(null);
+  const [id, setId] = useState("");
+  const [pw, setPw] = useState("");
+  const [result, setResult] = useState<HongikLoginResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const update =
-    (key: keyof FormState) =>
-    (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-      setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
 
-    const parsed = signInSchema.safeParse(form);
+    const parsed = hongikLoginSchema.safeParse({ id, pw });
     if (!parsed.success) {
-      setError(parsed.error.issues.map((i) => i.message).join(", "));
+      setError("학번과 비밀번호를 입력해주세요.");
       return;
     }
 
     setLoading(true);
     try {
-      const { session: newSession } = await api.signIn(parsed.data);
-      setSession(newSession);
-      setUsers(await api.getUsers(newSession));
+      const res = await api.hongikLogin(parsed.data);
+      setResult(res);
+      setPw(""); // drop the password from memory once we're done with it
       if (typeof window !== "undefined") {
-        localStorage.setItem("hgt_session", newSession);
+        localStorage.setItem("hgt_session", res.session);
       }
     } catch (err) {
-      setError(
-        err instanceof ApiError ? `${err.status}: ${err.message}` : "요청 실패",
-      );
+      setError(err instanceof ApiError ? err.message : "로그인에 실패했습니다.");
     } finally {
       setLoading(false);
     }
   }
 
+  const u = result?.user;
+
   return (
     <main
       className={css({
-        maxWidth: "480px",
+        maxWidth: "440px",
         margin: "0 auto",
         padding: "8",
         display: "flex",
@@ -88,79 +60,38 @@ export default function SignInPage() {
         gap: "6",
       })}
     >
-      <h1 className={css({ fontSize: "2xl", fontWeight: "bold" })}>
-        로그인 / 회원가입
-      </h1>
+      <header className={css({ display: "flex", flexDirection: "column", gap: "1" })}>
+        <h1 className={css({ fontSize: "2xl", fontWeight: "bold" })}>홍익대 포털 로그인</h1>
+        <p className={css({ fontSize: "sm", color: "gray.600" })}>
+          홍익대학교 재학생만 이용할 수 있어요. 포털 계정으로 재학 인증을 진행합니다.
+        </p>
+      </header>
 
-      <form
-        onSubmit={onSubmit}
-        className={css({ flexDirection: "column", gap: "4" })}
-      >
-        <div className={fieldCss}>
-          <label className={labelCss}>이름</label>
-          <input
-            className={inputCss}
-            value={form.name}
-            onChange={update("name")}
-            placeholder="홍길동"
-          />
-        </div>
+      <form onSubmit={onSubmit} className={css({ flexDirection: "column", gap: "4" })}>
         <div className={fieldCss}>
           <label className={labelCss}>학번</label>
           <input
             className={inputCss}
-            value={form.studentId}
-            onChange={update("studentId")}
-            placeholder="2020123456"
+            value={id}
+            onChange={(e) => setId(e.target.value)}
+            autoComplete="username"
+            placeholder="B000000"
           />
         </div>
         <div className={fieldCss}>
-          <label className={labelCss}>학과</label>
+          <label className={labelCss}>포털 비밀번호</label>
           <input
             className={inputCss}
-            value={form.major}
-            onChange={update("major")}
-            placeholder="컴퓨터공학"
+            type="password"
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+            autoComplete="current-password"
+            placeholder="••••••••"
           />
         </div>
-        <div className={fieldCss}>
-          <label className={labelCss}>나이</label>
-          <input
-            className={inputCss}
-            value={form.age}
-            onChange={update("age")}
-            inputMode="numeric"
-            placeholder="24"
-          />
-        </div>
-        <div className={fieldCss}>
-          <label className={labelCss}>성별</label>
-          <select
-            className={inputCss}
-            value={form.gender}
-            onChange={update("gender")}
-          >
-            {genderSchema.options.map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className={fieldCss}>
-          <label className={labelCss}>군필 여부</label>
-          <select
-            className={inputCss}
-            value={form.army}
-            onChange={update("army")}
-          >
-            {armySchema.options.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </select>
-        </div>
+        <p className={css({ fontSize: "xs", color: "gray.500" })}>
+          🔒 비밀번호는 홍익대 포털 인증에만 1회 사용되며 <b>저장하지 않습니다.</b>
+        </p>
         <button
           type="submit"
           disabled={loading}
@@ -174,57 +105,42 @@ export default function SignInPage() {
             _disabled: { opacity: 0.5, cursor: "not-allowed" },
           })}
         >
-          {loading ? "처리 중..." : "로그인 / 가입"}
+          {loading ? "인증 중..." : "재학 인증하고 시작하기"}
         </button>
       </form>
 
-      {error && (
-        <p className={css({ color: "red.600", fontSize: "sm" })}>⚠️ {error}</p>
-      )}
+      {error && <p className={css({ color: "red.600", fontSize: "sm" })}>⚠️ {error}</p>}
 
-      {session && (
+      {u && (
         <section
           className={css({
             display: "flex",
             flexDirection: "column",
-            gap: "2",
-            padding: "4",
-            bg: "gray.50",
-            borderRadius: "md",
+            gap: "3",
+            padding: "5",
+            bg: "green.50",
+            border: "1px solid",
+            borderColor: "green.200",
+            borderRadius: "lg",
           })}
         >
-          <p className={css({ fontSize: "sm", color: "gray.600" })}>
-            세션 발급됨
+          <p className={css({ fontSize: "sm", fontWeight: "semibold", color: "green.800" })}>
+            ✅ 재학 인증 완료
           </p>
-          <code className={css({ fontSize: "xs", wordBreak: "break-all" })}>
-            {session}
-          </code>
-        </section>
-      )}
-
-      {users && (
-        <section
-          className={css({ display: "flex", flexDirection: "column", gap: "2" })}
-        >
-          <h2 className={css({ fontSize: "lg", fontWeight: "semibold" })}>
-            가입 유저 ({users.length})
-          </h2>
-          <ul
-            className={css({ display: "flex", flexDirection: "column", gap: "1" })}
-          >
-            {users.map((u) => (
-              <li
-                key={u.id}
-                className={css({ fontSize: "sm", display: "flex", gap: "2" })}
-              >
-                <span className={css({ fontWeight: "medium" })}>{u.name}</span>
-                <span className={css({ color: "gray.500" })}>
-                  {u.major} · {u.age}세 · {u.gender ? "남" : "여"} ·{" "}
-                  {u.army ? "군필" : "미필"}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <dl className={css({ display: "grid", gridTemplateColumns: "auto 1fr", rowGap: "1.5", columnGap: "4", fontSize: "sm" })}>
+            <dt className={css({ color: "gray.500" })}>이름</dt>
+            <dd className={css({ fontWeight: "medium" })}>{u.name}</dd>
+            <dt className={css({ color: "gray.500" })}>학번</dt>
+            <dd>{u.studentId}</dd>
+            <dt className={css({ color: "gray.500" })}>학과</dt>
+            <dd>{u.major}</dd>
+            <dt className={css({ color: "gray.500" })}>나이 · 성별</dt>
+            <dd>
+              {u.age}세 · {u.gender ? "남" : "여"}
+            </dd>
+            <dt className={css({ color: "gray.500" })}>학적상태</dt>
+            <dd>{u.academicStatus ?? "-"}</dd>
+          </dl>
         </section>
       )}
     </main>

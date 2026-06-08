@@ -5,10 +5,6 @@ import { z } from "zod";
  *
  * Pure Zod + inferred types only — no server/runtime dependencies — so the
  * Next.js apps can import this without pulling in Drizzle/Postgres.
- *
- * Ported from the legacy Go/Mongo backend (see `legacy/hgt-server`):
- *   - `models.User`, `models.Property`, `models.CreateUserDto`
- *   - `structs.HttpResponse`
  */
 
 /* ------------------------------------------------------------------ */
@@ -46,30 +42,25 @@ export const createPropertySchema = propertySchema.omit({ id: true });
 export type CreatePropertyInput = z.infer<typeof createPropertySchema>;
 
 /* ------------------------------------------------------------------ */
-/* Auth — sign in (doubles as sign up, like the legacy `/signin`)      */
+/* Auth — Hongik portal login                                          */
 /* ------------------------------------------------------------------ */
 
-/** Korean domain enums preserved from the legacy DTO (`Gender == "남"`, `Army == "필"`). */
+/** Korean domain enums (for self-reported fields like 군필 여부). */
 export const genderSchema = z.enum(["남", "여"]);
 export type Gender = z.infer<typeof genderSchema>;
 
 export const armySchema = z.enum(["필", "미필"]);
 export type Army = z.infer<typeof armySchema>;
 
-export const signInSchema = z.object({
-  name: z.string().min(1),
-  studentId: z.string().min(1),
-  major: z.string().min(1),
-  age: z.coerce.number().int().positive(),
-  gender: genderSchema,
-  army: armySchema,
+/**
+ * Hongik-portal credentials. `id` = 학번, `pw` = 포털 비밀번호. The password is
+ * proxied to the portal once for verification and is never stored.
+ */
+export const hongikLoginSchema = z.object({
+  id: z.string().min(1),
+  pw: z.string().min(1),
 });
-export type SignInInput = z.infer<typeof signInSchema>;
-
-export const signInResponseSchema = z.object({
-  session: z.string().min(1),
-});
-export type SignInResponse = z.infer<typeof signInResponseSchema>;
+export type HongikLoginInput = z.infer<typeof hongikLoginSchema>;
 
 /* ------------------------------------------------------------------ */
 /* User — public-facing shape (never includes the session token)      */
@@ -80,9 +71,10 @@ export const userSchema = z.object({
   name: z.string(),
   studentId: z.string(),
   major: z.string(),
-  gender: z.boolean(), // true = 남
-  army: z.boolean(), // true = 필(군필)
+  gender: z.boolean(), // true = 남 (verified from portal)
+  army: z.boolean().nullable(), // true = 군필, null = 미입력
   age: z.number().int(),
+  academicStatus: z.string().nullable(), // 재학 / 휴학 / 졸업 ... (verified from portal)
   description: z.string().nullable(),
   explore: z.boolean(),
   canCc: z.boolean(),
@@ -95,3 +87,9 @@ export const userSchema = z.object({
   partnerId: z.string().uuid().nullable(),
 });
 export type User = z.infer<typeof userSchema>;
+
+export const hongikLoginResponseSchema = z.object({
+  session: z.string().min(1),
+  user: userSchema,
+});
+export type HongikLoginResponse = z.infer<typeof hongikLoginResponseSchema>;

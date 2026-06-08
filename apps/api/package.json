@@ -12,7 +12,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test:hongik": "tsx scripts/test-hongik-login.ts"
   },
   "dependencies": {
     "@hgt-client/contract": "workspace:*",
@@ -20,6 +21,8 @@
     "dotenv": "^16.4.0",
     "drizzle-orm": "^0.36.0",
     "hono": "^4.6.0",
+    "cheerio": "^1.0.0",
+    "iconv-lite": "^0.6.3",
     "postgres": "^3.4.0",
     "zod": "^3.23.8"
   },

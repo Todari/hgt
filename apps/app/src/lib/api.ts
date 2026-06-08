@@ -1,7 +1,7 @@
 import type {
   HttpResponse,
-  SignInInput,
-  SignInResponse,
+  HongikLoginInput,
+  HongikLoginResponse,
   User,
   Property,
   CreatePropertyInput,
@@ -46,9 +46,9 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
 }
 
 export const api = {
-  /** Sign up on first visit, otherwise log in. Returns a bearer session. */
-  signIn: (input: SignInInput) =>
-    request<SignInResponse>("/signin", { method: "POST", body: input }),
+  /** Verify a Hongik student via the portal and sign in. Returns a session + verified profile. */
+  hongikLogin: (input: HongikLoginInput) =>
+    request<HongikLoginResponse>("/auth/hongik", { method: "POST", body: input }),
   getUsers: (session: string) => request<User[]>("/user", { session }),
   getUser: (session: string, id: string) =>
     request<User>(`/user/${id}`, { session }),

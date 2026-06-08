@@ -44,9 +44,10 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   studentId: text("student_id").notNull().unique(),
   major: text("major").notNull(),
-  gender: boolean("gender").notNull(), // true = 남
-  army: boolean("army").notNull(), // true = 필(군필)
+  gender: boolean("gender").notNull(), // true = 남 (verified from portal)
+  army: boolean("army"), // true = 군필, null = 미입력 (not provided by the portal)
   age: integer("age").notNull(),
+  academicStatus: text("academic_status"), // 재학 / 휴학 / 졸업 ... (재학생 gating)
 
   // Optional profile
   description: text("description"),
