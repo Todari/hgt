@@ -9,7 +9,9 @@ import { propertyRoutes } from "./routes/properties";
 import { keywordRoutes } from "./routes/keywords";
 import { meRoutes } from "./routes/me";
 import { matchRoutes } from "./routes/match";
+import { adminRoutes } from "./routes/admin";
 import { sessionAuth } from "./middleware/session";
+import { startMatchScheduler } from "./matching/scheduler";
 
 const app = new Hono();
 
@@ -29,6 +31,9 @@ app.get("/", (c) => c.text("Hello, World!"));
 // Public routes.
 app.route("/", authRoutes);
 
+// Admin routes (token-gated via X-Admin-Token; not session-based).
+app.route("/", adminRoutes);
+
 // Protected routes (require a valid bearer session).
 const protectedRoutes = new Hono();
 protectedRoutes.use("*", sessionAuth);
@@ -44,5 +49,8 @@ serve({ fetch: app.fetch, port }, (info) => {
   // eslint-disable-next-line no-console
   console.log(`hgt api listening on http://localhost:${info.port}`);
 });
+
+// Opt-in weekly matching (no-op unless MATCH_CRON_ENABLED=true).
+startMatchScheduler();
 
 export type AppType = typeof app;

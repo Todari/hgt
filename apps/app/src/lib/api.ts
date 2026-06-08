@@ -5,6 +5,10 @@ import type {
   User,
   Property,
   CreatePropertyInput,
+  Keyword,
+  MeProfile,
+  UpdateProfileInput,
+  MatchResult,
 } from "@hgt-client/contract";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
@@ -56,4 +60,15 @@ export const api = {
     request<Property[]>("/property", { session }),
   createProperty: (session: string, input: CreatePropertyInput) =>
     request<Property>("/property", { method: "POST", session, body: input }),
+
+  /** The curated keyword catalog (for the profile picker). */
+  getKeywords: (session: string) => request<Keyword[]>("/keyword", { session }),
+  /** The signed-in user's full profile (incl. self/ideal keywords). */
+  getMe: (session: string) => request<MeProfile>("/me", { session }),
+  /** Update editable profile fields + keyword sets. */
+  updateProfile: (session: string, input: UpdateProfileInput) =>
+    request<MeProfile>("/me/profile", { method: "PUT", session, body: input }),
+  /** The signed-in user's latest weekly match (null if none yet). */
+  getMyMatch: (session: string) =>
+    request<MatchResult | null>("/me/match", { session }),
 };
