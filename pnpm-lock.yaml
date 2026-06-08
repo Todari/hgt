@@ -63,6 +63,9 @@ importers:
 
   apps/app:
     dependencies:
+      '@hgt-client/contract':
+        specifier: workspace:*
+        version: link:../../packages/contract
       '@hgt-client/ui':
         specifier: workspace:*
         version: link:../../packages/ui
