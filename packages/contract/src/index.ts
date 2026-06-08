@@ -137,3 +137,16 @@ export const meProfileSchema = userSchema.extend({
   idealKeywords: z.array(keywordSchema),
 });
 export type MeProfile = z.infer<typeof meProfileSchema>;
+
+/* ------------------------------------------------------------------ */
+/* Matching                                                            */
+/* ------------------------------------------------------------------ */
+
+/** The authenticated user's match for a week (`GET /me/match`; null if none). */
+export const matchResultSchema = z.object({
+  roundId: z.string().uuid(),
+  weekStart: z.string(),
+  score: z.number(),
+  partner: userSchema,
+});
+export type MatchResult = z.infer<typeof matchResultSchema>;

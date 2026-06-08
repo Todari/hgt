@@ -4,6 +4,7 @@ import {
   text,
   boolean,
   integer,
+  real,
   timestamp,
   date,
   primaryKey,
@@ -190,7 +191,7 @@ export const matches = pgTable(
     femaleUserId: uuid("female_user_id")
       .notNull()
       .references((): AnyPgColumn => users.id, { onDelete: "cascade" }),
-    score: integer("score").notNull(),
+    score: real("score").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({

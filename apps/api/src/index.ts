@@ -8,6 +8,7 @@ import { userRoutes } from "./routes/users";
 import { propertyRoutes } from "./routes/properties";
 import { keywordRoutes } from "./routes/keywords";
 import { meRoutes } from "./routes/me";
+import { matchRoutes } from "./routes/match";
 import { sessionAuth } from "./middleware/session";
 
 const app = new Hono();
@@ -35,6 +36,7 @@ protectedRoutes.route("/", userRoutes);
 protectedRoutes.route("/", propertyRoutes);
 protectedRoutes.route("/", keywordRoutes);
 protectedRoutes.route("/", meRoutes);
+protectedRoutes.route("/", matchRoutes);
 app.route("/", protectedRoutes);
 
 const port = Number(process.env.PORT ?? 8080);
