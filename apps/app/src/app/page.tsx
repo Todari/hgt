@@ -60,7 +60,7 @@ export default function HomePage() {
           height: { base: "240px", md: "320px" },
           background:
             "linear-gradient(100deg, transparent 0%, rgba(255,107,95,.2) 22%, rgba(255,107,95,.14) 48%, rgba(255,107,95,.08) 68%, transparent 100%)",
-          filter: "blur(34px)",
+          filter: "blur(15px)",
           transform: "rotate(-8deg)",
           opacity: 0.72,
         })}
@@ -299,7 +299,7 @@ export default function HomePage() {
                   fontSize: "sm",
                   fontWeight: "bold",
                   boxShadow: "0 12px 26px rgba(10,17,24,.07)",
-                  backdropFilter: "blur(18px)",
+                  backdropFilter: "blur(11px)",
                 })}
               >
                 {item}
@@ -387,7 +387,7 @@ export default function HomePage() {
                     height: "100%",
                     borderRadius: "50%",
                     background: "rgba(255,255,255,.76)",
-                    backdropFilter: "blur(18px)",
+                    backdropFilter: "blur(11px)",
                   })}
                 >
                   AI
@@ -418,7 +418,7 @@ export default function HomePage() {
                         ? "rgba(255,255,255,.42)"
                         : "rgba(255,245,242,.38)",
                     boxShadow: "0 10px 22px rgba(10,17,24,.07)",
-                    backdropFilter: "blur(16px)",
+                    backdropFilter: "blur(10px)",
                   })}
                   animate={{ y: [0, index % 2 === 0 ? -4 : 4, 0] }}
                   transition={{
@@ -453,7 +453,7 @@ export default function HomePage() {
                       "linear-gradient(145deg, rgba(255,255,255,.58), rgba(255,255,255,.28))",
                     boxShadow:
                       "0 1px 0 rgba(255,255,255,.72) inset, 0 16px 32px rgba(10,17,24,.1)",
-                    backdropFilter: "blur(22px)",
+                    backdropFilter: "blur(12px)",
                   })}
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}

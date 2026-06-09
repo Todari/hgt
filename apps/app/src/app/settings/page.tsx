@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import type { Conversation, MeProfile, User } from "@hgt-client/contract";
+import type { Conversation, MatchResult, MeProfile, User } from "@hgt-client/contract";
 import { css, cx } from "_panda/css";
 import {
   GlassBadge,
@@ -12,15 +12,24 @@ import {
   GlassPanel,
   GlassTextarea,
   GlassTextField,
+  GlassToggle,
 } from "@/components/ui/glass";
+import { LegalDocument } from "@/components/legal/LegalDocument";
+import { OfflineBanner, SafetyGuideBanner } from "@/components/ui/status";
+import {
+  PRIVACY_POLICY,
+  TERMS_OF_SERVICE,
+  TERMS_VERSION,
+} from "@/content/legal";
 import { api, ApiError } from "@/lib/api";
 import { clearSession, getSession } from "@/lib/session";
 
-function uniquePartners(conversations: Conversation[]): User[] {
+function uniquePartners(conversations: Conversation[], match: MatchResult | null): User[] {
   const map = new Map<string, User>();
   for (const conversation of conversations) {
     map.set(conversation.partner.id, conversation.partner);
   }
+  if (match) map.set(match.partner.id, match.partner);
   return [...map.values()];
 }
 
@@ -221,11 +230,129 @@ function DeleteAccountPanel({ session }: { session: string }) {
   );
 }
 
+function MatchingPausePanel({
+  session,
+  explore,
+  onExploreChange,
+}: {
+  session: string;
+  explore: boolean;
+  onExploreChange: (value: boolean) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  async function onRestChange(resting: boolean) {
+    const nextExplore = !resting;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const profile = await api.updateProfile(session, { explore: nextExplore });
+      onExploreChange(profile.explore);
+      setNotice(nextExplore ? "이번 주 매칭 참여가 켜졌습니다." : "이번 주 매칭을 쉬도록 설정했습니다.");
+    } catch (err) {
+      setNotice(err instanceof ApiError ? err.message : "매칭 참여 설정을 바꾸지 못했습니다.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <GlassPanel tone="quiet" className={css({ display: "flex", flexDirection: "column", gap: "4" })}>
+      <GlassBadge>Matching Control</GlassBadge>
+      <div className={css({ position: "relative", zIndex: 1 })}>
+        <h2 className={css({ color: "ink.950", fontSize: "2xl", fontWeight: "black" })}>
+          매칭 참여 설정
+        </h2>
+        <p className={css({ marginTop: "2", color: "ink.700", fontSize: "sm", lineHeight: "1.7" })}>
+          지금 진지하게 만날 준비가 아니라면 이번 주 매칭을 쉬어갈 수 있습니다.
+        </p>
+      </div>
+      <GlassToggle
+        checked={!explore}
+        onChange={onRestChange}
+        label="이번 주 쉬기"
+        description="켜두면 다음 매칭 라운드에서 잠시 제외됩니다."
+      />
+      <div className={css({ position: "relative", zIndex: 1, display: "flex", flexWrap: "wrap", gap: "2" })}>
+        <GlassButton href="/onboarding" variant="secondary">
+          키워드·속성·자기소개 수정
+        </GlassButton>
+      </div>
+      {busy && (
+        <p className={css({ position: "relative", zIndex: 1, color: "ink.500", fontSize: "sm", fontWeight: "bold" })}>
+          설정을 저장하는 중입니다.
+        </p>
+      )}
+      {notice && (
+        <p className={css({ position: "relative", zIndex: 1, color: "ink.900", fontSize: "sm", fontWeight: "bold" })}>
+          {notice}
+        </p>
+      )}
+    </GlassPanel>
+  );
+}
+
+function LegalSettingsPanel({ termsAgreedAt }: { termsAgreedAt: string | null }) {
+  const [openDocument, setOpenDocument] = useState<"terms" | "privacy" | null>(null);
+
+  return (
+    <GlassPanel tone="quiet" className={css({ display: "flex", flexDirection: "column", gap: "4" })}>
+      <GlassBadge>Legal</GlassBadge>
+      <div className={css({ position: "relative", zIndex: 1 })}>
+        <h2 className={css({ color: "ink.950", fontSize: "2xl", fontWeight: "black" })}>
+          약관 및 개인정보
+        </h2>
+        <p className={css({ marginTop: "2", color: "ink.700", fontSize: "sm", lineHeight: "1.7" })}>
+          약관 버전 {TERMS_VERSION} · {termsAgreedAt ? "동의 완료" : "동의가 필요합니다."}
+        </p>
+      </div>
+      <div className={css({ position: "relative", zIndex: 1, display: "flex", flexWrap: "wrap", gap: "2" })}>
+        <GlassButton
+          type="button"
+          variant="secondary"
+          onClick={() => setOpenDocument(openDocument === "terms" ? null : "terms")}
+        >
+          이용약관 보기
+        </GlassButton>
+        <GlassButton
+          type="button"
+          variant="secondary"
+          onClick={() => setOpenDocument(openDocument === "privacy" ? null : "privacy")}
+        >
+          개인정보처리방침 보기
+        </GlassButton>
+        {!termsAgreedAt && (
+          <GlassButton href="/onboarding">
+            동의하러 가기
+          </GlassButton>
+        )}
+      </div>
+      {openDocument && (
+        <div
+          className={css({
+            position: "relative",
+            zIndex: 1,
+            border: "1px solid rgba(255,255,255,.58)",
+            borderRadius: "20px",
+            padding: "4",
+            background: "rgba(255,255,255,.34)",
+          })}
+        >
+          <LegalDocument markdown={openDocument === "terms" ? TERMS_OF_SERVICE : PRIVACY_POLICY} />
+        </div>
+      )}
+    </GlassPanel>
+  );
+}
+
 export default function SettingsPage() {
   const router = useRouter();
   const [session, setSession] = useState<string | null>(null);
   const [me, setMe] = useState<MeProfile | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [match, setMatch] = useState<MatchResult | null>(null);
+  const [explore, setExplore] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -241,13 +368,16 @@ export default function SettingsPage() {
 
     void (async () => {
       try {
-        const [profile, conversationList] = await Promise.all([
+        const [profile, conversationList, currentMatch] = await Promise.all([
           api.getMe(currentSession),
           api.getConversations(currentSession),
+          api.getMyMatch(currentSession),
         ]);
         if (!active) return;
         setMe(profile);
         setConversations(conversationList);
+        setMatch(currentMatch);
+        setExplore(profile.explore);
       } catch (err) {
         if (!active) return;
         setError(err instanceof ApiError ? err.message : "설정을 불러오지 못했습니다.");
@@ -261,7 +391,7 @@ export default function SettingsPage() {
     };
   }, [router]);
 
-  const partners = uniquePartners(conversations);
+  const partners = uniquePartners(conversations, match);
 
   return (
     <main
@@ -283,7 +413,7 @@ export default function SettingsPage() {
           height: "36%",
           background:
             "linear-gradient(108deg, transparent, rgba(255,107,95,.15) 34%, rgba(255,107,95,.08), transparent)",
-          filter: "blur(34px)",
+          filter: "blur(15px)",
           transform: "rotate(9deg)",
         })}
         animate={{ x: [16, -16, 16], y: [0, 14, 0] }}
@@ -348,6 +478,8 @@ export default function SettingsPage() {
           </div>
         </nav>
 
+        <OfflineBanner />
+
         {error && (
           <GlassPanel tone="quiet" className={css({ padding: "4" })}>
             <p className={css({ position: "relative", zIndex: 1, color: "ink.900", fontWeight: "bold" })}>
@@ -398,6 +530,22 @@ export default function SettingsPage() {
                     <p className={css({ marginTop: "3", color: "ink.700", fontSize: { base: "md", md: "lg" }, lineHeight: "1.7" })}>
                       프로필은 인증 기반으로 유지하고, 불편한 상대와는 즉시 거리를 둘 수 있습니다.
                     </p>
+                    {me.description && (
+                      <div
+                        className={css({
+                          marginTop: "4",
+                          border: "1px solid rgba(255,255,255,.58)",
+                          borderRadius: "18px",
+                          padding: "4",
+                          background: "rgba(255,255,255,.32)",
+                          boxShadow: "0 10px 22px rgba(10,17,24,.07)",
+                        })}
+                      >
+                        <p className={css({ color: "ink.900", fontSize: "sm", lineHeight: "1.7", fontWeight: "bold" })}>
+                          {me.description}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div
@@ -411,7 +559,7 @@ export default function SettingsPage() {
                 >
                   <GlassMetric value={me.major} label="학과" />
                   <GlassMetric value={`${me.age}세`} label="나이" />
-                  <GlassMetric value={me.academicStatus ?? "인증됨"} label="학적 상태" />
+                  <GlassMetric value={explore ? "참여 중" : "쉬는 중"} label="매칭 상태" />
                 </div>
               </GlassPanel>
 
@@ -438,6 +586,27 @@ export default function SettingsPage() {
                 </div>
               </GlassPanel>
             </header>
+
+            <SafetyGuideBanner />
+
+            <section
+              className={css({
+                display: "grid",
+                gridTemplateColumns: { base: "1fr", lg: "1fr 1fr" },
+                gap: "5",
+                alignItems: "start",
+              })}
+            >
+              <MatchingPausePanel
+                session={session}
+                explore={explore}
+                onExploreChange={(value) => {
+                  setExplore(value);
+                  setMe((current) => (current ? { ...current, explore: value } : current));
+                }}
+              />
+              <LegalSettingsPanel termsAgreedAt={me.termsAgreedAt} />
+            </section>
 
             <DeleteAccountPanel session={session} />
           </>

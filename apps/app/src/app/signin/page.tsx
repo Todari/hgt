@@ -14,7 +14,6 @@ import {
   GlassTextField,
 } from "@/components/ui/glass";
 import { api, ApiError } from "@/lib/api";
-import { initPush } from "@/lib/push";
 import { setSession } from "@/lib/session";
 
 export default function SignInPage() {
@@ -38,7 +37,6 @@ export default function SignInPage() {
     try {
       const response = await api.hongikLogin(parsed.data);
       setSession(response.session);
-      void initPush(response.session);
       setPw("");
       router.push("/home");
     } catch (err) {
@@ -68,7 +66,7 @@ export default function SignInPage() {
           height: "42%",
           background:
             "linear-gradient(108deg, transparent, rgba(255,107,95,.17) 32%, rgba(255,107,95,.2) 58%, rgba(255,107,95,.1), transparent)",
-          filter: "blur(34px)",
+          filter: "blur(15px)",
           transform: "rotate(9deg)",
         })}
         animate={{ x: [18, -18, 18], y: [0, 16, 0] }}
@@ -240,7 +238,7 @@ export default function SignInPage() {
                   onChange={(event) => setPw(event.target.value)}
                   autoComplete="current-password"
                   placeholder="비밀번호"
-                  helper="비밀번호는 홍익대 포털 인증 요청에만 사용되며 저장하지 않습니다."
+                  helper="비밀번호는 저장하지 않고 재학 확인에만 사용합니다."
                 />
 
                 <GlassButton type="submit" disabled={loading}>

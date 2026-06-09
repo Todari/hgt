@@ -14,6 +14,13 @@ import {
   GlassTextField,
   GlassToggle,
 } from "@/components/ui/glass";
+import { LegalDocument } from "@/components/legal/LegalDocument";
+import { OfflineBanner } from "@/components/ui/status";
+import {
+  PRIVACY_POLICY,
+  TERMS_OF_SERVICE,
+  TERMS_VERSION,
+} from "@/content/legal";
 import { api, ApiError } from "@/lib/api";
 import { getSession } from "@/lib/session";
 
@@ -155,6 +162,125 @@ function PropertyPicker({
   );
 }
 
+function LegalConsentPanel({
+  termsAccepted,
+  privacyAccepted,
+  alreadyAgreed,
+  onTermsChange,
+  onPrivacyChange,
+}: {
+  termsAccepted: boolean;
+  privacyAccepted: boolean;
+  alreadyAgreed: boolean;
+  onTermsChange: (checked: boolean) => void;
+  onPrivacyChange: (checked: boolean) => void;
+}) {
+  const [openDocument, setOpenDocument] = useState<"terms" | "privacy" | null>(null);
+
+  return (
+    <GlassPanel tone="quiet" className={css({ display: "flex", flexDirection: "column", gap: "5" })}>
+      <div className={css({ position: "relative", zIndex: 1 })}>
+        <GlassBadge>Legal Required</GlassBadge>
+        <h2 className={css({ marginTop: "3", color: "ink.950", fontSize: "2xl", fontWeight: "black" })}>
+          약관 동의
+        </h2>
+        <p className={css({ marginTop: "1", color: "ink.500", fontSize: "sm", lineHeight: "1.7" })}>
+          서비스 이용을 위해 이용약관과 개인정보처리방침 동의가 필요합니다. 현재 약관 버전은
+          {` ${TERMS_VERSION}`}입니다.
+        </p>
+      </div>
+
+      <div className={css({ position: "relative", zIndex: 1, display: "grid", gap: "3" })}>
+        {[
+          {
+            id: "terms",
+            title: "이용약관에 동의합니다.",
+            checked: termsAccepted,
+            onChange: onTermsChange,
+          },
+          {
+            id: "privacy",
+            title: "개인정보처리방침에 동의합니다.",
+            checked: privacyAccepted,
+            onChange: onPrivacyChange,
+          },
+        ].map((item) => (
+          <label
+            key={item.id}
+            className={css({
+              display: "grid",
+              gridTemplateColumns: "auto 1fr auto",
+              alignItems: "center",
+              gap: "3",
+              border: "1px solid rgba(255,255,255,.58)",
+              borderRadius: "20px",
+              padding: "4",
+              background: "rgba(255,255,255,.34)",
+              boxShadow: "0 12px 26px rgba(10,17,24,.07)",
+              cursor: alreadyAgreed ? "default" : "pointer",
+            })}
+          >
+            <input
+              type="checkbox"
+              checked={item.checked}
+              disabled={alreadyAgreed}
+              onChange={(event) => item.onChange(event.target.checked)}
+              className={css({ accentColor: "var(--hgt-primary)" })}
+            />
+            <span className={css({ color: "ink.950", fontSize: "sm", fontWeight: "black" })}>
+              {item.title}
+            </span>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setOpenDocument(openDocument === item.id ? null : (item.id as "terms" | "privacy"));
+              }}
+              className={cx(
+                "glass-control",
+                css({
+                  position: "relative",
+                  zIndex: 1,
+                  borderRadius: "capsule",
+                  paddingX: "3",
+                  paddingY: "1.5",
+                  color: "ink.700",
+                  fontSize: "xs",
+                  fontWeight: "bold",
+                }),
+              )}
+            >
+              본문 보기
+            </button>
+          </label>
+        ))}
+      </div>
+
+      {openDocument && (
+        <div
+          className={css({
+            position: "relative",
+            zIndex: 1,
+            border: "1px solid rgba(255,255,255,.58)",
+            borderRadius: "20px",
+            padding: "4",
+            background: "rgba(255,255,255,.34)",
+          })}
+        >
+          <LegalDocument markdown={openDocument === "terms" ? TERMS_OF_SERVICE : PRIVACY_POLICY} />
+        </div>
+      )}
+
+      {alreadyAgreed && (
+        <p className={css({ position: "relative", zIndex: 1, color: "ink.500", fontSize: "sm", fontWeight: "bold" })}>
+          이미 약관 동의가 완료된 계정입니다.
+        </p>
+      )}
+    </GlassPanel>
+  );
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
   const [session, setSession] = useState<string | null>(null);
@@ -169,6 +295,9 @@ export default function OnboardingPage() {
   const [smokeId, setSmokeId] = useState<string | null>(null);
   const [religionId, setReligionId] = useState<string | null>(null);
   const [mbtiId, setMbtiId] = useState<string | null>(null);
+  const [termsAgreedAt, setTermsAgreedAt] = useState<string | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [canCc, setCanCc] = useState(false);
   const [explore, setExplore] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -201,6 +330,9 @@ export default function OnboardingPage() {
         setSmokeId(profile.smokeId);
         setReligionId(profile.religionId);
         setMbtiId(profile.mbtiId);
+        setTermsAgreedAt(profile.termsAgreedAt);
+        setTermsAccepted(profile.termsAgreedAt != null);
+        setPrivacyAccepted(profile.termsAgreedAt != null);
         setCanCc(profile.canCc);
         setExplore(profile.explore);
       } catch (err) {
@@ -245,6 +377,11 @@ export default function OnboardingPage() {
       return;
     }
 
+    if (!termsAccepted || !privacyAccepted) {
+      setError("이용약관과 개인정보처리방침에 모두 동의해주세요.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
     try {
@@ -260,6 +397,7 @@ export default function OnboardingPage() {
         smokeId,
         religionId,
         mbtiId,
+        agreedToTerms: termsAgreedAt == null ? true : undefined,
       });
       router.push("/home");
     } catch (err) {
@@ -323,7 +461,7 @@ export default function OnboardingPage() {
           height: "34%",
           background:
             "linear-gradient(108deg, transparent, rgba(255,107,95,.14) 32%, rgba(255,107,95,.08), transparent)",
-          filter: "blur(34px)",
+          filter: "blur(15px)",
           transform: "rotate(-8deg)",
         })}
         animate={{ x: [-16, 16, -16], y: [0, 14, 0] }}
@@ -379,6 +517,8 @@ export default function OnboardingPage() {
             </GlassButton>
           </div>
         </nav>
+
+        <OfflineBanner />
 
         <header
           className={css({
@@ -537,6 +677,26 @@ export default function OnboardingPage() {
         <GlassPanel tone="quiet" className={css({ display: "flex", flexDirection: "column", gap: "5" })}>
           <div className={css({ position: "relative", zIndex: 1 })}>
             <h2 className={css({ color: "ink.950", fontSize: "2xl", fontWeight: "black" })}>
+              자기소개
+            </h2>
+            <p className={css({ marginTop: "1", color: "ink.500", fontSize: "sm", lineHeight: "1.7" })}>
+              사진 없이 만나는 서비스이기 때문에, 나의 대화 리듬과 관계에서 중요하게 생각하는
+              태도를 구체적으로 적어주세요.
+            </p>
+          </div>
+          <GlassTextarea
+            label="나를 소개하는 한 줄"
+            placeholder="예: 천천히 친해지는 편이고, 대화가 잘 이어지는 사람을 선호해요."
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            maxLength={500}
+            helper={`${description.length}/500 · 외모 어필보다 관계에서 중요한 태도나 리듬을 적어주세요.`}
+          />
+        </GlassPanel>
+
+        <GlassPanel tone="quiet" className={css({ display: "flex", flexDirection: "column", gap: "5" })}>
+          <div className={css({ position: "relative", zIndex: 1 })}>
+            <h2 className={css({ color: "ink.950", fontSize: "2xl", fontWeight: "black" })}>
               매칭 참여 설정
             </h2>
             <p className={css({ marginTop: "1", color: "ink.500", fontSize: "sm", lineHeight: "1.7" })}>
@@ -579,16 +739,16 @@ export default function OnboardingPage() {
               label="이번 주 매칭 참여"
               description="지금 진지하게 만날 준비가 되었을 때 켜두세요."
             />
-            <GlassTextarea
-              label="AI에게 알려줄 한 줄"
-              placeholder="예: 천천히 친해지는 편이고, 대화가 잘 이어지는 사람을 선호해요."
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              helper="외모 어필보다 관계에서 중요한 태도나 리듬을 적어주세요."
-              containerClassName={css({ gridColumn: { md: "span 2" } })}
-            />
           </div>
         </GlassPanel>
+
+        <LegalConsentPanel
+          termsAccepted={termsAccepted}
+          privacyAccepted={privacyAccepted}
+          alreadyAgreed={termsAgreedAt != null}
+          onTermsChange={setTermsAccepted}
+          onPrivacyChange={setPrivacyAccepted}
+        />
 
         {error && (
           <GlassPanel tone="quiet" className={css({ padding: "4" })}>

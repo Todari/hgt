@@ -470,7 +470,7 @@ export function GlassMetric({
         padding: "3",
         background: "rgba(255,255,255,.36)",
         boxShadow: "0 12px 26px rgba(10,17,24,.07)",
-        backdropFilter: "blur(18px)",
+        backdropFilter: "blur(11px)",
       })}
     >
       <p

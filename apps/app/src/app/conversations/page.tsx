@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import type { Conversation } from "@hgt-client/contract";
 import { css, cx } from "_panda/css";
 import { GlassBadge, GlassButton, GlassPanel } from "@/components/ui/glass";
+import { OfflineBanner, SafetyGuideBanner } from "@/components/ui/status";
 import { api, ApiError, connectRealtime } from "@/lib/api";
 import { formatChatTime } from "@/lib/format";
 import { getSession } from "@/lib/session";
@@ -89,7 +90,7 @@ export default function ConversationsPage() {
           height: "36%",
           background:
             "linear-gradient(108deg, transparent, rgba(255,107,95,.15) 34%, rgba(255,107,95,.08), transparent)",
-          filter: "blur(34px)",
+          filter: "blur(15px)",
           transform: "rotate(-8deg)",
         })}
         animate={{ x: [-16, 16, -16], y: [0, 14, 0] }}
@@ -151,6 +152,8 @@ export default function ConversationsPage() {
           </div>
         </nav>
 
+        <OfflineBanner />
+
         <header
           className={css({
             display: "grid",
@@ -181,6 +184,8 @@ export default function ConversationsPage() {
             </p>
           </GlassPanel>
         )}
+
+        <SafetyGuideBanner />
 
         {loading ? (
           <GlassPanel className={css({ minHeight: "240px", display: "grid", placeItems: "center" })}>
