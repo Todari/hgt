@@ -1,0 +1,108 @@
+/**
+ * Launch-feature checks: block (excludes from matching), unblock, chat read
+ * state (unread count + mark-read), report, and the rate-limit logic.
+ *
+ *   pnpm --filter api exec tsx scripts/test-launch.ts
+ */
+import "dotenv/config";
+import { eq, inArray, like } from "drizzle-orm";
+import { db } from "../src/db/client";
+import { users, keywords, matchRounds } from "../src/db/schema";
+import { runWeeklyMatch, weekStartMonday } from "../src/matching/engine";
+import { rateLimit } from "../src/lib/rate-limit";
+
+const BASE = "http://localhost:8080";
+const PREFIX = "TESTLAUNCH_";
+const SESS_M = "launch_session_m_0000000000000000000000000";
+const SESS_F = "launch_session_f_0000000000000000000000000";
+
+const authed = (s: string) => ({ "Content-Type": "application/json", Authorization: `Bearer ${s}` });
+const j = async (r: Response) => {
+  const t = await r.text();
+  try {
+    return { status: r.status, body: JSON.parse(t) };
+  } catch {
+    return { status: r.status, body: t };
+  }
+};
+
+async function cleanup() {
+  await db.delete(matchRounds).where(eq(matchRounds.weekStart, weekStartMonday()));
+  await db.delete(users).where(like(users.studentId, `${PREFIX}%`));
+}
+
+async function isolatedRun(mId: string, fId: string) {
+  const others = (await db.select({ id: users.id }).from(users).where(eq(users.explore, true)))
+    .map((u) => u.id)
+    .filter((id) => id !== mId && id !== fId);
+  if (others.length) await db.update(users).set({ explore: false }).where(inArray(users.id, others));
+  await db.delete(matchRounds).where(eq(matchRounds.weekStart, weekStartMonday()));
+  const run = await runWeeklyMatch(weekStartMonday());
+  if (others.length) await db.update(users).set({ explore: true }).where(inArray(users.id, others));
+  return run;
+}
+
+async function main() {
+  let pass = true;
+  const check = (n: string, c: boolean) => {
+    console.log(`  ${c ? "✅" : "❌"} ${n}`);
+    if (!c) pass = false;
+  };
+
+  // 0) rate-limit logic (no portal hits)
+  const allowed = [1, 2, 3, 4, 5].map(() => rateLimit("unit-test", 5, 60_000));
+  const blocked = rateLimit("unit-test", 5, 60_000);
+  check("0. 레이트리밋: 5회 허용 후 6번째 차단", allowed.every(Boolean) && blocked === false);
+
+  await cleanup();
+  const cat = await db.select().from(keywords);
+  const kid = (v: string) => {
+    const k = cat.find((x) => x.value === v);
+    if (!k) throw new Error("keyword " + v);
+    return k.id;
+  };
+
+  const m = (await db.insert(users).values({ studentId: `${PREFIX}M`, name: "남", gender: true, age: 25, major: "A", explore: true, canCc: true, academicStatus: "재학", session: SESS_M }).returning())[0]!;
+  const f = (await db.insert(users).values({ studentId: `${PREFIX}F`, name: "여", gender: false, age: 24, major: "B", explore: true, canCc: true, academicStatus: "재학", session: SESS_F }).returning())[0]!;
+  await fetch(`${BASE}/me/profile`, { method: "PUT", headers: authed(SESS_M), body: JSON.stringify({ selfKeywordIds: [kid("게임")], idealKeywordIds: [kid("영화감상")] }) });
+  await fetch(`${BASE}/me/profile`, { method: "PUT", headers: authed(SESS_F), body: JSON.stringify({ selfKeywordIds: [kid("영화감상")], idealKeywordIds: [kid("게임")] }) });
+
+  // 1) block excludes from matching
+  await fetch(`${BASE}/me/blocks`, { method: "POST", headers: authed(SESS_M), body: JSON.stringify({ userId: f.id }) });
+  const blockedRun = await isolatedRun(m.id, f.id);
+  check("1. 차단된 쌍은 매칭 안 됨 (matchCount=0)", blockedRun.matchCount === 0);
+
+  // 2) unblock -> they match -> conversation created
+  await fetch(`${BASE}/me/blocks/${f.id}`, { method: "DELETE", headers: authed(SESS_M) });
+  const okRun = await isolatedRun(m.id, f.id);
+  check("2. 차단 해제 후 매칭됨 (matchCount=1)", okRun.matchCount === 1);
+
+  const convs = await fetch(`${BASE}/conversations`, { headers: authed(SESS_F) }).then(j);
+  const convId = convs.body?.data?.[0]?.id as string;
+
+  // 3) read state — M sends, F sees unread, then marks read
+  await fetch(`${BASE}/conversations/${convId}/messages`, { method: "POST", headers: authed(SESS_M), body: JSON.stringify({ body: "안녕!" }) });
+  const before = await fetch(`${BASE}/conversations`, { headers: authed(SESS_F) }).then(j);
+  check("3. 안읽음 카운트 = 1", before.body?.data?.[0]?.unreadCount === 1);
+  await fetch(`${BASE}/conversations/${convId}/read`, { method: "POST", headers: authed(SESS_F) });
+  const after = await fetch(`${BASE}/conversations`, { headers: authed(SESS_F) }).then(j);
+  check("4. 읽음 처리 후 카운트 = 0", after.body?.data?.[0]?.unreadCount === 0);
+
+  // 4) report
+  const report = await fetch(`${BASE}/reports`, { method: "POST", headers: authed(SESS_F), body: JSON.stringify({ userId: m.id, reason: "부적절한 메시지" }) }).then(j);
+  check("5. 신고 (201)", report.status === 201);
+
+  await cleanup();
+  console.log(pass ? "\n🎉 런칭 기능 E2E 통과" : "\n❌ 일부 실패");
+  process.exit(pass ? 0 : 1);
+}
+
+main().catch(async (e) => {
+  console.error("error:", e);
+  try {
+    await cleanup();
+  } catch {
+    /* ignore */
+  }
+  process.exit(1);
+});

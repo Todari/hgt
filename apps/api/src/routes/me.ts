@@ -93,3 +93,11 @@ meRoutes.put("/me/profile", async (c) => {
   const base = fresh ? toPublicUser(fresh) : toPublicUser(user);
   return ok(c, { ...base, ...(await loadKeywords(user.id)) });
 });
+
+// DELETE /me — account withdrawal. Cascades to keywords, devices, blocks,
+// conversations, messages, and matches.
+meRoutes.delete("/me", async (c) => {
+  const me = c.get("user");
+  await db.delete(users).where(eq(users.id, me.id));
+  return ok(c, { deleted: true });
+});

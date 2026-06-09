@@ -6,6 +6,7 @@ import { users } from "../db/schema";
 import { authenticateHongik, HongikAuthError, type HongikProfile } from "../hongik/login";
 import { createSessionToken } from "../lib/session-token";
 import { ok, fail } from "../lib/response";
+import { rateLimit } from "../lib/rate-limit";
 
 // 재학생 게이팅: 허용할 학적상태 (env로 조정 가능; 기본 재학/휴학, 졸업 차단).
 const ALLOWED_STATUSES = (process.env.HONGIK_ALLOWED_STATUSES ?? "재학,휴학")
@@ -28,6 +29,14 @@ authRoutes.post("/auth/hongik", async (c) => {
     return fail(c, parsed.error.issues.map((i) => i.message).join(", "), 400);
   }
   const { id, pw } = parsed.data;
+
+  // Rate limit — prevent brute-forcing Hongik portal accounts through our API.
+  const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  // Per-id (5/10min) is the real brute-force guard; per-ip is high so a whole
+  // campus behind one NAT'd IP isn't blocked.
+  if (!rateLimit(`hongik:ip:${ip}`, 300, 600_000) || !rateLimit(`hongik:id:${id}`, 5, 600_000)) {
+    return fail(c, "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.", 429);
+  }
 
   let profile: HongikProfile;
   try {

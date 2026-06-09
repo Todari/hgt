@@ -1,5 +1,13 @@
 @layer reset, base, tokens, recipes, utilities;
-@layer reset{
+
+@font-face {
+  font-family: "Pretendard Variable";
+  src: url("./fonts/PretendardVariable.woff2") format("woff2-variations");
+  font-display: swap;
+  font-weight: 45 920;
+}
+
+@layer reset {
   *,
   *::before,
   *::after {
@@ -8,5 +16,212 @@
 
   form {
     display: flex;
+  }
+
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --hgt-ink: #0a1118;
+    --hgt-paper: #f4f8f7;
+    --hgt-glass-clear: rgba(255, 255, 255, 0.46);
+    --hgt-glass-milk: rgba(255, 255, 255, 0.68);
+    --hgt-glass-stroke: rgba(255, 255, 255, 0.74);
+    --hgt-glass-hairline: rgba(15, 25, 35, 0.12);
+    --hgt-primary: #ff6b5f;
+    --hgt-primary-deep: #b83e3a;
+    --hgt-primary-soft: #ffe2db;
+    --hgt-shadow-float:
+      0 1px 0 rgba(255, 255, 255, 0.76) inset,
+      0 -1px 0 rgba(21, 38, 51, 0.08) inset,
+      0 24px 60px rgba(17, 40, 52, 0.15),
+      0 14px 38px rgba(255, 107, 95, 0.18),
+      -18px 16px 46px rgba(255, 107, 95, 0.1),
+      18px -18px 38px rgba(255, 107, 95, 0.08);
+    --hgt-shadow-lift:
+      0 1px 0 rgba(255, 255, 255, 0.82) inset,
+      0 18px 38px rgba(10, 17, 24, 0.13),
+      0 8px 24px rgba(255, 107, 95, 0.18),
+      14px -10px 28px rgba(255, 107, 95, 0.1);
+    --hgt-shadow-action:
+      0 1px 0 rgba(255, 255, 255, 0.58) inset,
+      0 22px 48px rgba(255, 107, 95, 0.32),
+      -14px 16px 36px rgba(255, 107, 95, 0.18),
+      16px -14px 32px rgba(255, 107, 95, 0.14);
+  }
+
+  html {
+    min-height: 100%;
+    background: var(--hgt-paper);
+  }
+
+  body {
+    min-height: 100dvh;
+    margin: 0;
+    color: var(--hgt-ink);
+    background:
+      linear-gradient(125deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 245, 242, 0.9) 42%, rgba(248, 238, 235, 0.88) 100%),
+      radial-gradient(ellipse 130% 80% at 52% -18%, rgba(255, 107, 95, 0.18), transparent 48%),
+      linear-gradient(160deg, #fffaf8 0%, #f8efec 48%, #eee6e3 100%);
+    font-family:
+      "Pretendard Variable",
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+    font-feature-settings: "ss05";
+    letter-spacing: 0;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    content: "";
+    background:
+      linear-gradient(100deg, transparent 0%, rgba(255, 107, 95, 0.15) 19%, transparent 38%),
+      linear-gradient(78deg, transparent 20%, rgba(255, 107, 95, 0.1) 47%, transparent 70%),
+      linear-gradient(143deg, transparent 36%, rgba(255, 107, 95, 0.08) 62%, transparent 86%);
+    filter: blur(24px) saturate(1.05);
+    transform: translateZ(0);
+  }
+
+  body::after {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    content: "";
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.36'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    mix-blend-mode: soft-light;
+    opacity: 0.16;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ::selection {
+    color: #071217;
+    background: rgba(255, 226, 219, 0.78);
+  }
+
+  .glass-panel,
+  .glass-control,
+  .glass-field,
+  .glass-nav {
+    position: relative;
+    border: 1px solid var(--hgt-glass-stroke);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.34)),
+      linear-gradient(100deg, rgba(255, 107, 95, 0.13), rgba(255, 107, 95, 0.04) 72%);
+    box-shadow: var(--hgt-shadow-float);
+    backdrop-filter: blur(28px) saturate(1.35);
+    -webkit-backdrop-filter: blur(28px) saturate(1.35);
+  }
+
+  .glass-panel::before,
+  .glass-control::before,
+  .glass-field::before,
+  .glass-nav::before {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    content: "";
+    background:
+      linear-gradient(116deg, rgba(255, 255, 255, 0.92) 0%, transparent 22%, transparent 72%, rgba(255, 255, 255, 0.46) 100%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent 48%);
+    mix-blend-mode: screen;
+  }
+
+  .glass-panel::after,
+  .glass-control::after,
+  .glass-nav::after {
+    position: absolute;
+    inset: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.38);
+    border-radius: inherit;
+    pointer-events: none;
+    content: "";
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.18) inset,
+      0 18px 42px rgba(255, 255, 255, 0.2) inset;
+  }
+
+  .glass-control {
+    overflow: hidden;
+    cursor: pointer;
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+  }
+
+  .glass-control:focus-visible,
+  .glass-field:focus-visible {
+    outline: none;
+    border-color: rgba(255, 107, 95, 0.7);
+    box-shadow:
+      0 0 0 4px rgba(255, 107, 95, 0.16),
+      0 0 0 1px rgba(255, 255, 255, 0.76) inset,
+      0 16px 34px rgba(255, 107, 95, 0.18);
+  }
+
+  .glass-field {
+    width: 100%;
+    color: #10202b;
+    appearance: none;
+  }
+
+  .glass-field::placeholder {
+    color: rgba(41, 56, 67, 0.48);
+  }
+
+  .liquid-sheen {
+    position: absolute;
+    inset: -32% -18% auto;
+    height: 58%;
+    pointer-events: none;
+    background:
+      linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.76) 34%, transparent 60%),
+      linear-gradient(85deg, rgba(255, 107, 95, 0.18), rgba(255, 107, 95, 0.08));
+    filter: blur(18px);
+    opacity: 0.68;
+    transform: rotate(-7deg);
+  }
+
+  .mesh-field {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(10, 17, 24, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(10, 17, 24, 0.035) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(180deg, transparent 0%, black 24%, black 70%, transparent 100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

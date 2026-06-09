@@ -150,3 +150,64 @@ export const matchResultSchema = z.object({
   partner: userSchema,
 });
 export type MatchResult = z.infer<typeof matchResultSchema>;
+
+/* ------------------------------------------------------------------ */
+/* Chat                                                                */
+/* ------------------------------------------------------------------ */
+
+export const messageSchema = z.object({
+  id: z.string().uuid(),
+  conversationId: z.string().uuid(),
+  senderId: z.string().uuid(),
+  body: z.string(),
+  createdAt: z.string(),
+  readAt: z.string().nullable(),
+});
+export type Message = z.infer<typeof messageSchema>;
+
+export const conversationSchema = z.object({
+  id: z.string().uuid(),
+  partner: userSchema,
+  lastMessage: messageSchema.nullable(),
+  unreadCount: z.number().int(),
+  createdAt: z.string(),
+});
+export type Conversation = z.infer<typeof conversationSchema>;
+
+export const sendMessageSchema = z.object({
+  body: z.string().min(1).max(2000),
+});
+export type SendMessageInput = z.infer<typeof sendMessageSchema>;
+
+/* ------------------------------------------------------------------ */
+/* Push devices + realtime events                                      */
+/* ------------------------------------------------------------------ */
+
+export const devicePlatformSchema = z.enum(["ios", "android", "web"]);
+export type DevicePlatform = z.infer<typeof devicePlatformSchema>;
+
+export const registerDeviceSchema = z.object({
+  platform: devicePlatformSchema,
+  token: z.string().min(1),
+});
+export type RegisterDeviceInput = z.infer<typeof registerDeviceSchema>;
+
+/** Realtime events pushed over the WebSocket (server → client). */
+export const wsServerEventSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("message"), message: messageSchema }),
+  z.object({ type: z.literal("match"), partner: userSchema }),
+]);
+export type WsServerEvent = z.infer<typeof wsServerEventSchema>;
+
+/* ------------------------------------------------------------------ */
+/* Safety: block + report                                              */
+/* ------------------------------------------------------------------ */
+
+export const blockUserSchema = z.object({ userId: z.string().uuid() });
+export type BlockUserInput = z.infer<typeof blockUserSchema>;
+
+export const reportUserSchema = z.object({
+  userId: z.string().uuid(),
+  reason: z.string().min(1).max(1000),
+});
+export type ReportUserInput = z.infer<typeof reportUserSchema>;

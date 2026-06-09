@@ -40,3 +40,8 @@ next-env.d.ts
 ## Panda
 styled-system
 styled-system-studio
+
+## Capacitor native projects (regenerate with `cap add ios|android`).
+## Commit these once you customize native config (icons, Info.plist, etc.).
+/ios
+/android

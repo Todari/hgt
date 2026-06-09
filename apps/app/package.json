@@ -11,16 +11,26 @@
     "check-types": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "prepare": "panda codegen"
+    "prepare": "panda codegen",
+    "build:app": "BUILD_TARGET=capacitor next build",
+    "cap:sync": "cap sync",
+    "cap:ios": "cap open ios",
+    "cap:android": "cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/core": "^6.1.0",
+    "@capacitor/ios": "^6.1.0",
+    "@capacitor/push-notifications": "^6.0.0",
     "@hgt-client/contract": "workspace:*",
     "@hgt-client/ui": "workspace:*",
+    "framer-motion": "^12.38.0",
     "next": "15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106"
   },
   "devDependencies": {
+    "@capacitor/cli": "^6.1.0",
     "@chromatic-com/storybook": "^3.2.2",
     "@hgt-client/eslint-config": "workspace:*",
     "@hgt-client/typescript-config": "workspace:*",
