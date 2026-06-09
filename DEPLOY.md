@@ -15,14 +15,16 @@ Backend is **deployed and running** on `ec2-52-78-45-209.ap-northeast-2`:
 > This EC2 already hosts other projects (Postgres on 5432–5436, web on 8080),
 > so HGT auto-moved to **8090 / 5455**. Those are this box's real ports.
 
-### ⚠️ One step left for external access
-The EC2 **security group does not yet allow inbound 8090** (the API is currently
-reachable only on the box itself). In the AWS console → EC2 → Security Groups →
-inbound rules, **add TCP 8090** (source `0.0.0.0/0` for testing). Then:
+### ✅ External access (open)
+Inbound TCP 8090 (0.0.0.0/0) is open on SG `sg-01f4daecf394a97da` (added via local
+`aws` CLI). The API is reachable from the internet:
 ```bash
 curl http://ec2-52-78-45-209.ap-northeast-2.compute.amazonaws.com:8090/health   # {"ok":true}
+# manage the SG later (mac has working creds for acct 236677164563):
+aws ec2 authorize-security-group-ingress --region ap-northeast-2 \
+  --group-id sg-01f4daecf394a97da --ip-permissions 'IpProtocol=tcp,FromPort=8090,ToPort=8090,IpRanges=[{CidrIp=0.0.0.0/0}]'
 ```
-Do **not** expose 5455 (Postgres stays localhost-only).
+Postgres (5455) stays localhost-only — never add it to the SG.
 
 > No domain yet ⇒ the API is plain **HTTP**, so the portal password transits HTTP.
 > Fine for testing; before real users add a domain + Caddy TLS (§4).
