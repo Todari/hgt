@@ -92,6 +92,18 @@ async function main() {
   const report = await fetch(`${BASE}/reports`, { method: "POST", headers: authed(SESS_F), body: JSON.stringify({ userId: m.id, reason: "부적절한 메시지" }) }).then(j);
   check("5. 신고 (201)", report.status === 201);
 
+  // 5) block ends the existing conversation (hidden from list + send 403)
+  await fetch(`${BASE}/me/blocks`, { method: "POST", headers: authed(SESS_M), body: JSON.stringify({ userId: f.id }) });
+  const afterBlock = await fetch(`${BASE}/conversations`, { headers: authed(SESS_M) }).then(j);
+  check("6. 차단 시 대화 목록에서 숨김", (afterBlock.body?.data?.length ?? -1) === 0);
+  const blockedSend = await fetch(`${BASE}/conversations/${convId}/messages`, { method: "POST", headers: authed(SESS_M), body: JSON.stringify({ body: "x" }) }).then(j);
+  check("7. 차단 시 메시지 전송 403", blockedSend.status === 403);
+
+  // 6) terms consent stamps termsAgreedAt
+  await fetch(`${BASE}/me/profile`, { method: "PUT", headers: authed(SESS_F), body: JSON.stringify({ agreedToTerms: true }) });
+  const meAfter = await fetch(`${BASE}/me`, { headers: authed(SESS_F) }).then(j);
+  check("8. 약관 동의 → termsAgreedAt 기록", Boolean(meAfter.body?.data?.termsAgreedAt));
+
   await cleanup();
   console.log(pass ? "\n🎉 런칭 기능 E2E 통과" : "\n❌ 일부 실패");
   process.exit(pass ? 0 : 1);

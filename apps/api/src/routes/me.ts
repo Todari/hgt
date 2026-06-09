@@ -67,6 +67,7 @@ meRoutes.put("/me/profile", async (c) => {
   if (p.smokeId !== undefined) scalar.smokeId = p.smokeId;
   if (p.religionId !== undefined) scalar.religionId = p.religionId;
   if (p.mbtiId !== undefined) scalar.mbtiId = p.mbtiId;
+  if (p.agreedToTerms === true) scalar.termsAgreedAt = new Date();
 
   await db.transaction(async (tx) => {
     await tx.update(users).set(scalar).where(eq(users.id, user.id));

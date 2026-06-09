@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { desc, eq, or } from "drizzle-orm";
 import { db } from "../db/client";
-import { matches, matchRounds, users } from "../db/schema";
+import { matches, matchRounds, users, keywords, userSelfKeywords } from "../db/schema";
 import { ok } from "../lib/response";
 import type { AppEnv, DbUser } from "../types";
 
@@ -32,10 +32,22 @@ matchRoutes.get("/me/match", async (c) => {
   const [partner] = await db.select().from(users).where(eq(users.id, partnerId)).limit(1);
   if (!partner) return ok(c, null);
 
+  // shared self-keywords (둘 다 자신을 설명한 키워드) — conversation starters
+  const kwOf = (uid: string) =>
+    db
+      .select({ v: keywords.value })
+      .from(userSelfKeywords)
+      .innerJoin(keywords, eq(userSelfKeywords.keywordId, keywords.id))
+      .where(eq(userSelfKeywords.userId, uid));
+  const [mine, theirs] = await Promise.all([kwOf(me.id), kwOf(partnerId)]);
+  const theirSet = new Set(theirs.map((k) => k.v));
+  const sharedKeywords = mine.map((k) => k.v).filter((v) => theirSet.has(v));
+
   return ok(c, {
     roundId: row.roundId,
     weekStart: row.weekStart,
     score: row.score,
     partner: toPublicUser(partner),
+    sharedKeywords,
   });
 });

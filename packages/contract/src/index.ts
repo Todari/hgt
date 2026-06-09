@@ -85,6 +85,7 @@ export const userSchema = z.object({
   religionId: z.string().uuid().nullable(),
   mbtiId: z.string().uuid().nullable(),
   partnerId: z.string().uuid().nullable(),
+  termsAgreedAt: z.string().nullable(), // 약관 동의 시각 (null = 미동의)
 });
 export type User = z.infer<typeof userSchema>;
 
@@ -128,6 +129,7 @@ export const updateProfileSchema = z.object({
   smokeId: z.string().uuid().nullable().optional(),
   religionId: z.string().uuid().nullable().optional(),
   mbtiId: z.string().uuid().nullable().optional(),
+  agreedToTerms: z.boolean().optional(), // true → stamp termsAgreedAt = now
 });
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
@@ -148,6 +150,7 @@ export const matchResultSchema = z.object({
   weekStart: z.string(),
   score: z.number(),
   partner: userSchema,
+  sharedKeywords: z.array(z.string()), // keywords both selected (대화 물꼬용)
 });
 export type MatchResult = z.infer<typeof matchResultSchema>;
 

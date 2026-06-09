@@ -100,19 +100,25 @@ export async function runWeeklyMatch(weekStart: string = weekStartMonday()): Pro
     .where(eq(matchRounds.weekStart, weekStart))
     .limit(1);
 
-  if (existing?.status === "completed") {
-    const matchCount = await db.$count(matches, eq(matches.roundId, existing.id));
-    return { weekStart, roundId: existing.id, alreadyCompleted: true, males: 0, females: 0, matchCount };
-  }
-
+  const firstRun = !existing;
   let round = existing;
   if (!round) {
     const [created] = await db.insert(matchRounds).values({ weekStart }).returning();
     round = created!;
   }
 
+  // Users already matched THIS week keep their single match — exclude them so daily
+  // re-runs only pair newcomers / still-unmatched users (near-immediate first match).
+  const thisRound = await db
+    .select({ m: matches.maleUserId, f: matches.femaleUserId })
+    .from(matches)
+    .where(eq(matches.roundId, round.id));
+  const matchedThisRound = new Set(thisRound.flatMap((r) => [r.m, r.f]));
+
   // Only users with a usable profile (≥1 self + ≥1 ideal keyword) join the pool.
-  const candidates = (await loadCandidates()).filter((c) => c.self.length > 0 && c.ideal.length > 0);
+  const candidates = (await loadCandidates()).filter(
+    (c) => c.self.length > 0 && c.ideal.length > 0 && !matchedThisRound.has(c.id),
+  );
   const males = candidates.filter((c) => c.gender);
   const females = candidates.filter((c) => !c.gender);
 
@@ -152,15 +158,17 @@ export async function runWeeklyMatch(weekStart: string = weekStartMonday()): Pro
     }
   }
 
-  // Notify eligible users who weren't matched this round.
-  const matchedIds = new Set(rows.flatMap((r) => [r.maleUserId, r.femaleUserId]));
-  for (const cand of candidates) {
-    if (!matchedIds.has(cand.id)) {
-      void sendPush(cand.id, {
-        title: "이번 주 매칭",
-        body: "아쉽게도 이번 주엔 매칭이 안 됐어요. 키워드를 다듬어볼까요?",
-        data: { type: "no_match" },
-      });
+  // No-match push only on the first run of the week (daily re-runs must not spam).
+  if (firstRun) {
+    const matchedIds = new Set(rows.flatMap((r) => [r.maleUserId, r.femaleUserId]));
+    for (const cand of candidates) {
+      if (!matchedIds.has(cand.id)) {
+        void sendPush(cand.id, {
+          title: "이번 주 매칭",
+          body: "아쉽게도 이번 주엔 매칭이 안 됐어요. 키워드를 다듬어볼까요?",
+          data: { type: "no_match" },
+        });
+      }
     }
   }
 
@@ -169,7 +177,7 @@ export async function runWeeklyMatch(weekStart: string = weekStartMonday()): Pro
   return {
     weekStart,
     roundId: round!.id,
-    alreadyCompleted: false,
+    alreadyCompleted: !firstRun,
     males: males.length,
     females: females.length,
     matchCount: rows.length,

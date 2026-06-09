@@ -69,6 +69,9 @@ export const users = pgTable("users", {
   // Result of matching
   partnerId: uuid("partner_id").references((): AnyPgColumn => users.id),
 
+  // Consent — 이용약관 / 개인정보처리방침 동의 시각 (null = 미동의)
+  termsAgreedAt: timestamp("terms_agreed_at", { withTimezone: true }),
+
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

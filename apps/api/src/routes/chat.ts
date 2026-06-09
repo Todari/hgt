@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { and, desc, eq, isNull, lt, ne, or } from "drizzle-orm";
 import { sendMessageSchema } from "@hgt-client/contract";
 import { db } from "../db/client";
-import { conversations, messages, users } from "../db/schema";
+import { conversations, messages, users, blocks } from "../db/schema";
 import { sendPush } from "../push/send";
 import { broadcastToUser } from "../ws/registry";
 import { ok, fail } from "../lib/response";
@@ -30,9 +30,32 @@ async function participantConversation(meId: string, convId: string) {
   return conv;
 }
 
+/** True if either user has blocked the other. */
+async function isBlocked(a: string, b: string): Promise<boolean> {
+  const [row] = await db
+    .select()
+    .from(blocks)
+    .where(
+      or(
+        and(eq(blocks.blockerId, a), eq(blocks.blockedId, b)),
+        and(eq(blocks.blockerId, b), eq(blocks.blockedId, a)),
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
+}
+
 // GET /conversations — my conversations with partner + last message.
 chatRoutes.get("/conversations", async (c) => {
   const me = c.get("user");
+  // Hide conversations with anyone I've blocked / who blocked me.
+  const blockRows = await db
+    .select()
+    .from(blocks)
+    .where(or(eq(blocks.blockerId, me.id), eq(blocks.blockedId, me.id)));
+  const blockedIds = new Set(
+    blockRows.flatMap((b) => [b.blockerId, b.blockedId]).filter((id) => id !== me.id),
+  );
   const convs = await db
     .select()
     .from(conversations)
@@ -42,6 +65,7 @@ chatRoutes.get("/conversations", async (c) => {
   const result = [];
   for (const conv of convs) {
     const partnerId = conv.userAId === me.id ? conv.userBId : conv.userAId;
+    if (blockedIds.has(partnerId)) continue;
     const [partner] = await db.select().from(users).where(eq(users.id, partnerId)).limit(1);
     if (!partner) continue;
     const [last] = await db
@@ -100,12 +124,16 @@ chatRoutes.post("/conversations/:id/messages", async (c) => {
     return fail(c, parsed.error.issues.map((i) => i.message).join(", "), 400);
   }
 
+  const recipientId = conv.userAId === me.id ? conv.userBId : conv.userAId;
+  if (await isBlocked(me.id, recipientId)) {
+    return fail(c, "차단된 상대와는 대화할 수 없습니다.", 403);
+  }
+
   const [row] = await db
     .insert(messages)
     .values({ conversationId: conv.id, senderId: me.id, body: parsed.data.body })
     .returning();
   const message = serializeMessage(row!);
-  const recipientId = conv.userAId === me.id ? conv.userBId : conv.userAId;
 
   broadcastToUser(recipientId, { type: "message", message });
   void sendPush(recipientId, {
