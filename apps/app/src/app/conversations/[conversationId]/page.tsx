@@ -12,6 +12,7 @@ import {
   GlassPanel,
   GlassTextarea,
 } from "@/components/ui/glass";
+import { OfflineBanner } from "@/components/ui/status";
 import { api, ApiError, connectRealtime } from "@/lib/api";
 import { formatChatTime, formatMessageDay } from "@/lib/format";
 import { getSession } from "@/lib/session";
@@ -242,7 +243,7 @@ export default function ConversationRoomPage() {
           height: "36%",
           background:
             "linear-gradient(108deg, transparent, rgba(255,107,95,.16) 34%, rgba(255,107,95,.08), transparent)",
-          filter: "blur(34px)",
+          filter: "blur(15px)",
           transform: "rotate(9deg)",
         })}
         animate={{ x: [16, -16, 16], y: [0, 14, 0] }}
@@ -312,6 +313,8 @@ export default function ConversationRoomPage() {
             </GlassButton>
           </div>
         </nav>
+
+        <OfflineBanner />
 
         {error && (
           <GlassPanel tone="quiet" className={css({ padding: "4" })}>
