@@ -80,6 +80,10 @@
     font-feature-settings: "ss05";
     letter-spacing: 0;
     overflow-x: hidden;
+    /* Korean must break at word boundaries, not mid-word (default CJK breaking
+       splits 단어 like "진심이" → "진"/"심이"). break-word handles long tokens. */
+    word-break: keep-all;
+    overflow-wrap: break-word;
     /* Keep content clear of the notch / status bar / home indicator.
        Backgrounds (body::before/after) stay full-bleed (position: fixed). */
     padding:
