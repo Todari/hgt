@@ -1,6 +1,7 @@
 import React from "react";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "HGT",
@@ -24,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
