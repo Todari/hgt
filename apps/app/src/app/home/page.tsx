@@ -222,6 +222,7 @@ export default function HomeDashboard() {
   const nextMatchDays = daysUntilNextMonday();
   const nextMatchLabel = formatNextMatchLabel(nextMatchDays);
   const sharedReason = match ? formatSharedKeywords(match.sharedKeywords) : "";
+  const navActionCss = css({ paddingX: "4", fontSize: "sm", width: "100%" });
 
   return (
     <DashboardShell>
@@ -229,19 +230,18 @@ export default function HomeDashboard() {
         className={cx(
           "glass-nav",
           css({
-            minHeight: "64px",
-            borderRadius: "capsule",
+            borderRadius: "28px",
             display: "flex",
             alignItems: { base: "flex-start", sm: "center" },
             justifyContent: "space-between",
             flexWrap: "wrap",
             gap: "3",
-            padding: "2",
+            padding: "3",
             paddingLeft: { base: "4", md: "5" },
           }),
         )}
       >
-        <div className={css({ position: "relative", zIndex: 1 })}>
+        <div className={css({ position: "relative", zIndex: 1, flexShrink: 0 })}>
           <p className={css({ color: "ink.950", fontSize: "sm", fontWeight: "black" })}>HGT</p>
           <p className={css({ color: "ink.500", fontSize: "xs", fontWeight: "bold" })}>
             한 사람에게 집중하는 AI 매칭
@@ -251,20 +251,19 @@ export default function HomeDashboard() {
           className={css({
             position: "relative",
             zIndex: 1,
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: { base: "flex-start", sm: "flex-end" },
+            display: "grid",
+            gridTemplateColumns: { base: "repeat(3, 1fr)", sm: "repeat(3, auto)" },
             gap: "2",
             width: { base: "100%", sm: "auto" },
           })}
         >
-          <GlassButton href="/onboarding" variant="secondary">
+          <GlassButton href="/onboarding" variant="secondary" className={navActionCss}>
             프로필 수정
           </GlassButton>
-          <GlassButton href="/settings" variant="secondary">
+          <GlassButton href="/settings" variant="secondary" className={navActionCss}>
             설정
           </GlassButton>
-          <GlassButton type="button" variant="secondary" onClick={logout}>
+          <GlassButton type="button" variant="secondary" onClick={logout} className={navActionCss}>
             로그아웃
           </GlassButton>
         </div>

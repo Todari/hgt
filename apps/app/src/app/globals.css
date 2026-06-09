@@ -199,6 +199,12 @@
     color: rgba(41, 56, 67, 0.48);
   }
 
+  /* Nav bars: a card radius, not a full capsule — a capsule on a tall (wrapped)
+     nav reads as a lumpy lozenge. Overrides the per-page inline radius. */
+  .glass-nav {
+    border-radius: 28px !important;
+  }
+
   .liquid-sheen {
     position: absolute;
     inset: -32% -18% auto;

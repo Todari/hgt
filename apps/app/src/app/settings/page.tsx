@@ -447,7 +447,7 @@ export default function SettingsPage() {
             }),
           )}
         >
-          <div className={css({ position: "relative", zIndex: 1 })}>
+          <div className={css({ position: "relative", zIndex: 1, flexShrink: 0 })}>
             <p className={css({ color: "ink.950", fontSize: "sm", fontWeight: "black" })}>
               HGT 설정
             </p>
@@ -459,20 +459,19 @@ export default function SettingsPage() {
             className={css({
               position: "relative",
               zIndex: 1,
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: { base: "flex-start", sm: "flex-end" },
+              display: "grid",
+              gridTemplateColumns: { base: "repeat(3, 1fr)", sm: "repeat(3, auto)" },
               gap: "2",
               width: { base: "100%", sm: "auto" },
             })}
           >
-            <GlassButton href="/home" variant="secondary">
+            <GlassButton href="/home" variant="secondary" className={css({ paddingX: "4", fontSize: "sm", width: "100%" })}>
               홈
             </GlassButton>
-            <GlassButton href="/onboarding" variant="secondary">
+            <GlassButton href="/onboarding" variant="secondary" className={css({ paddingX: "4", fontSize: "sm", width: "100%" })}>
               프로필 수정
             </GlassButton>
-            <GlassButton href="/conversations" variant="secondary">
+            <GlassButton href="/conversations" variant="secondary" className={css({ paddingX: "4", fontSize: "sm", width: "100%" })}>
               대화
             </GlassButton>
           </div>
