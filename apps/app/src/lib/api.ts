@@ -2,18 +2,18 @@ import type {
   HttpResponse,
   HongikLoginInput,
   HongikLoginResponse,
-  User,
   Property,
-  CreatePropertyInput,
   Keyword,
   MeProfile,
   UpdateProfileInput,
-  MatchResult,
+  MyMatchResponse,
+  LogoutResponse,
   Conversation,
   Message,
   RegisterDeviceInput,
   WsServerEvent,
 } from "@hgt-client/contract";
+import { SESSION_KEY } from "./session";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
@@ -23,6 +23,15 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
     this.status = status;
+  }
+}
+
+/** Session is dead (401 / WS auth close): drop it and bounce to sign-in. */
+function handleSessionExpired(): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(SESSION_KEY);
+  if (!window.location.pathname.startsWith("/signin")) {
+    window.location.href = "/signin";
   }
 }
 
@@ -47,12 +56,7 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
 
   if (!res.ok || !json?.success) {
     // Session expired/invalid → drop it and bounce to sign-in.
-    if (res.status === 401 && typeof window !== "undefined") {
-      window.localStorage.removeItem("hgt_session");
-      if (!window.location.pathname.startsWith("/signin")) {
-        window.location.href = "/signin";
-      }
-    }
+    if (res.status === 401) handleSessionExpired();
     const message =
       (json?.data as { message?: string } | undefined)?.message ?? res.statusText;
     throw new ApiError(message, res.status);
@@ -64,13 +68,15 @@ export const api = {
   /** Verify a Hongik student via the portal and sign in. Returns a session + verified profile. */
   hongikLogin: (input: HongikLoginInput) =>
     request<HongikLoginResponse>("/auth/hongik", { method: "POST", body: input }),
-  getUsers: (session: string) => request<User[]>("/user", { session }),
-  getUser: (session: string, id: string) =>
-    request<User>(`/user/${id}`, { session }),
+  /** Revoke the session server-side. Pass the FCM token to also unregister this device. */
+  logout: (session: string, deviceToken?: string) =>
+    request<LogoutResponse>("/auth/logout", {
+      method: "POST",
+      session,
+      body: deviceToken ? { deviceToken } : {},
+    }),
   listProperties: (session: string) =>
     request<Property[]>("/property", { session }),
-  createProperty: (session: string, input: CreatePropertyInput) =>
-    request<Property>("/property", { method: "POST", session, body: input }),
 
   /** The curated keyword catalog (for the profile picker). */
   getKeywords: (session: string) => request<Keyword[]>("/keyword", { session }),
@@ -79,16 +85,31 @@ export const api = {
   /** Update editable profile fields + keyword sets. */
   updateProfile: (session: string, input: UpdateProfileInput) =>
     request<MeProfile>("/me/profile", { method: "PUT", session, body: input }),
-  /** The signed-in user's latest weekly match (null if none yet). */
+  /** This KST week's match (`current`) + the most recent earlier one (`previous`). */
   getMyMatch: (session: string) =>
-    request<MatchResult | null>("/me/match", { session }),
+    request<MyMatchResponse>("/me/match", { session }),
 
   /** My conversations (partner + last message). */
   getConversations: (session: string) =>
     request<Conversation[]>("/conversations", { session }),
-  /** Message history for a conversation (oldest first). */
-  getMessages: (session: string, conversationId: string) =>
-    request<Message[]>(`/conversations/${conversationId}/messages`, { session }),
+  /**
+   * Message history for a conversation (oldest first). Optional pagination:
+   * `limit` (≤100) + `before` (ISO datetime cursor — messages strictly older).
+   */
+  getMessages: (
+    session: string,
+    conversationId: string,
+    opts?: { limit?: number; before?: string },
+  ) => {
+    const params = new URLSearchParams();
+    if (opts?.limit !== undefined) params.set("limit", String(opts.limit));
+    if (opts?.before !== undefined) params.set("before", opts.before);
+    const query = params.toString();
+    return request<Message[]>(
+      `/conversations/${conversationId}/messages${query ? `?${query}` : ""}`,
+      { session },
+    );
+  },
   /** Send a message. The recipient receives it via realtime + push. */
   sendMessage: (session: string, conversationId: string, body: string) =>
     request<Message>(`/conversations/${conversationId}/messages`, {
@@ -114,36 +135,85 @@ export const api = {
 
 const WS_URL = BASE_URL.replace(/^http/, "ws");
 
-/**
- * Open the realtime channel. `onEvent` fires for each server event (new message,
- * new match). Returns the socket — call `.close()` to disconnect.
- */
+/** WS close codes the server uses to reject a bad/expired token. */
+const WS_AUTH_CLOSE_CODES = new Set([1008, 4001]);
+/** Server sends `{ type: "ping" }` every ~25s; longer silence = dead socket. */
+const WS_SILENCE_LIMIT_MS = 60_000;
+const WS_LIVENESS_CHECK_MS = 10_000;
+
 export type RealtimeConnection = { close: () => void };
 
+export type RealtimeOptions = {
+  /**
+   * Fired on every successful re-open after the first connect — refetch
+   * anything that may have been missed while the socket was down.
+   */
+  onReconnect?: () => void;
+};
+
+/**
+ * Open the realtime channel. `onEvent` fires for each server event (new
+ * message, new match) — heartbeat pings are swallowed here. Reconnects with
+ * exponential backoff; an auth rejection stops reconnecting and bounces to
+ * /signin instead of looping. Returns the connection — call `.close()` to
+ * disconnect.
+ */
 export function connectRealtime(
   session: string,
   onEvent: (event: WsServerEvent) => void,
+  options: RealtimeOptions = {},
 ): RealtimeConnection {
   let ws: WebSocket | null = null;
   let closed = false;
   let retry = 0;
+  let connectedOnce = false;
+  let lastEventAt = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let livenessTimer: ReturnType<typeof setInterval> | undefined;
+
+  const stopLiveness = () => {
+    if (livenessTimer) clearInterval(livenessTimer);
+    livenessTimer = undefined;
+  };
 
   const open = () => {
     if (closed) return;
-    ws = new WebSocket(`${WS_URL}/ws?token=${encodeURIComponent(session)}`);
-    ws.addEventListener("open", () => {
+    const socket = new WebSocket(`${WS_URL}/ws?token=${encodeURIComponent(session)}`);
+    ws = socket;
+    socket.addEventListener("open", () => {
       retry = 0;
+      lastEventAt = Date.now();
+      if (connectedOnce) options.onReconnect?.();
+      connectedOnce = true;
+      // Liveness watchdog: the server pings every ~25s, so a long silence
+      // means a half-open socket — force-close and let backoff reopen it.
+      stopLiveness();
+      livenessTimer = setInterval(() => {
+        if (Date.now() - lastEventAt > WS_SILENCE_LIMIT_MS) {
+          stopLiveness();
+          socket.close();
+        }
+      }, WS_LIVENESS_CHECK_MS);
     });
-    ws.addEventListener("message", (e: MessageEvent) => {
+    socket.addEventListener("message", (e: MessageEvent) => {
+      lastEventAt = Date.now();
       try {
-        onEvent(JSON.parse(String(e.data)) as WsServerEvent);
+        const event = JSON.parse(String(e.data)) as WsServerEvent;
+        if (event.type === "ping") return; // heartbeat only — not for consumers
+        onEvent(event);
       } catch {
         /* ignore malformed events */
       }
     });
-    ws.addEventListener("close", () => {
+    socket.addEventListener("close", (e: CloseEvent) => {
+      stopLiveness();
       if (closed) return;
+      // Auth rejection: the token is dead — reconnecting would loop forever.
+      if (WS_AUTH_CLOSE_CODES.has(e.code)) {
+        closed = true;
+        handleSessionExpired();
+        return;
+      }
       // exponential backoff: 1s, 2s, 4s … capped at 30s
       const delay = Math.min(1000 * 2 ** retry, 30_000);
       retry += 1;
@@ -156,6 +226,7 @@ export function connectRealtime(
     close() {
       closed = true;
       if (timer) clearTimeout(timer);
+      stopLiveness();
       ws?.close();
     },
   };

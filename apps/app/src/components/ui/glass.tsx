@@ -7,6 +7,14 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { css, cx } from "_panda/css";
 
 type GlassTone = "default" | "quiet" | "strong";
+type GlassVariant = "solid" | "glass";
+
+/*
+ * White-text coral gradients are clamped: the LIGHT end never goes above
+ * primary.600 (#d0463c, ≈4.55:1 against white). #ff6b5f/#ff9a87 ends fail
+ * WCAG AA — keep them for decoration only, never under white text.
+ */
+const CORAL_TEXT_GRADIENT = "linear-gradient(135deg, #b83e3a, #d0463c)";
 
 const toneStyles: Record<GlassTone, string> = {
   default: css({ boxShadow: "glassFloat" }),
@@ -19,27 +27,48 @@ const toneStyles: Record<GlassTone, string> = {
   strong: css({ boxShadow: "actionGlow" }),
 };
 
+/* Solid content surface: opaque card, hairline border, ONE soft shadow. */
+const solidStyles = css({
+  background: "surface.card",
+  border: "1px solid",
+  borderColor: "surface.hairline",
+  boxShadow: "cardSoft",
+});
+
+const solidToneStyles: Partial<Record<GlassTone, string>> = {
+  strong: css({
+    borderColor: "primary.200",
+    boxShadow: "0 8px 28px rgba(255,107,95,.16)",
+  }),
+};
+
+/**
+ * Content surface. `variant="solid"` (default) renders an opaque card —
+ * cheap to composite and readable. Reserve `variant="glass"` (backdrop blur)
+ * for nav chrome and floating accents only, per the GPU budget.
+ */
 export function GlassPanel({
   children,
   className,
   tone = "default",
+  variant = "solid",
   interactive = false,
   ...props
 }: HTMLMotionProps<"section"> & {
   tone?: GlassTone;
+  variant?: GlassVariant;
   interactive?: boolean;
 }) {
-  const classNames = cx(
-    "glass-panel",
-    toneStyles[tone],
-    css({
-      position: "relative",
-      overflow: "hidden",
-      borderRadius: "liquid",
-      padding: "5",
-    }),
-    className,
-  );
+  const base = css({
+    position: "relative",
+    overflow: "hidden",
+    borderRadius: "liquid",
+    padding: "5",
+  });
+  const classNames =
+    variant === "glass"
+      ? cx("glass-panel", toneStyles[tone], base, className)
+      : cx(base, solidStyles, solidToneStyles[tone], className);
 
   return (
     <motion.section
@@ -124,8 +153,7 @@ export function GlassButton({
     variant === "primary"
       ? css({
           color: "white",
-          background:
-            "linear-gradient(135deg, rgba(184,62,58,.94), rgba(255,107,95,.9) 58%, rgba(255,154,135,.86))",
+          background: CORAL_TEXT_GRADIENT,
           boxShadow: "actionGlow",
         })
       : css({
@@ -305,16 +333,15 @@ export function GlassChip({
       zIndex: 1,
       display: "inline-flex",
       alignItems: "center",
-      minHeight: "36px",
+      // 44px = minimum comfortable touch target
+      minHeight: "44px",
       borderRadius: "capsule",
       paddingX: "4",
       color: selected ? "white" : "ink.700",
       fontSize: "sm",
       fontWeight: "bold",
       cursor: onClick ? "pointer" : "default",
-      background: selected
-        ? "linear-gradient(135deg, rgba(184,62,58,.94), rgba(255,107,95,.88))"
-        : "rgba(255,255,255,.36)",
+      background: selected ? CORAL_TEXT_GRADIENT : "rgba(255,255,255,.36)",
       border: "1px solid",
       borderColor: selected ? "rgba(255,255,255,.76)" : "rgba(255,255,255,.58)",
       boxShadow: selected
@@ -333,6 +360,45 @@ export function GlassChip({
     <button type="button" aria-pressed={selected} onClick={onClick} className={classNames}>
       {content}
     </button>
+  );
+}
+
+/**
+ * The single switch-knob visual used by every toggle in the app (the glass
+ * `GlassToggle` card here AND the solid settings row's `SettingsToggleRow`).
+ * Keep both surfaces rendering this one primitive so the toggle reads
+ * identically everywhere. Visual only — state/semantics live on the parent
+ * button. `aria-hidden` because the parent carries role="switch".
+ */
+export function SwitchKnob({ checked }: { checked: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={css({
+        position: "relative",
+        flexShrink: 0,
+        width: "46px",
+        height: "28px",
+        borderRadius: "capsule",
+        background: checked ? CORAL_TEXT_GRADIENT : "rgba(10,17,24,.14)",
+        boxShadow: checked
+          ? "0 10px 20px rgba(255,107,95,.24)"
+          : "0 1px 0 rgba(255,255,255,.62) inset",
+        transition: "background 160ms ease, box-shadow 160ms ease",
+        _before: {
+          content: '""',
+          position: "absolute",
+          top: "4px",
+          left: checked ? "22px" : "4px",
+          width: "20px",
+          height: "20px",
+          borderRadius: "50%",
+          background: "white",
+          boxShadow: "0 2px 6px rgba(10,17,24,.22)",
+          transition: "left 160ms ease",
+        },
+      })}
+    />
   );
 }
 
@@ -389,34 +455,9 @@ export function GlassToggle({
           </span>
         )}
       </span>
-      <span
-        className={css({
-          position: "relative",
-          zIndex: 1,
-          width: "46px",
-          height: "28px",
-          borderRadius: "capsule",
-          background: checked
-            ? "linear-gradient(135deg, #b83e3a, #ff6b5f)"
-            : "rgba(10,17,24,.12)",
-          boxShadow: checked
-            ? "0 10px 20px rgba(255,107,95,.24)"
-            : "0 1px 0 rgba(255,255,255,.62) inset",
-          transition: "background 160ms ease, box-shadow 160ms ease",
-          _before: {
-            content: '""',
-            position: "absolute",
-            top: "4px",
-            left: checked ? "22px" : "4px",
-            width: "20px",
-            height: "20px",
-            borderRadius: "50%",
-            background: "rgba(255,255,255,.9)",
-            boxShadow: "0 4px 10px rgba(10,17,24,.16)",
-            transition: "left 160ms ease",
-          },
-        })}
-      />
+      <span className={css({ position: "relative", zIndex: 1 })}>
+        <SwitchKnob checked={checked} />
+      </span>
     </button>
   );
 }

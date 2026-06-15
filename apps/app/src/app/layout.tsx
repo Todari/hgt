@@ -10,10 +10,13 @@ export const metadata: Metadata = {
 
 // viewport-fit=cover makes env(safe-area-inset-*) non-zero on notched devices
 // (iOS) so content can clear the notch / status bar / home indicator.
+// interactiveWidget=resizes-content shrinks the layout viewport when the
+// on-screen keyboard opens, keeping the chat composer visible.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  interactiveWidget: "resizes-content",
   themeColor: "#f8efec",
 };
 

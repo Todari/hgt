@@ -218,6 +218,28 @@
     transform: rotate(-7deg);
   }
 
+  /* Ambient drift (components/ui/Ambient.tsx): static everywhere by default.
+     Desktop pointers get ONE slow transform-only drift — transform never
+     re-rasterizes the blurred layer, so it stays within the GPU budget.
+     Touch devices and reduced-motion users keep the static wash. */
+  @keyframes hgt-ambient-drift {
+    0% {
+      transform: rotate(9deg) translate3d(0, 0, 0);
+    }
+    50% {
+      transform: rotate(9deg) translate3d(-2.5%, 2%, 0);
+    }
+    100% {
+      transform: rotate(9deg) translate3d(0, 0, 0);
+    }
+  }
+
+  @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .hgt-ambient-drift {
+      animation: hgt-ambient-drift 16s ease-in-out infinite;
+    }
+  }
+
   .mesh-field {
     position: absolute;
     inset: 0;
