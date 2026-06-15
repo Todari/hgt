@@ -19,9 +19,12 @@
   },
   "dependencies": {
     "@capacitor/android": "^6.1.0",
+    "@capacitor/app": "^6.0.0",
     "@capacitor/core": "^6.1.0",
     "@capacitor/ios": "^6.1.0",
+    "@capacitor/keyboard": "^6.0.0",
     "@capacitor/push-notifications": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0",
     "@hgt-client/contract": "workspace:*",
     "@hgt-client/ui": "workspace:*",
     "framer-motion": "^12.38.0",
