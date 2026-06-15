@@ -90,8 +90,10 @@ param on `/ws` lines so session tokens never reach logs.
   `POST /admin/match/run` (X-Admin-Token). Idempotent per week via
   `match_rounds.weekStart` unique; re-runs only pair still-unmatched users.
 - **Candidates**: `explore = true` AND `termsAgreedAt` set AND studentId not in
-  `banned_students` (banned users keep their row until deletion), with ≥1 self
-  and ≥1 ideal keyword, split by verified gender.
+  `banned_students` (banned users keep their row until deletion) AND not
+  long-dormant (`last_active_at` within `MATCH_INACTIVE_DAYS`, default 21; NULL
+  counts as active; set 0 to disable during cold-start), with ≥1 self and ≥1
+  ideal keyword, split by verified gender.
 - **Scoring** (`score.ts`, pure functions — safe to unit-test):
   `directionalScore(ideal, self)` = 1.0 per exact keyword match, 0.3 per same-category
   match; `pairScore` symmetrizes, adds an age-window bonus, and returns 0 for past

@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull, notInArray, or } from "drizzle-orm";
+import { and, eq, gt, inArray, isNotNull, isNull, notInArray, or } from "drizzle-orm";
 import { db } from "../db/client";
 import {
   users,
@@ -19,6 +19,18 @@ import { toPartnerUser } from "../lib/public-user";
 
 /** KST (Asia/Seoul) is UTC+9 with no DST — a fixed offset is exact. */
 export const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+/**
+ * Drop accounts inactive longer than this from the weekly pool, so a dead
+ * account never consumes an active user's single weekly 1:1 slot. `lastActiveAt`
+ * is refreshed by sessionAuth; NULL (pre-column / never-touched) counts as active
+ * to avoid excluding everyone. Set `MATCH_INACTIVE_DAYS=0` to disable (useful
+ * during cold-start when the pool is tiny). Default 21 days.
+ */
+const MATCH_INACTIVE_DAYS = (() => {
+  const raw = Number(process.env.MATCH_INACTIVE_DAYS);
+  return Number.isFinite(raw) && raw >= 0 ? raw : 21;
+})();
 
 /** ISO date (YYYY-MM-DD) of the KST Monday of the week containing `d`. */
 export function weekStartMonday(d: Date = new Date()): string {
@@ -53,10 +65,19 @@ function groupKeywords(
 
 /**
  * Active participants this week with their keyword sets: `explore = true`,
- * terms agreed (consent gates the pool), and not banned — banned users keep
- * their row (and `explore`) until deletion, so exclude them here.
+ * terms agreed (consent gates the pool), not banned (banned users keep their
+ * row + `explore` until deletion), and not long-dormant (see MATCH_INACTIVE_DAYS).
  */
 async function loadCandidates(): Promise<Candidate[]> {
+  // Inactivity cutoff (omitted entirely when MATCH_INACTIVE_DAYS=0).
+  const activeFilter =
+    MATCH_INACTIVE_DAYS > 0
+      ? or(
+          isNull(users.lastActiveAt),
+          gt(users.lastActiveAt, new Date(Date.now() - MATCH_INACTIVE_DAYS * 24 * 60 * 60 * 1000)),
+        )
+      : undefined;
+
   const us = await db
     .select({
       id: users.id,
@@ -77,6 +98,7 @@ async function loadCandidates(): Promise<Candidate[]> {
           users.studentId,
           db.select({ studentId: bannedStudents.studentId }).from(bannedStudents),
         ),
+        activeFilter,
       ),
     );
   if (us.length === 0) return [];
