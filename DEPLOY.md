@@ -67,6 +67,22 @@ sudo systemctl daemon-reload && sudo systemctl enable --now hgt-api
 journalctl -u hgt-api -f
 ```
 
+## 1b. 자동 배포 (CD) — `.github/workflows/deploy.yml`
+
+`dev` 브랜치에 푸시하면 GitHub Actions가 위 수동 절차(§1: rsync → install →
+`db:migrate` → `systemctl restart`)를 그대로 실행한다. lint·type 게이트를 먼저
+통과해야 배포되고, 서버의 `apps/api/.env`와 포트 수정된 `docker-compose.yml`은
+rsync에서 제외해 보존한다. 수동 실행도 가능(Actions → Deploy (EC2) → Run).
+
+**활성화: 레포 Settings → Secrets and variables → Actions 에 2개 시크릿 추가**
+- `EC2_SSH_KEY` — 개인키 전체 내용 (`~/.ssh/todari-consolidated.pem`)
+- `EC2_HOST` — `ec2-52-78-45-209.ap-northeast-2.compute.amazonaws.com`
+
+시크릿이 없으면 deploy 잡은 경고만 남기고 건너뛴다(verify는 항상 실행).
+⚠️ 단일 브랜치(`dev`)→프로덕션 직접 배포다(스테이징 없음). TLS 적용 전까지는
+실사용자 트래픽을 받지 말 것(§4). 스키마 변경은 `db:migrate`가 자동 적용하되,
+파괴적 마이그레이션은 §5 백업 후 수동 검토를 권장.
+
 ## 2. Native app → the EC2
 ```bash
 NEXT_PUBLIC_API_URL=http://ec2-52-78-45-209.ap-northeast-2.compute.amazonaws.com:8090 \

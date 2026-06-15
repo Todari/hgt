@@ -1,0 +1,87 @@
+name: Deploy (EC2)
+
+# Continuous deploy of apps/api to the EC2 box. Mirrors the manual recipe in
+# DEPLOY.md §1: lint/type-gate → rsync (preserving the server's .env and
+# port-edited docker-compose.yml) → pnpm install → db:migrate → restart.
+#
+# REQUIRED GitHub repo secrets (Settings → Secrets and variables → Actions):
+#   EC2_SSH_KEY  — full contents of the private key (~/.ssh/todari-consolidated.pem)
+#   EC2_HOST     — ec2-52-78-45-209.ap-northeast-2.compute.amazonaws.com
+# (the ubuntu user needs passwordless sudo for `systemctl restart hgt-api`,
+#  which it already has.) When the secrets are absent the deploy job no-ops.
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ec2
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm check-types
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      HAS_SECRETS: ${{ secrets.EC2_SSH_KEY != '' && secrets.EC2_HOST != '' }}
+    steps:
+      - name: Skip if secrets are not configured
+        if: env.HAS_SECRETS != 'true'
+        run: |
+          echo "::warning::EC2_SSH_KEY / EC2_HOST not set — skipping deploy. Add them in repo Settings → Secrets."
+          exit 0
+
+      - uses: actions/checkout@v4
+        if: env.HAS_SECRETS == 'true'
+
+      - name: Set up SSH
+        if: env.HAS_SECRETS == 'true'
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Rsync code (preserve server .env + docker-compose.yml)
+        if: env.HAS_SECRETS == 'true'
+        run: |
+          rsync -az --delete -e "ssh -i ~/.ssh/deploy_key" \
+            --exclude=node_modules --exclude=.next --exclude=out \
+            --exclude=ios --exclude=android --exclude=styled-system \
+            --exclude=.turbo --exclude=.git \
+            --exclude=apps/api/.env --exclude=docker-compose.yml \
+            ./ "ubuntu@${{ secrets.EC2_HOST }}:~/hgt-client/"
+
+      - name: Install, migrate, restart
+        if: env.HAS_SECRETS == 'true'
+        run: |
+          ssh -i ~/.ssh/deploy_key "ubuntu@${{ secrets.EC2_HOST }}" 'set -e
+            export PATH="$HOME/.local/share/pnpm:$PATH"
+            cd ~/hgt-client
+            pnpm install --frozen-lockfile --filter "api..."
+            pnpm --filter api db:migrate
+            sudo systemctl restart hgt-api'
+
+      - name: Health check
+        if: env.HAS_SECRETS == 'true'
+        run: |
+          sleep 5
+          ssh -i ~/.ssh/deploy_key "ubuntu@${{ secrets.EC2_HOST }}" \
+            'curl -fsS http://localhost:8090/health' | grep -q '"ok":true' \
+            && echo "deploy healthy" || { echo "::error::health check failed"; exit 1; }
