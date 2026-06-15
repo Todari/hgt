@@ -13,10 +13,13 @@ import "dotenv/config";
 import { eq, inArray, like } from "drizzle-orm";
 import { db } from "../src/db/client";
 import { users, keywords, matchRounds } from "../src/db/schema";
-import { runWeeklyMatch, weekStartMonday } from "../src/matching/engine";
+import { runWeeklyMatch } from "../src/matching/engine";
 
 const BASE = "http://localhost:8080";
 const PREFIX = "TESTE2E_";
+// Isolated PAST Monday — never touches the live (current-week) round, so
+// /me/match surfaces this round as `previous`.
+const WEEK = "2020-01-20";
 const SESS_M = "e2e_session_male_000000000000000000000000";
 const SESS_F = "e2e_session_female_0000000000000000000000";
 
@@ -32,7 +35,7 @@ const j = async (r: Response): Promise<Res> => {
 const authed = (sess: string) => ({ "Content-Type": "application/json", Authorization: `Bearer ${sess}` });
 
 async function cleanup() {
-  await db.delete(matchRounds).where(eq(matchRounds.weekStart, weekStartMonday()));
+  await db.delete(matchRounds).where(eq(matchRounds.weekStart, WEEK));
   await db.delete(users).where(like(users.studentId, `${PREFIX}%`));
 }
 
@@ -68,10 +71,10 @@ async function main() {
 
   // 1) two registered students (the match pool) with injected sessions
   const m = (
-    await db.insert(users).values({ studentId: `${PREFIX}M`, name: "이지훈", gender: true, age: 24, major: "기계공학과", explore: true, canCc: true, academicStatus: "재학", session: SESS_M }).returning()
+    await db.insert(users).values({ studentId: `${PREFIX}M`, name: "이지훈", gender: true, age: 24, major: "기계공학과", explore: true, canCc: true, academicStatus: "재학", termsAgreedAt: new Date(), session: SESS_M }).returning()
   )[0]!;
   const f = (
-    await db.insert(users).values({ studentId: `${PREFIX}F`, name: "박서연", gender: false, age: 23, major: "시각디자인과", explore: true, canCc: true, academicStatus: "재학", session: SESS_F }).returning()
+    await db.insert(users).values({ studentId: `${PREFIX}F`, name: "박서연", gender: false, age: 23, major: "시각디자인과", explore: true, canCc: true, academicStatus: "재학", termsAgreedAt: new Date(), session: SESS_F }).returning()
   )[0]!;
   check("2. 상대 풀 구성 (학생 2명 등록)", Boolean(m) && Boolean(f));
 
@@ -93,22 +96,22 @@ async function main() {
   check("4. 프로필 조회 (GET /me) — 키워드 반영", meM.body?.data?.selfKeywords?.length === 2 && meM.body?.data?.idealKeywords?.length === 2);
 
   // 4) run the weekly match, isolated to just these two
-  const week = weekStartMonday();
   const others = (await db.select({ id: users.id }).from(users).where(eq(users.explore, true)))
     .map((u) => u.id)
     .filter((id) => id !== m.id && id !== f.id);
   if (others.length) await db.update(users).set({ explore: false }).where(inArray(users.id, others));
-  await db.delete(matchRounds).where(eq(matchRounds.weekStart, week));
-  const run = await runWeeklyMatch(week);
+  await db.delete(matchRounds).where(eq(matchRounds.weekStart, WEEK));
+  const run = await runWeeklyMatch(WEEK);
   if (others.length) await db.update(users).set({ explore: true }).where(inArray(users.id, others));
   check("5. 주간 매칭 실행 → 1쌍 성사", run.matchCount === 1);
 
-  // 5) the payoff — each user sees their partner
+  // 5) the payoff — each user sees their partner ({ current, previous };
+  // the isolated round is in the past, so it lands in `previous`)
   const matchM = await fetch(`${BASE}/me/match`, { headers: authed(SESS_M) }).then(j);
   const matchF = await fetch(`${BASE}/me/match`, { headers: authed(SESS_F) }).then(j);
-  check("6. 매칭 결과 (GET /me/match) — 남→박서연", matchM.body?.data?.partner?.name === "박서연");
-  check("7. 매칭 결과 (GET /me/match) — 여→이지훈", matchF.body?.data?.partner?.name === "이지훈");
-  console.log(`     → 매칭: 이지훈 ↔ 박서연  (점수 ${matchM.body?.data?.score})`);
+  check("6. 매칭 결과 (GET /me/match) — 남→박서연", matchM.body?.data?.previous?.partner?.name === "박서연");
+  check("7. 매칭 결과 (GET /me/match) — 여→이지훈", matchF.body?.data?.previous?.partner?.name === "이지훈");
+  console.log(`     → 매칭: 이지훈 ↔ 박서연  (점수 ${matchM.body?.data?.previous?.score})`);
 
   await cleanup();
   console.log(pass ? "\n🎉 E2E 전 구간 통과 — 로그인→프로필→매칭→상대확인" : "\n❌ E2E 일부 실패");

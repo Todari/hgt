@@ -8,10 +8,12 @@ import "dotenv/config";
 import { eq, inArray, like } from "drizzle-orm";
 import { db } from "../src/db/client";
 import { users, keywords, matchRounds } from "../src/db/schema";
-import { runWeeklyMatch, weekStartMonday } from "../src/matching/engine";
+import { runWeeklyMatch } from "../src/matching/engine";
 
 const BASE = "http://localhost:8080";
 const PREFIX = "TESTWS_";
+// Isolated PAST Monday — never touches the live (current-week) round.
+const WEEK = "2020-01-13";
 const SESS_M = "ws_session_male_0000000000000000000000000";
 const SESS_F = "ws_session_female_000000000000000000000000";
 
@@ -33,14 +35,20 @@ interface WSLike {
 const WebSocketCtor = (globalThis as unknown as { WebSocket: new (url: string) => WSLike }).WebSocket;
 
 async function cleanup() {
-  await db.delete(matchRounds).where(eq(matchRounds.weekStart, weekStartMonday()));
+  await db.delete(matchRounds).where(eq(matchRounds.weekStart, WEEK));
   await db.delete(users).where(like(users.studentId, `${PREFIX}%`));
 }
 
-function nextMessage(ws: WSLike, timeoutMs: number): Promise<any> {
+/** Next event of the given type — skips the app-level `ping` heartbeat. */
+function nextEvent(ws: WSLike, type: string, timeoutMs: number): Promise<any> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("WS message timeout")), timeoutMs);
-    ws.addEventListener("message", (evt) => { clearTimeout(timer); resolve(JSON.parse(String(evt.data))); }, { once: true });
+    ws.addEventListener("message", (evt) => {
+      const parsed = JSON.parse(String(evt.data));
+      if (parsed?.type !== type) return; // e.g. {type:"ping"} every ~25s
+      clearTimeout(timer);
+      resolve(parsed);
+    });
   });
 }
 
@@ -53,15 +61,15 @@ async function main() {
     return k.id;
   };
 
-  const m = (await db.insert(users).values({ studentId: `${PREFIX}M`, name: "남", gender: true, age: 25, major: "A과", explore: true, canCc: true, academicStatus: "재학", session: SESS_M }).returning())[0]!;
-  const f = (await db.insert(users).values({ studentId: `${PREFIX}F`, name: "여", gender: false, age: 24, major: "B과", explore: true, canCc: true, academicStatus: "재학", session: SESS_F }).returning())[0]!;
+  const m = (await db.insert(users).values({ studentId: `${PREFIX}M`, name: "남", gender: true, age: 25, major: "A과", explore: true, canCc: true, academicStatus: "재학", termsAgreedAt: new Date(), session: SESS_M }).returning())[0]!;
+  const f = (await db.insert(users).values({ studentId: `${PREFIX}F`, name: "여", gender: false, age: 24, major: "B과", explore: true, canCc: true, academicStatus: "재학", termsAgreedAt: new Date(), session: SESS_F }).returning())[0]!;
   await fetch(`${BASE}/me/profile`, { method: "PUT", headers: authed(SESS_M), body: JSON.stringify({ selfKeywordIds: [kid("게임")], idealKeywordIds: [kid("영화감상")] }) });
   await fetch(`${BASE}/me/profile`, { method: "PUT", headers: authed(SESS_F), body: JSON.stringify({ selfKeywordIds: [kid("영화감상")], idealKeywordIds: [kid("게임")] }) });
 
   const others = (await db.select({ id: users.id }).from(users).where(eq(users.explore, true))).map((u) => u.id).filter((id) => id !== m.id && id !== f.id);
   if (others.length) await db.update(users).set({ explore: false }).where(inArray(users.id, others));
-  await db.delete(matchRounds).where(eq(matchRounds.weekStart, weekStartMonday()));
-  await runWeeklyMatch(weekStartMonday());
+  await db.delete(matchRounds).where(eq(matchRounds.weekStart, WEEK));
+  await runWeeklyMatch(WEEK);
   if (others.length) await db.update(users).set({ explore: true }).where(inArray(users.id, others));
 
   const convs = await fetch(`${BASE}/conversations`, { headers: authed(SESS_M) }).then(j);
@@ -76,7 +84,7 @@ async function main() {
   });
   console.log("  ✅ WS 연결됨 (F, 토큰 인증)");
 
-  const received = nextMessage(ws, 5000);
+  const received = nextEvent(ws, "message", 5000);
   await fetch(`${BASE}/conversations/${convId}/messages`, { method: "POST", headers: authed(SESS_M), body: JSON.stringify({ body: "실시간 메시지!" }) });
   const event = await received;
 

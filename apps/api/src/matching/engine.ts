@@ -1,4 +1,4 @@
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, notInArray, or } from "drizzle-orm";
 import { db } from "../db/client";
 import {
   users,
@@ -9,16 +9,23 @@ import {
   matches,
   conversations,
   blocks,
+  bannedStudents,
 } from "../db/schema";
 import { pairScore, type Candidate, type ScoredKeyword } from "./score";
 import { maxWeightBipartite } from "./assign";
 import { sendPush } from "../push/send";
+import { broadcastToUser } from "../ws/registry";
+import { toPartnerUser } from "../lib/public-user";
 
-/** ISO date (YYYY-MM-DD) of the Monday of the week containing `d` (UTC). */
+/** KST (Asia/Seoul) is UTC+9 with no DST — a fixed offset is exact. */
+export const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+/** ISO date (YYYY-MM-DD) of the KST Monday of the week containing `d`. */
 export function weekStartMonday(d: Date = new Date()): string {
-  const day = d.getUTCDay(); // 0=Sun .. 6=Sat
+  const kst = new Date(d.getTime() + KST_OFFSET_MS); // read UTC fields as KST
+  const day = kst.getUTCDay(); // 0=Sun .. 6=Sat
   const diff = day === 0 ? -6 : 1 - day;
-  const monday = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + diff));
+  const monday = new Date(Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate() + diff));
   return monday.toISOString().slice(0, 10);
 }
 
@@ -44,7 +51,11 @@ function groupKeywords(
   return map;
 }
 
-/** Active participants this week (`explore = true`) with their keyword sets. */
+/**
+ * Active participants this week with their keyword sets: `explore = true`,
+ * terms agreed (consent gates the pool), and not banned — banned users keep
+ * their row (and `explore`) until deletion, so exclude them here.
+ */
 async function loadCandidates(): Promise<Candidate[]> {
   const us = await db
     .select({
@@ -58,7 +69,16 @@ async function loadCandidates(): Promise<Candidate[]> {
       targetMaxAge: users.targetMaxAge,
     })
     .from(users)
-    .where(eq(users.explore, true));
+    .where(
+      and(
+        eq(users.explore, true),
+        isNotNull(users.termsAgreedAt),
+        notInArray(
+          users.studentId,
+          db.select({ studentId: bannedStudents.studentId }).from(bannedStudents),
+        ),
+      ),
+    );
   if (us.length === 0) return [];
   const ids = us.map((u) => u.id);
 
@@ -152,9 +172,37 @@ export async function runWeeklyMatch(weekStart: string = weekStartMonday()): Pro
       .insert(conversations)
       .values(inserted.map((mt) => ({ matchId: mt.id, userAId: mt.male, userBId: mt.female })))
       .onConflictDoNothing();
+
+    // Conflicting (pre-existing) conversations keep their row — look the ids
+    // up by pair. Full user rows feed the WS event's partner payload.
+    const pairedIds = inserted.flatMap((mt) => [mt.male, mt.female]);
+    const [convRows, userRows] = await Promise.all([
+      db
+        .select({ id: conversations.id, userAId: conversations.userAId, userBId: conversations.userBId })
+        .from(conversations)
+        .where(
+          or(
+            ...inserted.map((mt) =>
+              and(eq(conversations.userAId, mt.male), eq(conversations.userBId, mt.female)),
+            ),
+          ),
+        ),
+      db.select().from(users).where(inArray(users.id, pairedIds)),
+    ]);
+    const convByPair = new Map(convRows.map((cv) => [`${cv.userAId}|${cv.userBId}`, cv.id]));
+    const userById = new Map(userRows.map((u) => [u.id, u]));
+
     for (const mt of inserted) {
-      void sendPush(mt.male, { title: "새 매칭 ✨", body: "이번 주 매칭 상대가 도착했어요!", data: { type: "match" } });
-      void sendPush(mt.female, { title: "새 매칭 ✨", body: "이번 주 매칭 상대가 도착했어요!", data: { type: "match" } });
+      const conversationId = convByPair.get(`${mt.male}|${mt.female}`);
+      const male = userById.get(mt.male);
+      const female = userById.get(mt.female);
+      if (conversationId && male && female) {
+        broadcastToUser(mt.male, { type: "match", partner: toPartnerUser(female), conversationId });
+        broadcastToUser(mt.female, { type: "match", partner: toPartnerUser(male), conversationId });
+      }
+      const data = { type: "match", ...(conversationId ? { conversationId } : {}) };
+      void sendPush(mt.male, { title: "새 매칭 ✨", body: "이번 주 매칭 상대가 도착했어요!", data });
+      void sendPush(mt.female, { title: "새 매칭 ✨", body: "이번 주 매칭 상대가 도착했어요!", data });
     }
   }
 

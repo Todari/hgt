@@ -1,7 +1,8 @@
 /**
  * Chat + push backend E2E (against the running API):
  *   match → conversation auto-created → register device → send message
- *   (persist + push trigger) → read history → access control.
+ *   (persist + push trigger) → read history → access control → content
+ *   filter → GET /me/match shape ({ current, previous }, enriched partner).
  *
  *   pnpm --filter api exec tsx scripts/test-chat.ts
  */
@@ -9,10 +10,13 @@ import "dotenv/config";
 import { eq, inArray, like } from "drizzle-orm";
 import { db } from "../src/db/client";
 import { users, keywords, matchRounds } from "../src/db/schema";
-import { runWeeklyMatch, weekStartMonday } from "../src/matching/engine";
+import { runWeeklyMatch } from "../src/matching/engine";
 
 const BASE = "http://localhost:8080";
 const PREFIX = "TESTCHAT_";
+// Isolated PAST Monday — keeps the live (current-week) round, e.g. the QA seed
+// pair, untouched. /me/match must surface it as `previous`, not `current`.
+const WEEK = "2020-01-06";
 const SESS_M = "chat_session_male_00000000000000000000000";
 const SESS_F = "chat_session_female_000000000000000000000";
 const SESS_X = "chat_session_other_0000000000000000000000";
@@ -29,7 +33,7 @@ const j = async (r: Response): Promise<Res> => {
 const authed = (s: string) => ({ "Content-Type": "application/json", Authorization: `Bearer ${s}` });
 
 async function cleanup() {
-  await db.delete(matchRounds).where(eq(matchRounds.weekStart, weekStartMonday()));
+  await db.delete(matchRounds).where(eq(matchRounds.weekStart, WEEK));
   await db.delete(users).where(like(users.studentId, `${PREFIX}%`));
 }
 
@@ -48,17 +52,18 @@ async function main() {
     return k.id;
   };
 
-  const m = (await db.insert(users).values({ studentId: `${PREFIX}M`, name: "남학생", gender: true, age: 25, major: "전자공학과", explore: true, canCc: true, academicStatus: "재학", session: SESS_M }).returning())[0]!;
-  const f = (await db.insert(users).values({ studentId: `${PREFIX}F`, name: "여학생", gender: false, age: 24, major: "미디어학부", explore: true, canCc: true, academicStatus: "재학", session: SESS_F }).returning())[0]!;
+  const m = (await db.insert(users).values({ studentId: `${PREFIX}M`, name: "남학생", gender: true, age: 25, major: "전자공학과", explore: true, canCc: true, academicStatus: "재학", termsAgreedAt: new Date(), session: SESS_M }).returning())[0]!;
+  const f = (await db.insert(users).values({ studentId: `${PREFIX}F`, name: "여학생", gender: false, age: 24, major: "미디어학부", explore: true, canCc: true, academicStatus: "재학", termsAgreedAt: new Date(), session: SESS_F }).returning())[0]!;
   await db.insert(users).values({ studentId: `${PREFIX}X`, name: "제3자", gender: true, age: 26, major: "기타학과", explore: false, canCc: true, academicStatus: "재학", session: SESS_X });
 
-  await fetch(`${BASE}/me/profile`, { method: "PUT", headers: authed(SESS_M), body: JSON.stringify({ selfKeywordIds: [kid("게임")], idealKeywordIds: [kid("영화감상")] }) });
+  // 영화감상 is shared self↔self → must come back in sharedKeywords.
+  await fetch(`${BASE}/me/profile`, { method: "PUT", headers: authed(SESS_M), body: JSON.stringify({ selfKeywordIds: [kid("게임"), kid("영화감상")], idealKeywordIds: [kid("영화감상")] }) });
   await fetch(`${BASE}/me/profile`, { method: "PUT", headers: authed(SESS_F), body: JSON.stringify({ selfKeywordIds: [kid("영화감상")], idealKeywordIds: [kid("게임")] }) });
 
   const others = (await db.select({ id: users.id }).from(users).where(eq(users.explore, true))).map((u) => u.id).filter((id) => id !== m.id && id !== f.id);
   if (others.length) await db.update(users).set({ explore: false }).where(inArray(users.id, others));
-  await db.delete(matchRounds).where(eq(matchRounds.weekStart, weekStartMonday()));
-  const run = await runWeeklyMatch(weekStartMonday());
+  await db.delete(matchRounds).where(eq(matchRounds.weekStart, WEEK));
+  const run = await runWeeklyMatch(WEEK);
   if (others.length) await db.update(users).set({ explore: true }).where(inArray(users.id, others));
   check("1. 매칭 성사 → 대화 자동 생성 (matchCount=1)", run.matchCount === 1);
 
@@ -78,6 +83,33 @@ async function main() {
 
   const denied = await fetch(`${BASE}/conversations/${convId}/messages`, { headers: authed(SESS_X) }).then(j);
   check("6. 제3자 접근 차단 (404)", denied.status === 404);
+
+  // content filter: profanity / personal info → 400, nothing persisted
+  const phone = await fetch(`${BASE}/conversations/${convId}/messages`, { method: "POST", headers: authed(SESS_M), body: JSON.stringify({ body: "제 번호는 010-1234-5678 이에요" }) }).then(j);
+  const curse = await fetch(`${BASE}/conversations/${convId}/messages`, { method: "POST", headers: authed(SESS_M), body: JSON.stringify({ body: "아 진짜 씨 발" }) }).then(j);
+  const histAfter = await fetch(`${BASE}/conversations/${convId}/messages`, { headers: authed(SESS_F) }).then(j);
+  check(
+    "7. 콘텐츠 필터 — 전화번호/욕설 400 + 미저장",
+    phone.status === 400 && curse.status === 400 && phone.body?.data?.message === "부적절한 표현이나 개인정보가 포함되어 있어요." && histAfter.body?.data?.length === 1,
+  );
+
+  // GET /me/match — { current, previous }; the isolated past round must show
+  // up as `previous` with the enriched partner + conversation deep-link.
+  const mm = await fetch(`${BASE}/me/match`, { headers: authed(SESS_M) }).then(j);
+  const prev = mm.body?.data?.previous;
+  const partnerKeywordValues = Object.values<string[]>(prev?.partner?.partnerKeywords ?? {}).flat();
+  check(
+    "8. GET /me/match — current=null, previous=과거 라운드 (enriched)",
+    mm.status === 200 &&
+      mm.body?.data?.current === null &&
+      prev?.weekStart === WEEK &&
+      prev?.conversationId === convId &&
+      prev?.partner?.name === "여학생" &&
+      prev?.partner?.studentId === undefined && // PartnerUser, not the full user row
+      partnerKeywordValues.includes("영화감상") &&
+      prev?.sharedKeywords?.includes("영화감상") &&
+      typeof prev?.partner?.partnerProperties === "object",
+  );
 
   await cleanup();
   console.log(pass ? "\n🎉 채팅+푸시 백엔드 E2E 통과" : "\n❌ 일부 실패");

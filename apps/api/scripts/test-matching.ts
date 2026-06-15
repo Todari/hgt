@@ -59,10 +59,11 @@ async function main() {
   const wasOn = (await db.select({ id: users.id }).from(users).where(eq(users.explore, true))).map((u) => u.id);
   if (wasOn.length) await db.update(users).set({ explore: false }).where(inArray(users.id, wasOn));
 
-  const mk = async (sid: string, name: string, gender: boolean, self: string[], ideal: string[]) => {
+  const mk = async (sid: string, name: string, gender: boolean, self: string[], ideal: string[], terms = true) => {
     const [u] = await db
       .insert(users)
-      .values({ studentId: PREFIX + sid, name, gender, age: 23, major: "테스트학과", explore: true, canCc: true })
+      // termsAgreedAt is required since the engine gates the pool on consent.
+      .values({ studentId: PREFIX + sid, name, gender, age: 23, major: "테스트학과", explore: true, canCc: true, termsAgreedAt: terms ? new Date() : null })
       .returning();
     if (self.length) await db.insert(userSelfKeywords).values(self.map((v) => ({ userId: u!.id, keywordId: kid(v) })));
     if (ideal.length) await db.insert(userIdealKeywords).values(ideal.map((v) => ({ userId: u!.id, keywordId: kid(v) })));
@@ -75,6 +76,10 @@ async function main() {
   await mk("F1", "여1", false, ["영화감상"], ["활발한"]);
   await mk("F2", "여2", false, ["독서"], ["게임"]);
   await mk("F3", "여3", false, ["요리"], ["운동"]);
+  // Consent gate: a would-be perfect pair, but 남4 never agreed to terms —
+  // neither may appear in the round (여4 is left without a counterpart).
+  await mk("M4", "남4", true, ["여행"], ["패션"], false);
+  await mk("F4", "여4", false, ["패션"], ["여행"]);
 
   const res = await runWeeklyMatch(WEEK);
   console.log("[run]", JSON.stringify(res));
@@ -94,14 +99,19 @@ async function main() {
   const expected = ["남1↔여1 (2)", "남2↔여2 (2)", "남3↔여3 (2)"];
   const correct = res.matchCount === 3 && expected.every((e) => pairs.includes(e));
   console.log(correct ? "✅ optimal 3 pairs matched" : "❌ unexpected pairs");
+  const consentGated = !pairs.some((p) => p.includes("남4") || p.includes("여4"));
+  console.log(consentGated ? "✅ consent gate: 약관 미동의 사용자 풀 제외" : "❌ 미동의 사용자가 매칭됨");
 
+  // Re-runs only pair still-unmatched users: no NEW matches, existing 3 kept.
   const again = await runWeeklyMatch(WEEK);
-  console.log(again.alreadyCompleted && again.matchCount === 3 ? "✅ idempotent re-run" : "❌ re-run: " + JSON.stringify(again));
+  const kept = await db.$count(matches, eq(matches.roundId, res.roundId));
+  const idempotent = again.alreadyCompleted && again.matchCount === 0 && kept === 3;
+  console.log(idempotent ? "✅ idempotent re-run (새 매칭 0, 기존 3쌍 유지)" : "❌ re-run: " + JSON.stringify(again) + ` kept=${kept}`);
 
   await cleanup();
   if (wasOn.length) await db.update(users).set({ explore: true }).where(inArray(users.id, wasOn));
   console.log("cleaned up.");
-  process.exit(correct ? 0 : 1);
+  process.exit(correct && consentGated && idempotent ? 0 : 1);
 }
 
 main().catch(async (e) => {

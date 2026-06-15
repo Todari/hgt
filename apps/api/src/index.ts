@@ -3,10 +3,11 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { bodyLimit } from "hono/body-limit";
+import { HTTPException } from "hono/http-exception";
 import { sql } from "drizzle-orm";
 import { db } from "./db/client";
 import { authRoutes } from "./routes/auth";
-import { userRoutes } from "./routes/users";
 import { propertyRoutes } from "./routes/properties";
 import { keywordRoutes } from "./routes/keywords";
 import { meRoutes } from "./routes/me";
@@ -16,12 +17,16 @@ import { deviceRoutes } from "./routes/devices";
 import { safetyRoutes } from "./routes/safety";
 import { adminRoutes } from "./routes/admin";
 import { sessionAuth } from "./middleware/session";
+import { fail } from "./lib/response";
 import { startMatchScheduler } from "./matching/scheduler";
 import { setupWebSocket } from "./ws/socket";
 
 const app = new Hono();
 
-app.use("*", logger());
+// Request log — never log WS session tokens (`/ws?token=...`).
+const maskWsToken = (line: string) =>
+  line.replace(/(\/ws\?[^\s]*?token=)[^&\s]+/g, "$1[redacted]");
+app.use("*", logger((line, ...rest) => console.log(maskWsToken(line), ...rest)));
 app.use(
   "*",
   cors({
@@ -36,6 +41,27 @@ app.use(
     allowHeaders: ["Content-Type", "Authorization"],
   }),
 );
+// No endpoint accepts more than a short text body — cap requests at 64 KiB.
+app.use(
+  "*",
+  bodyLimit({
+    maxSize: 64 * 1024,
+    onError: (c) => fail(c, "요청 본문이 너무 큽니다.", 413),
+  }),
+);
+
+// Last-resort error handler: keep the `{ success, data }` envelope, log the
+// real error server-side only.
+app.onError((err, c) => {
+  if (err instanceof HTTPException) {
+    return fail(c, err.message || "요청을 처리할 수 없습니다.", err.status);
+  }
+  console.error("unhandled error:", err);
+  return fail(c, "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", 500);
+});
+
+// Unknown routes also use the envelope.
+app.notFound((c) => fail(c, "요청한 리소스를 찾을 수 없습니다.", 404));
 
 // Health check.
 app.get("/", (c) => c.text("Hello, World!"));
@@ -61,7 +87,6 @@ const injectWebSocket = setupWebSocket(app);
 // Protected routes (require a valid bearer session).
 const protectedRoutes = new Hono();
 protectedRoutes.use("*", sessionAuth);
-protectedRoutes.route("/", userRoutes);
 protectedRoutes.route("/", propertyRoutes);
 protectedRoutes.route("/", keywordRoutes);
 protectedRoutes.route("/", meRoutes);
@@ -73,7 +98,6 @@ app.route("/", protectedRoutes);
 
 const port = Number(process.env.PORT ?? 8080);
 const server = serve({ fetch: app.fetch, port }, (info) => {
-  // eslint-disable-next-line no-console
   console.log(`hgt api listening on http://localhost:${info.port}`);
 });
 injectWebSocket(server);

@@ -4,11 +4,13 @@ import { createPropertySchema, propertyTypeSchema } from "@hgt-client/contract";
 import { db } from "../db/client";
 import { properties } from "../db/schema";
 import { ok, fail } from "../lib/response";
+import { adminAuth } from "../middleware/admin";
 
 export const propertyRoutes = new Hono();
 
-// POST /property — create a selectable option value.
-propertyRoutes.post("/property", async (c) => {
+// POST /property — create a selectable option value. Admin-only: the option
+// catalog is operator-curated, regular users only read it.
+propertyRoutes.post("/property", adminAuth, async (c) => {
   const body = await c.req.json().catch(() => null);
   const parsed = createPropertySchema.safeParse(body);
   if (!parsed.success) {

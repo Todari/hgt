@@ -9,6 +9,7 @@ import {
   date,
   primaryKey,
   unique,
+  index,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
@@ -36,44 +37,66 @@ export const properties = pgTable(
 );
 
 /* -------------------------------- users ------------------------------- */
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
+export const users = pgTable(
+  "users",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
 
-  // Auth — session token rotated on each sign-in, sent via Authorization header.
-  session: text("session"),
+    // Auth — session token rotated on each sign-in, sent via Authorization
+    // header. Null = logged out (no valid session).
+    session: text("session"),
 
-  // Basics (required)
-  name: text("name").notNull(),
-  studentId: text("student_id").notNull().unique(),
-  major: text("major").notNull(),
-  gender: boolean("gender").notNull(), // true = 남 (verified from portal)
-  army: boolean("army"), // true = 군필, null = 미입력 (not provided by the portal)
-  age: integer("age").notNull(),
-  academicStatus: text("academic_status"), // 재학 / 휴학 / 졸업 ... (재학생 gating)
+    // Basics (required)
+    name: text("name").notNull(),
+    studentId: text("student_id").notNull().unique(),
+    major: text("major").notNull(),
+    gender: boolean("gender").notNull(), // true = 남 (verified from portal)
+    army: boolean("army"), // true = 군필, null = 미입력 (not provided by the portal)
+    age: integer("age").notNull(),
+    academicStatus: text("academic_status"), // 재학 / 휴학 / 졸업 ... (재학생 gating)
 
-  // Optional profile
-  description: text("description"),
-  explore: boolean("explore").notNull().default(false),
+    // Optional profile
+    description: text("description"),
+    explore: boolean("explore").notNull().default(false),
 
-  // Single-value property references
-  heightId: uuid("height_id").references(() => properties.id),
-  smokeId: uuid("smoke_id").references(() => properties.id),
-  religionId: uuid("religion_id").references(() => properties.id),
-  mbtiId: uuid("mbti_id").references(() => properties.id),
+    // Single-value property references
+    heightId: uuid("height_id").references(() => properties.id),
+    smokeId: uuid("smoke_id").references(() => properties.id),
+    religionId: uuid("religion_id").references(() => properties.id),
+    mbtiId: uuid("mbti_id").references(() => properties.id),
 
-  // Matching preferences
-  canCc: boolean("can_cc").notNull().default(false), // allow same-major matches
-  targetMinAge: integer("target_min_age"),
-  targetMaxAge: integer("target_max_age"),
+    // Matching preferences
+    canCc: boolean("can_cc").notNull().default(false), // allow same-major matches
+    targetMinAge: integer("target_min_age"),
+    targetMaxAge: integer("target_max_age"),
 
-  // Result of matching
-  partnerId: uuid("partner_id").references((): AnyPgColumn => users.id),
+    // Result of matching
+    partnerId: uuid("partner_id").references((): AnyPgColumn => users.id),
 
-  // Consent — 이용약관 / 개인정보처리방침 동의 시각 (null = 미동의)
-  termsAgreedAt: timestamp("terms_agreed_at", { withTimezone: true }),
+    // Consent — 이용약관 / 개인정보처리방침 동의 시각 (null = 미동의)
+    termsAgreedAt: timestamp("terms_agreed_at", { withTimezone: true }),
+    // 민감정보(종교) 수집·이용 별도 동의 시각 — 개인정보보호법 제23조 (null = 미동의).
+    // religionId는 이 동의 없이는 저장되지 않는다 (PUT /me/profile에서 강제).
+    sensitiveConsentAt: timestamp("sensitive_consent_at", { withTimezone: true }),
 
+    // Ops — refreshed by sessionAuth at most every 15 min (fire-and-forget).
+    lastActiveAt: timestamp("last_active_at", { withTimezone: true }),
+
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    // sessionAuth resolves a bearer token on every request — keep it indexed.
+    sessionIdx: index("users_session_idx").on(t.session),
+  }),
+);
+
+/* --------------------------- banned students -------------------------- */
+// Ban list keyed by 학번 — survives account deletion, blocks re-signup.
+export const bannedStudents = pgTable("banned_students", {
+  studentId: text("student_id").primaryKey(),
+  reason: text("reason").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 /* ----------------------- many-to-many: properties --------------------- */
@@ -225,18 +248,28 @@ export const conversations = pgTable(
   (t) => ({ pairUnique: unique("conversations_pair_unique").on(t.userAId, t.userBId) }),
 );
 
-export const messages = pgTable("messages", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  conversationId: uuid("conversation_id")
-    .notNull()
-    .references(() => conversations.id, { onDelete: "cascade" }),
-  senderId: uuid("sender_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  body: text("body").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  readAt: timestamp("read_at", { withTimezone: true }),
-});
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    senderId: uuid("sender_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+  },
+  (t) => ({
+    // History pagination filters by conversation + created_at cursor.
+    conversationCreatedIdx: index("messages_conversation_id_created_at_idx").on(
+      t.conversationId,
+      t.createdAt,
+    ),
+  }),
+);
 
 /** Push device tokens (FCM/APNs) per user. */
 export const deviceTokens = pgTable("device_tokens", {
@@ -267,14 +300,17 @@ export const blocks = pgTable(
   (t) => ({ pk: primaryKey({ columns: [t.blockerId, t.blockedId] }) }),
 );
 
+// Reports must survive account deletion (ban evidence): user FKs are nullable
+// with `set null`, and the reported user's identity is snapshotted at insert.
 export const reports = pgTable("reports", {
   id: uuid("id").primaryKey().defaultRandom(),
-  reporterId: uuid("reporter_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  reportedId: uuid("reported_id")
-    .notNull()
-    .references((): AnyPgColumn => users.id, { onDelete: "cascade" }),
+  reporterId: uuid("reporter_id").references(() => users.id, { onDelete: "set null" }),
+  reportedId: uuid("reported_id").references((): AnyPgColumn => users.id, {
+    onDelete: "set null",
+  }),
+  // Snapshot of the reported user at report time (kept if the account is deleted).
+  reportedStudentId: text("reported_student_id"),
+  reportedName: text("reported_name"),
   reason: text("reason").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

@@ -8,13 +8,16 @@ import "dotenv/config";
 import { eq, inArray, like } from "drizzle-orm";
 import { db } from "../src/db/client";
 import { users, keywords, matchRounds } from "../src/db/schema";
-import { runWeeklyMatch, weekStartMonday } from "../src/matching/engine";
+import { runWeeklyMatch } from "../src/matching/engine";
 import { rateLimit } from "../src/lib/rate-limit";
 
 const BASE = "http://localhost:8080";
 const PREFIX = "TESTLAUNCH_";
+// Isolated PAST Monday — never touches the live (current-week) round.
+const WEEK = "2020-01-27";
 const SESS_M = "launch_session_m_0000000000000000000000000";
 const SESS_F = "launch_session_f_0000000000000000000000000";
+const SESS_N = "launch_session_n_0000000000000000000000000";
 
 const authed = (s: string) => ({ "Content-Type": "application/json", Authorization: `Bearer ${s}` });
 const j = async (r: Response) => {
@@ -27,7 +30,7 @@ const j = async (r: Response) => {
 };
 
 async function cleanup() {
-  await db.delete(matchRounds).where(eq(matchRounds.weekStart, weekStartMonday()));
+  await db.delete(matchRounds).where(eq(matchRounds.weekStart, WEEK));
   await db.delete(users).where(like(users.studentId, `${PREFIX}%`));
 }
 
@@ -36,8 +39,8 @@ async function isolatedRun(mId: string, fId: string) {
     .map((u) => u.id)
     .filter((id) => id !== mId && id !== fId);
   if (others.length) await db.update(users).set({ explore: false }).where(inArray(users.id, others));
-  await db.delete(matchRounds).where(eq(matchRounds.weekStart, weekStartMonday()));
-  const run = await runWeeklyMatch(weekStartMonday());
+  await db.delete(matchRounds).where(eq(matchRounds.weekStart, WEEK));
+  const run = await runWeeklyMatch(WEEK);
   if (others.length) await db.update(users).set({ explore: true }).where(inArray(users.id, others));
   return run;
 }
@@ -62,8 +65,8 @@ async function main() {
     return k.id;
   };
 
-  const m = (await db.insert(users).values({ studentId: `${PREFIX}M`, name: "남", gender: true, age: 25, major: "A", explore: true, canCc: true, academicStatus: "재학", session: SESS_M }).returning())[0]!;
-  const f = (await db.insert(users).values({ studentId: `${PREFIX}F`, name: "여", gender: false, age: 24, major: "B", explore: true, canCc: true, academicStatus: "재학", session: SESS_F }).returning())[0]!;
+  const m = (await db.insert(users).values({ studentId: `${PREFIX}M`, name: "남", gender: true, age: 25, major: "A", explore: true, canCc: true, academicStatus: "재학", termsAgreedAt: new Date(), session: SESS_M }).returning())[0]!;
+  const f = (await db.insert(users).values({ studentId: `${PREFIX}F`, name: "여", gender: false, age: 24, major: "B", explore: true, canCc: true, academicStatus: "재학", termsAgreedAt: new Date(), session: SESS_F }).returning())[0]!;
   await fetch(`${BASE}/me/profile`, { method: "PUT", headers: authed(SESS_M), body: JSON.stringify({ selfKeywordIds: [kid("게임")], idealKeywordIds: [kid("영화감상")] }) });
   await fetch(`${BASE}/me/profile`, { method: "PUT", headers: authed(SESS_F), body: JSON.stringify({ selfKeywordIds: [kid("영화감상")], idealKeywordIds: [kid("게임")] }) });
 
@@ -103,6 +106,13 @@ async function main() {
   await fetch(`${BASE}/me/profile`, { method: "PUT", headers: authed(SESS_F), body: JSON.stringify({ agreedToTerms: true }) });
   const meAfter = await fetch(`${BASE}/me`, { headers: authed(SESS_F) }).then(j);
   check("8. 약관 동의 → termsAgreedAt 기록", Boolean(meAfter.body?.data?.termsAgreedAt));
+
+  // 7) FIRST consent also defaults the user into the matching pool
+  // ('매칭 풀에 자동으로 참여됩니다. 설정에서 끌 수 있어요')
+  await db.insert(users).values({ studentId: `${PREFIX}N`, name: "신규", gender: false, age: 22, major: "C", explore: false, canCc: true, academicStatus: "재학", session: SESS_N });
+  await fetch(`${BASE}/me/profile`, { method: "PUT", headers: authed(SESS_N), body: JSON.stringify({ agreedToTerms: true }) });
+  const meNew = await fetch(`${BASE}/me`, { headers: authed(SESS_N) }).then(j);
+  check("9. 첫 약관 동의 → explore 자동 활성화", meNew.body?.data?.explore === true && Boolean(meNew.body?.data?.termsAgreedAt));
 
   await cleanup();
   console.log(pass ? "\n🎉 런칭 기능 E2E 통과" : "\n❌ 일부 실패");

@@ -86,6 +86,7 @@ export const userSchema = z.object({
   mbtiId: z.string().uuid().nullable(),
   partnerId: z.string().uuid().nullable(),
   termsAgreedAt: z.string().nullable(), // 약관 동의 시각 (null = 미동의)
+  sensitiveConsentAt: z.string().nullable(), // 민감정보(종교) 별도 동의 시각 (null = 미동의)
 });
 export type User = z.infer<typeof userSchema>;
 
@@ -94,6 +95,32 @@ export const hongikLoginResponseSchema = z.object({
   user: userSchema,
 });
 export type HongikLoginResponse = z.infer<typeof hongikLoginResponseSchema>;
+
+/**
+ * Minimal partner-facing shape — what one matched user may see about the
+ * other. Deliberately excludes studentId, matching preferences, consent
+ * timestamps and any internal ids.
+ */
+export const partnerUserSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  major: z.string(),
+  age: z.number().int(),
+  gender: z.boolean(), // true = 남 (verified from portal)
+  army: z.boolean().nullable(), // true = 군필, null = 미입력
+  academicStatus: z.string().nullable(), // 재학 / 휴학 ... (verified from portal)
+  description: z.string().nullable(),
+});
+export type PartnerUser = z.infer<typeof partnerUserSchema>;
+
+/** `POST /auth/logout` — optionally also unregisters one push device token. */
+export const logoutSchema = z.object({
+  deviceToken: z.string().min(1).optional(),
+});
+export type LogoutInput = z.infer<typeof logoutSchema>;
+
+export const logoutResponseSchema = z.object({ loggedOut: z.boolean() });
+export type LogoutResponse = z.infer<typeof logoutResponseSchema>;
 
 /* ------------------------------------------------------------------ */
 /* Keywords & profile                                                  */
@@ -130,6 +157,7 @@ export const updateProfileSchema = z.object({
   religionId: z.string().uuid().nullable().optional(),
   mbtiId: z.string().uuid().nullable().optional(),
   agreedToTerms: z.boolean().optional(), // true → stamp termsAgreedAt = now
+  agreedToSensitive: z.boolean().optional(), // true → stamp sensitiveConsentAt = now (required before religionId)
 });
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
@@ -144,15 +172,43 @@ export type MeProfile = z.infer<typeof meProfileSchema>;
 /* Matching                                                            */
 /* ------------------------------------------------------------------ */
 
-/** The authenticated user's match for a week (`GET /me/match`; null if none). */
+/**
+ * Match partner profile: the minimal partner shape enriched with what the
+ * match screen renders — self-keywords grouped by category and the partner's
+ * selected properties resolved to display values (absent key = not set).
+ */
+export const matchPartnerSchema = partnerUserSchema.extend({
+  partnerKeywords: z.record(z.array(z.string())), // category → keyword values
+  partnerProperties: z.object({
+    height: z.string().optional(),
+    smoke: z.string().optional(),
+    religion: z.string().optional(),
+    mbti: z.string().optional(),
+  }),
+});
+export type MatchPartner = z.infer<typeof matchPartnerSchema>;
+
+/** One match round's result for the authenticated user. */
 export const matchResultSchema = z.object({
   roundId: z.string().uuid(),
-  weekStart: z.string(),
-  score: z.number(),
-  partner: userSchema,
+  weekStart: z.string(), // KST Monday (YYYY-MM-DD)
+  // NOTE: the raw compatibility score stays server-side (assignment/debug only)
+  // and is intentionally NOT exposed to the client.
+  partner: matchPartnerSchema,
   sharedKeywords: z.array(z.string()), // keywords both selected (대화 물꼬용)
+  conversationId: z.string().uuid().nullable(), // deep-link target
 });
 export type MatchResult = z.infer<typeof matchResultSchema>;
+
+/**
+ * `GET /me/match` — `current` = this KST week's match (Monday boundary),
+ * `previous` = the most recent earlier match. Blocked pairs are excluded.
+ */
+export const myMatchResponseSchema = z.object({
+  current: matchResultSchema.nullable(),
+  previous: matchResultSchema.nullable(),
+});
+export type MyMatchResponse = z.infer<typeof myMatchResponseSchema>;
 
 /* ------------------------------------------------------------------ */
 /* Chat                                                                */
@@ -170,7 +226,7 @@ export type Message = z.infer<typeof messageSchema>;
 
 export const conversationSchema = z.object({
   id: z.string().uuid(),
-  partner: userSchema,
+  partner: partnerUserSchema,
   lastMessage: messageSchema.nullable(),
   unreadCount: z.number().int(),
   createdAt: z.string(),
@@ -198,7 +254,13 @@ export type RegisterDeviceInput = z.infer<typeof registerDeviceSchema>;
 /** Realtime events pushed over the WebSocket (server → client). */
 export const wsServerEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("message"), message: messageSchema }),
-  z.object({ type: z.literal("match"), partner: userSchema }),
+  z.object({
+    type: z.literal("match"),
+    partner: partnerUserSchema,
+    conversationId: z.string().uuid(), // deep-link target
+  }),
+  // App-level heartbeat (every ~25s) — lets clients detect dead connections.
+  z.object({ type: z.literal("ping") }),
 ]);
 export type WsServerEvent = z.infer<typeof wsServerEventSchema>;
 
