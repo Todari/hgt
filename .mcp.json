@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "hgt-postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://hgt:hgt_local_dev@localhost:5433/hgt"
+      ]
+    }
+  }
+}

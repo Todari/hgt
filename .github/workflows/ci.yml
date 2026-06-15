@@ -1,0 +1,38 @@
+# CI: lint + typecheck + normal web build (turbo).
+# The Capacitor static export (BUILD_TARGET=capacitor) is a local/release flow,
+# not built here. Keep this single-job and fast.
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version is read from "packageManager" in package.json (pnpm 9).
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # Also runs each package's `prepare` (panda codegen for apps/app).
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint
+
+      - run: pnpm check-types
+
+      - run: pnpm build

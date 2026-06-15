@@ -1,6 +1,19 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "DATABASE_URL",
+    "DATABASE_SSL",
+    "PORT",
+    "CORS_ORIGINS",
+    "DEMO_ACCOUNTS",
+    "HONGIK_ALLOWED_STATUSES",
+    "ADMIN_TOKEN",
+    "MATCH_CRON_ENABLED",
+    "FIREBASE_SERVICE_ACCOUNT",
+    "NEXT_PUBLIC_API_URL",
+    "BUILD_TARGET"
+  ],
   "tasks": {
     "build": {
       "dependsOn": [

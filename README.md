@@ -1,44 +1,46 @@
-# HGT client
+# HGT
 
-## how to start
+홍익대학교 재학생 대상 키워드 매칭 소개팅 서비스.
+Portal-verified signup → keyword profiles → weekly 1:1 matching → realtime chat.
 
-### requirements
-- Node.js >= 20.15.1
-- pnpm >= 8.0.0
+TypeScript Turborepo. **Architecture: [docs/architecture.md](docs/architecture.md)** ·
+**Deploy: [DEPLOY.md](DEPLOY.md)** · **Agent guide: [CLAUDE.md](CLAUDE.md)**
 
-### install
+## Directory
 
-```bash
-turbo install
-```
+| Path | Description |
+|------|-------------|
+| `apps/api` | Backend — Hono + Drizzle + PostgreSQL ([README](apps/api/README.md)) |
+| `apps/app` | User app — Next.js 15 + Panda CSS, web & Capacitor iOS/Android |
+| `apps/landing` | Landing page (placeholder) |
+| `packages/contract` | Shared zod schemas / API types |
+| `packages/ui` | Shared UI components (placeholder) |
+| `packages/eslint-config` / `packages/typescript-config` | Shared configs |
+| `legacy/hgt-server` | Pre-rewrite backend, reference only |
 
-### run dev
+## Quick start
 
-```bash
-turbo dev
-```
-
-### build
-
-```bash
-turbo build
-```
-
-### run storybook
+Requirements: Node ≥ 20.15, pnpm 9, Docker.
 
 ```bash
-turbo storybook
+pnpm install
+docker compose up -d postgres          # local DB on :5433
+cp apps/api/.env.example apps/api/.env
+pnpm db:push                           # create schema
+pnpm --filter api db:seed              # seed keyword catalog
+pnpm dev                               # api :8080, app :3000
 ```
 
-## directory
-- `apps/app`: main application
-- `apps/landing`: landing page
-- `packages/ui`: common UI components
-- `packages/eslint-config`: ESLint config
-- `packages/typescript-config`: TypeScript config
+## Common commands
 
-## tech stack
-- Next.js 14
-- TypeScript
-- Panda CSS
-- Storybook
+```bash
+pnpm build / lint / check-types        # CI checks (turbo)
+pnpm db:generate && pnpm db:migrate    # production-style migrations
+pnpm --filter app storybook            # component workshop
+pnpm --filter app build:app            # Capacitor static export
+```
+
+## Tech stack
+
+Hono · Drizzle ORM · PostgreSQL · Next.js 15 · React 19 · Panda CSS · Framer Motion ·
+Capacitor · zod · Turborepo · pnpm

@@ -7,7 +7,10 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: hgt
-      POSTGRES_PASSWORD: hgt_local_dev
+      # Local dev default. Production MUST override via env (shell or a root `.env`,
+      # which compose reads and git ignores) — see DEPLOY.md "DB 비밀번호".
+      # Note: only applied when the data volume is first initialized.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hgt_local_dev}
       POSTGRES_DB: hgt
     ports:
       # Host 5433 -> container 5432, to avoid colliding with a local Postgres on 5432.

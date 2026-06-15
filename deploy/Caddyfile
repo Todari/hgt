@@ -1,7 +1,11 @@
 # /etc/caddy/Caddyfile  — Caddy gives the EC2 backend automatic HTTPS (Let's Encrypt).
 # Point an A record (e.g. api.yourdomain.com) at the EC2 public IP first.
-# Open the EC2 security group for inbound 80 and 443.
+# Open the EC2 security group for inbound 80 and 443 (then close 8090).
+#
+# The port must match the API's PORT env: 8080 is the repo default, but the
+# current EC2 runs hgt-api on 8090 (see DEPLOY.md) — use 8090 there.
+# reverse_proxy handles WebSocket (/ws) upgrades automatically; no extra config.
 
 api.yourdomain.com {
-    reverse_proxy localhost:8080
+    reverse_proxy localhost:8090
 }

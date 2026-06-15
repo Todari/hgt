@@ -27,17 +27,25 @@ API listens on `http://localhost:8080`.
 
 ## Endpoints
 
-| Method | Path                      | Auth   | Notes                                    |
-| ------ | ------------------------- | ------ | ---------------------------------------- |
-| GET    | `/`                       | –      | health check                             |
-| POST   | `/signin`                 | –      | sign up **or** log in; returns a session |
-| GET    | `/user`                   | bearer | list users                               |
-| GET    | `/user/:userId`           | bearer | get user by id                           |
-| POST   | `/property`               | bearer | create an option value                   |
-| GET    | `/property`               | bearer | list option values                       |
-| GET    | `/property/:type?value=`  | bearer | look up one option value                 |
+| Method | Path                              | Auth        | Notes                                              |
+| ------ | --------------------------------- | ----------- | -------------------------------------------------- |
+| GET    | `/`                               | –           | health check                                       |
+| POST   | `/auth/hongik`                    | –           | Hongik portal login; verifies enrollment, returns `{ session, user }` |
+| GET    | `/property`                       | bearer      | selectable attribute values (age/smoke/religion/mbti/height) |
+| GET    | `/keyword`                        | bearer      | keyword catalog (5 categories)                     |
+| GET    | `/me` / PUT `/me/profile` / DELETE `/me` | bearer | my profile, edit (incl. keyword sets), withdraw   |
+| GET    | `/user`, `/user/:userId`          | bearer      | public user profiles                               |
+| GET    | `/me/match`                       | bearer      | latest weekly match (partner, score, shared keywords) |
+| GET/POST | `/conversations*`               | bearer      | chat list, history, send, mark-read                |
+| POST   | `/me/devices`                     | bearer      | register push token                                |
+| POST   | `/me/blocks`, `/reports`          | bearer      | block / report a user                              |
+| POST   | `/admin/match/run`, GET `/admin/reports` | X-Admin-Token | trigger matching, review reports             |
+| WS     | `/ws?token=`                      | session     | realtime `message` / `match` events                |
 
-Auth: send `Authorization: Bearer <session>` (the token returned by `/signin`).
+Auth: `Authorization: Bearer <session>` (token returned by `/auth/hongik`; rotated on
+every login). Request/response shapes are defined in
+[`packages/contract`](../../packages/contract/src/index.ts). See also
+[`CLAUDE.md`](CLAUDE.md) for the full backend guide.
 
 ## Database
 

@@ -41,7 +41,8 @@ next-env.d.ts
 styled-system
 styled-system-studio
 
-## Capacitor native projects (regenerate with `cap add ios|android`).
-## Commit these once you customize native config (icons, Info.plist, etc.).
-/ios
-/android
+## Capacitor native projects (ios/, android/) are COMMITTED (Capacitor convention):
+## they hold real config (Info.plist, entitlements, gradle, icons). Their own
+## .gitignores already exclude Pods / Gradle build output, the synced web assets
+## (ios/App/App/public, android/app/src/main/assets/public) and generated configs
+## (capacitor.config.json, capacitor.plugins.json).
