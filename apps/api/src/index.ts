@@ -18,8 +18,12 @@ import { safetyRoutes } from "./routes/safety";
 import { adminRoutes } from "./routes/admin";
 import { sessionAuth } from "./middleware/session";
 import { fail } from "./lib/response";
+import { initObservability, captureError } from "./lib/observability";
 import { startMatchScheduler } from "./matching/scheduler";
 import { setupWebSocket } from "./ws/socket";
+
+// Error tracking (no-op unless SENTRY_DSN is set) — init before anything throws.
+initObservability();
 
 const app = new Hono();
 
@@ -57,6 +61,7 @@ app.onError((err, c) => {
     return fail(c, err.message || "요청을 처리할 수 없습니다.", err.status);
   }
   console.error("unhandled error:", err);
+  captureError(err, { path: c.req.path, method: c.req.method });
   return fail(c, "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", 500);
 });
 

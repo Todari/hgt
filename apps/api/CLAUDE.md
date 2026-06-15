@@ -15,9 +15,9 @@ Default port 8080. All responses use `ok()`/`fail()` from `src/lib/response.ts` 
 | `src/hongik/login.ts` | Hongik portal scraper (cheerio + iconv-lite EUC-KR). Password is proxied, never stored |
 | `src/ws/` | WebSocket: token auth, per-user registry, `broadcastToUser()` |
 | `src/push/` | FCM push; no-op unless `FIREBASE_SERVICE_ACCOUNT` set |
-| `src/lib/` | `response.ts`, `public-user.ts` (**always** `toPublicUser()` before returning a user — strips session token), `rate-limit.ts`, `session-token.ts` |
+| `src/lib/` | `response.ts`, `public-user.ts` (**always** `toPublicUser()`/`toPartnerUser()` before returning a user — strips session token & PII), `rate-limit.ts`, `session-token.ts`, `content-filter.ts`, `blocks.ts`, `observability.ts` (Sentry, no-op unless `SENTRY_DSN`) |
 | `drizzle/` | Generated SQL migrations — never hand-edit |
-| `scripts/` | tsx-run scripts: `seed-keywords.ts`, `qa-seed.ts` (QA fixture pair, prints `{session, convId}`), `test-*.ts` (ad-hoc integration tests — there is no jest suite) |
+| `scripts/` | tsx-run scripts: `seed-keywords.ts`, `qa-seed.ts` (QA fixture pair, prints `{session, sessionFemale, convId}`), `demo-seed.ts` (App Review: seeds a demo account's profile + current-week match + conversation; prod-safe, idempotent), `test-*.ts` (ad-hoc integration tests — there is no jest suite) |
 
 ## Adding an endpoint
 

@@ -61,9 +61,12 @@
 - [x] **App Review용 데모 계정 (`DEMO_ACCOUNTS`) — 코드 구현 완료** — 포털 우회
       데모 로그인은 구현됨(`apps/api/src/routes/auth.ts`: `DEMO_ACCOUNTS="id:pw,..."`
       매칭 시 포털 스크래핑 생략, 고정 데모 프로필 upsert). `.env.example`에 문서화됨.
-      **남은 운영 작업:** ① 운영 EC2의 systemd env에 `DEMO_ACCOUNTS` 실제 값 설정,
-      ② 데모 계정으로 온보딩 가능하도록 매칭 풀에 더미 상대 1개 시드(심사자가 매칭/
-      채팅까지 보게), ③ 스토어 심사 노트에 계정 기재. (소유: 서버운영)
+      ② **데모 매칭/대화 시드 — 코드 구현 완료**(`apps/api/scripts/demo-seed.ts`):
+      데모 계정에 완성 프로필 + 이번 주 매치(데모 파트너) + 대화를 직접 insert해
+      심사자가 로그인 즉시 매칭/채팅을 본다. 프로덕션 안전(전역 매치 라운드/타
+      사용자 무영향, 멱등). **남은 운영 작업:** ① 운영 EC2의 systemd env에
+      `DEMO_ACCOUNTS` 실제 값 설정 후 `pnpm --filter api exec tsx scripts/demo-seed.ts`
+      1회 실행, ③ 스토어 심사 노트에 계정 기재. (소유: 서버운영)
 - [ ] **"프로필 사진 없음"은 의도된 설계임을 명시** — 외모 비중심 키워드 매칭이
       제품 컨셉. 심사 노트(리뷰어 메모)와 스토어 설명에 명시해 미완성 앱으로
       오해받지 않게 할 것.
@@ -72,9 +75,12 @@
 
 ## 출시 후
 
-- [ ] **모니터링 상시화** — `/health` 업타임 체크(UptimeRobot 또는 curl cron) 가동
-      확인 + **Sentry 도입**(`@sentry/node` / `@sentry/nextjs` /
-      `@sentry/capacitor`) — DEPLOY.md §7 TODO.
+- [~] **모니터링 상시화** — **API Sentry 배선 완료**(`@sentry/node`,
+      `apps/api/src/lib/observability.ts` + `app.onError` capture; `SENTRY_DSN`
+      미설정 시 완전 no-op). **남은 작업:** 운영 env에 `SENTRY_DSN` 설정,
+      `/health` 업타임 체크(UptimeRobot 또는 curl cron) 가동, 앱 측 클라이언트
+      에러 추적(`@sentry/capacitor`/`@sentry/nextjs`)은 정적 export 영향 검토 후
+      디바이스 테스트와 함께 도입.
 - [ ] **애널리틱스 결정** — 현재 아무 분석 도구도 없음. 도입 여부와 도구(자체
       이벤트 테이블 vs PostHog 등)를 정하고, 도입 시 개인정보처리방침에 반영.
 - [ ] **어드민 콘솔 확장** — 현재 admin은 수동 매치 실행 + 신고 목록 조회 수준.
