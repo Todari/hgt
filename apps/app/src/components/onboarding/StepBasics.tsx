@@ -1,9 +1,209 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import type { Property } from "@hgt-client/contract";
 import { css } from "_panda/css";
-import { GlassToggle } from "@/components/ui/glass";
+import { SwitchKnob } from "@/components/ui/glass";
 import { FieldHeader, Pill, PillRow, StepCard } from "./primitives";
+
+const CORAL_TEXT_GRADIENT = "linear-gradient(135deg, #b83e3a, #d0463c)";
+
+/**
+ * MBTI is four binary axes, so pick one letter per axis instead of choosing from
+ * 16 chips. The four letters assemble into a type (e.g. "ENTP") which resolves
+ * back to the matching `mbti` property id. Optional: incomplete → null.
+ */
+const MBTI_AXES = [
+  { left: { letter: "E", ko: "외향" }, right: { letter: "I", ko: "내향" } },
+  { left: { letter: "N", ko: "직관" }, right: { letter: "S", ko: "감각" } },
+  { left: { letter: "T", ko: "사고" }, right: { letter: "F", ko: "감정" } },
+  { left: { letter: "J", ko: "계획" }, right: { letter: "P", ko: "탐색" } },
+] as const;
+
+/** "" or "ENTP" → a fixed 4-slot array (unset slots are ""). */
+function toLetters(type: string): string[] {
+  const arr = ["", "", "", ""];
+  for (let i = 0; i < type.length && i < 4; i += 1) arr[i] = type[i]!;
+  return arr;
+}
+
+function MbtiPicker({
+  options,
+  selectedId,
+  onSelect,
+}: {
+  options: Property[];
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+}) {
+  const valueOf = (id: string | null) => options.find((o) => o.id === id)?.value ?? "";
+  // Local 4-letter state so partial selections (one axis at a time) persist —
+  // a partial type has no property id, so it can't live in `selectedId`.
+  const [letters, setLetters] = useState<string[]>(() => toLetters(valueOf(selectedId)));
+  // Adopt EXTERNAL changes to selectedId (async prefill / reset) without
+  // clobbering our own in-progress edits.
+  const lastEmitted = useRef<string | null>(selectedId);
+  useEffect(() => {
+    if (selectedId !== lastEmitted.current) {
+      setLetters(toLetters(valueOf(selectedId)));
+      lastEmitted.current = selectedId;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
+
+  const complete = letters.every(Boolean);
+  const selectedType = complete ? letters.join("") : "";
+  const partial = !complete && letters.some(Boolean);
+
+  const choose = (axis: number, letter: string) => {
+    const next = [...letters];
+    next[axis] = letter;
+    setLetters(next);
+    const id = next.every(Boolean)
+      ? (options.find((o) => o.value === next.join(""))?.id ?? null)
+      : null; // partial selection isn't a valid type yet
+    lastEmitted.current = id;
+    onSelect(id);
+  };
+
+  const clear = () => {
+    setLetters(["", "", "", ""]);
+    lastEmitted.current = null;
+    onSelect(null);
+  };
+
+  return (
+    <StepCard className={css({ display: "flex", flexDirection: "column", gap: "3" })}>
+      <FieldHeader
+        title="MBTI"
+        helper="대화 성향을 가볍게 참고하는 신호로 써요."
+        trailing={
+          selectedType ? (
+            <span
+              className={css({
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: "26px",
+                paddingX: "2.5",
+                borderRadius: "capsule",
+                fontSize: "xs",
+                fontWeight: "black",
+                letterSpacing: "0.04em",
+                color: "white",
+                background: CORAL_TEXT_GRADIENT,
+              })}
+            >
+              {selectedType}
+            </span>
+          ) : partial ? (
+            <button
+              type="button"
+              onClick={clear}
+              className={css({ color: "ink.400", fontSize: "xs", fontWeight: "bold", cursor: "pointer", background: "transparent", border: "none" })}
+            >
+              지우기
+            </button>
+          ) : undefined
+        }
+      />
+      <div className={css({ display: "flex", flexDirection: "column", gap: "2" })}>
+        {MBTI_AXES.map((axis, i) => {
+          const active = letters[i];
+          return (
+            <div
+              key={i}
+              className={css({
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "1.5",
+                padding: "1",
+                borderRadius: "16px",
+                background: "rgba(10,17,24,.05)",
+              })}
+            >
+              {[axis.left, axis.right].map((opt) => {
+                const on = active === opt.letter;
+                return (
+                  <button
+                    key={opt.letter}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => choose(i, opt.letter)}
+                    className={css({
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "1.5",
+                      minHeight: "44px",
+                      borderRadius: "12px",
+                      fontSize: "sm",
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                      color: on ? "white" : "ink.700",
+                      background: on ? CORAL_TEXT_GRADIENT : "surface.card",
+                      border: "1px solid",
+                      borderColor: on ? "transparent" : "surface.hairline",
+                      boxShadow: on ? "0 6px 14px rgba(255,107,95,.2)" : "none",
+                      transition: "background 140ms ease, color 140ms ease",
+                      _active: { transform: "scale(0.97)" },
+                    })}
+                  >
+                    <span className={css({ fontWeight: "black", fontSize: "md" })}>{opt.letter}</span>
+                    <span className={css({ fontSize: "12px", opacity: 0.9 })}>{opt.ko}</span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </StepCard>
+  );
+}
+
+/** Solid toggle row matching the other step-4 cards (vs. the glass GlassToggle). */
+function ToggleRow({
+  checked,
+  onChange,
+  label,
+  description,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: string;
+  description?: string;
+}) {
+  return (
+    <StepCard className={css({ padding: 0 })}>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={css({
+          width: "100%",
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr) auto",
+          alignItems: "center",
+          gap: "3",
+          padding: "4",
+          textAlign: "left",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+        })}
+      >
+        <span className={css({ minWidth: 0, display: "flex", flexDirection: "column", gap: "1" })}>
+          <span className={css({ color: "ink.950", fontSize: "sm", fontWeight: "black" })}>{label}</span>
+          {description && (
+            <span className={css({ color: "ink.500", fontSize: "xs", lineHeight: "1.5" })}>{description}</span>
+          )}
+        </span>
+        <SwitchKnob checked={checked} />
+      </button>
+    </StepCard>
+  );
+}
 
 export type ProfilePropertyType = "height" | "smoke" | "religion" | "mbti";
 
@@ -150,9 +350,7 @@ export function StepBasics({
         )}
       </StepCard>
 
-      <PropertyPicker
-        title="MBTI"
-        helper="대화 성향을 가볍게 참고하는 신호로 써요."
+      <MbtiPicker
         options={opts("mbti")}
         selectedId={state.mbtiId}
         onSelect={(id) => onChange("mbtiId", id)}
@@ -241,7 +439,7 @@ export function StepBasics({
         </div>
       </StepCard>
 
-      <GlassToggle
+      <ToggleRow
         checked={state.canCc}
         onChange={(v) => onChange("canCc", v)}
         label="같은 과 매칭 허용"
