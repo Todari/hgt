@@ -121,6 +121,17 @@ export default function HomePage() {
   const current = match?.current ?? null;
   const previous = match?.previous ?? null;
   const everMatched = current != null || previous != null;
+  // A fully-activated participant (so a never-matched-yet eligible user sees the
+  // waiting card, not the activation checklist).
+  const isEligible =
+    !!me &&
+    me.explore &&
+    me.termsAgreedAt != null &&
+    me.selfKeywords.length > 0 &&
+    me.idealKeywords.length > 0;
+  // This week's round ran but didn't pair me → acknowledge it instead of a
+  // countdown that says a match is "coming soon".
+  const noMatchThisWeek = !current && (match?.thisWeekRevealed ?? false);
 
   return (
     <>
@@ -166,10 +177,11 @@ export default function HomePage() {
                 {/* STATE A — this week's match is in. Hero reveal. */}
                 {current ? (
                   <MatchHeroCard key={current.roundId} match={current} />
-                ) : everMatched ? (
-                  /* STATE B — waiting for this week + recap of last week. */
+                ) : everMatched || isEligible ? (
+                  /* STATE B — waiting for this week (or "no match this week"
+                     after the reveal) + recap of last week. */
                   <>
-                    <MatchWaitingCard />
+                    <MatchWaitingCard noMatchThisWeek={noMatchThisWeek} />
                     {previous && (
                       <div className={css({ display: "flex", flexDirection: "column", gap: "2" })}>
                         <p className={css({ color: "ink.500", fontSize: "xs", fontWeight: "black", paddingLeft: "1" })}>

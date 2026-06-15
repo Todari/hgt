@@ -142,6 +142,17 @@ matchRoutes.get("/me/match", async (c) => {
     }
   }
 
-  const response: MyMatchResponse = { current, previous };
+  // Has this KST week's round actually run? (round row created at match time.)
+  const [revealedRow] = await db
+    .select({ id: matchRounds.id })
+    .from(matchRounds)
+    .where(eq(matchRounds.weekStart, thisWeek))
+    .limit(1);
+
+  const response: MyMatchResponse = {
+    current,
+    previous,
+    thisWeekRevealed: Boolean(revealedRow),
+  };
   return ok(c, response);
 });

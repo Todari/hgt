@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { MeProfile } from "@hgt-client/contract";
+import type { BlockedUser, MeProfile } from "@hgt-client/contract";
 import { css } from "_panda/css";
 import { AppShell } from "@/components/shell/AppShell";
 import { Ambient } from "@/components/ui/Ambient";
@@ -134,6 +134,62 @@ function NotificationSection({ session }: { session: string }) {
         disabled={busy}
       />
       {notice && <Notice tone="info">{notice}</Notice>}
+    </SettingsSection>
+  );
+}
+
+function BlockedSection({ session }: { session: string }) {
+  const [blocked, setBlocked] = useState<BlockedUser[] | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const rows = await api.getBlocks(session);
+        if (active) setBlocked(rows);
+      } catch {
+        if (active) setBlocked([]); // treat a load failure as "none" — non-critical
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [session]);
+
+  // Hide the whole section until we know there's something to manage.
+  if (!blocked || blocked.length === 0) return null;
+
+  async function unblock(userId: string) {
+    setBusyId(userId);
+    setNotice(null);
+    try {
+      await api.unblockUser(session, userId);
+      setBlocked((curr) => (curr ? curr.filter((b) => b.userId !== userId) : curr));
+    } catch (err) {
+      setNotice(err instanceof ApiError ? err.message : "차단을 해제하지 못했어요.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <SettingsSection title="차단한 사용자" footer="차단을 해제하면 다시 매칭·대화가 가능해져요.">
+      {blocked.map((b) => (
+        <SettingsButtonRow
+          key={b.userId}
+          label={b.name}
+          onClick={() => void unblock(b.userId)}
+          disabled={busyId != null}
+          trailing={
+            <span className={css({ color: busyId === b.userId ? "ink.500" : "primary.700", fontSize: "sm", fontWeight: "bold" })}>
+              {busyId === b.userId ? "해제 중..." : "차단 해제"}
+            </span>
+          }
+        />
+      ))}
+      {notice && <Notice tone="error">{notice}</Notice>}
     </SettingsSection>
   );
 }
@@ -348,6 +404,8 @@ export default function SettingsPage() {
                   description="안전하게 만나기 위한 기본 수칙을 확인해요."
                 />
               </SettingsSection>
+
+              <BlockedSection session={session} />
 
               <LegalSection termsAgreedAt={me.termsAgreedAt} />
 

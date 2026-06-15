@@ -89,7 +89,8 @@ chatRoutes.get("/conversations/:id/messages", async (c) => {
   if (!conv) return fail(c, "대화를 찾을 수 없습니다.", 404);
 
   // Optional pagination (?limit & ?before=ISO). No params → full history, oldest-first.
-  const limitParam = Number(c.req.query("limit"));
+  // Floor first — a fractional limit (e.g. ?limit=1.5) is invalid SQL and 500s.
+  const limitParam = Math.floor(Number(c.req.query("limit")));
   const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : null;
   const beforeRaw = c.req.query("before");
   let before: Date | undefined;

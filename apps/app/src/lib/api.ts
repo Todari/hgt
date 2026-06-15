@@ -10,6 +10,7 @@ import type {
   LogoutResponse,
   Conversation,
   Message,
+  BlockedUser,
   RegisterDeviceInput,
   WsServerEvent,
 } from "@hgt-client/contract";
@@ -123,9 +124,13 @@ export const api = {
   /** Mark a conversation's incoming messages as read. */
   markRead: (session: string, conversationId: string) =>
     request<{ read: boolean }>(`/conversations/${conversationId}/read`, { method: "POST", session }),
-  /** Block / report a user. */
+  /** Block / unblock / report a user. */
   blockUser: (session: string, userId: string) =>
     request<{ blocked: boolean }>("/me/blocks", { method: "POST", session, body: { userId } }),
+  unblockUser: (session: string, userId: string) =>
+    request<{ unblocked: boolean }>(`/me/blocks/${userId}`, { method: "DELETE", session }),
+  /** Users the caller has blocked (id + name). */
+  getBlocks: (session: string) => request<BlockedUser[]>("/me/blocks", { session }),
   reportUser: (session: string, userId: string, reason: string) =>
     request<{ reported: boolean }>("/reports", { method: "POST", session, body: { userId, reason } }),
   /** Withdraw the account (irreversible). */

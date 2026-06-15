@@ -68,11 +68,13 @@ function CountUnit({ value, label }: { value: number; label: string }) {
 }
 
 /**
- * Shown when there is no match for this KST week yet (current=null). A calm
- * "finding your match" card with a live D-day countdown to the next reveal
- * (Monday 19:00 KST). Reduced-motion safe — no animation, just a ticking value.
+ * Shown when there is no match for this KST week (current=null). Two moods:
+ * - default (pre-reveal): "곧 한 사람을 소개해드릴게요" + countdown to Monday 19:00 KST.
+ * - noMatchThisWeek (the round ran but didn't pair you): acknowledge it warmly,
+ *   then still count down to the next reveal.
+ * Reduced-motion safe — no animation, just a ticking value.
  */
-export function MatchWaitingCard() {
+export function MatchWaitingCard({ noMatchThisWeek = false }: { noMatchThisWeek?: boolean }) {
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -85,7 +87,7 @@ export function MatchWaitingCard() {
 
   return (
     <section
-      aria-label="이번 주 인연을 찾는 중"
+      aria-label={noMatchThisWeek ? "이번 주 매칭 결과" : "이번 주 인연을 찾는 중"}
       className={css({
         position: "relative",
         overflow: "hidden",
@@ -128,14 +130,16 @@ export function MatchWaitingCard() {
             fontWeight: "black",
           })}
         >
-          이번 주 인연을 찾는 중
+          {noMatchThisWeek ? "이번 주 매칭 결과" : "이번 주 인연을 찾는 중"}
         </span>
         <div className={css({ display: "flex", flexDirection: "column", gap: "1" })}>
           <h2 className={css({ color: "ink.950", fontSize: "22px", fontWeight: "black", lineHeight: "1.3" })}>
-            곧 한 사람을 소개해드릴게요
+            {noMatchThisWeek ? "이번 주는 인연을 찾지 못했어요" : "곧 한 사람을 소개해드릴게요"}
           </h2>
           <p className={css({ color: "ink.500", fontSize: "sm", lineHeight: "1.7" })}>
-            매주 월요일 저녁 7시, 키워드가 맞는 단 한 사람을 골라 보내드려요.
+            {noMatchThisWeek
+              ? "아쉽지만 이번 주엔 맞는 분을 찾지 못했어요. 키워드를 다듬으면 다음 주 인연을 만날 확률이 높아져요."
+              : "매주 월요일 저녁 7시, 키워드가 맞는 단 한 사람을 골라 보내드려요."}
           </p>
         </div>
 

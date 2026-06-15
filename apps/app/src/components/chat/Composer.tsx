@@ -29,11 +29,14 @@ export function Composer({
   onChange,
   onSend,
   disabled,
+  notice,
 }: {
   value: string;
   onChange: (value: string) => void;
   onSend: () => void;
   disabled?: boolean;
+  /** Inline error shown above the input (e.g. a rejected message reason). */
+  notice?: string | null;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const pointerFine = usePointerFine();
@@ -75,6 +78,22 @@ export function Composer({
         paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)",
       })}
     >
+      {notice && (
+        <p
+          role="alert"
+          className={css({
+            maxWidth: "480px",
+            marginX: "auto",
+            marginBottom: "2",
+            color: "primary.700",
+            fontSize: "13px",
+            fontWeight: "bold",
+            lineHeight: "1.5",
+          })}
+        >
+          {notice}
+        </p>
+      )}
       <div
         className={css({
           display: "flex",

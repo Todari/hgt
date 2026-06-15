@@ -207,6 +207,10 @@ export type MatchResult = z.infer<typeof matchResultSchema>;
 export const myMatchResponseSchema = z.object({
   current: matchResultSchema.nullable(),
   previous: matchResultSchema.nullable(),
+  // True once this KST week's matching round has run. Lets the app tell
+  // "reveal hasn't happened yet" (countdown) from "ran, but you weren't matched
+  // this week" (current === null && thisWeekRevealed === true).
+  thisWeekRevealed: z.boolean(),
 });
 export type MyMatchResponse = z.infer<typeof myMatchResponseSchema>;
 
@@ -270,6 +274,13 @@ export type WsServerEvent = z.infer<typeof wsServerEventSchema>;
 
 export const blockUserSchema = z.object({ userId: z.string().uuid() });
 export type BlockUserInput = z.infer<typeof blockUserSchema>;
+
+/** One entry in GET /me/blocks — a user the caller has blocked. */
+export const blockedUserSchema = z.object({
+  userId: z.string().uuid(),
+  name: z.string(),
+});
+export type BlockedUser = z.infer<typeof blockedUserSchema>;
 
 export const reportUserSchema = z.object({
   userId: z.string().uuid(),

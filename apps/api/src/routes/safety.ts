@@ -51,11 +51,15 @@ safetyRoutes.delete("/me/blocks/:userId", async (c) => {
   return ok(c, { unblocked: true });
 });
 
-// GET /me/blocks — ids I've blocked.
+// GET /me/blocks — users I've blocked (id + name, for the management list).
 safetyRoutes.get("/me/blocks", async (c) => {
   const me = c.get("user");
-  const rows = await db.select({ userId: blocks.blockedId }).from(blocks).where(eq(blocks.blockerId, me.id));
-  return ok(c, rows.map((r) => r.userId));
+  const rows = await db
+    .select({ userId: blocks.blockedId, name: users.name })
+    .from(blocks)
+    .innerJoin(users, eq(blocks.blockedId, users.id))
+    .where(eq(blocks.blockerId, me.id));
+  return ok(c, rows);
 });
 
 // POST /reports — report a user. The reported identity is snapshotted so the

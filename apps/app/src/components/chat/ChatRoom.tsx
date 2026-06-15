@@ -10,6 +10,7 @@ import { Icebreakers } from "@/components/chat/Icebreakers";
 import { mergeMessages, type ChatMessage } from "@/components/chat/lib";
 import { MessageList } from "@/components/chat/MessageList";
 import { SafetySheet } from "@/components/chat/SafetySheet";
+import { OfflineBanner } from "@/components/ui/status";
 import { api, ApiError, connectRealtime } from "@/lib/api";
 import { getSession } from "@/lib/session";
 
@@ -32,6 +33,8 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
   const [draft, setDraft] = useState("");
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Inline composer error for a rejected send (content filter / validation).
+  const [sendError, setSendError] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   // Pagination
@@ -244,10 +247,20 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
         const sent = await api.sendMessage(current, conversationId, trimmed);
         // Drop the temp row, add the settled server row.
         setMessages((curr) => mergeMessages(curr.filter((m) => m.id !== tempId), [sent]));
-      } catch {
-        setMessages((curr) =>
-          curr.map((m) => (m.id === tempId ? { ...m, clientStatus: "failed" } : m)),
-        );
+      } catch (err) {
+        // A 400 (content filter / validation) will never succeed as-is: drop the
+        // bubble, restore the draft to edit, and show the server reason inline.
+        // Anything else (429 / network / 5xx) keeps a failed bubble to retry.
+        if (err instanceof ApiError && err.status === 400) {
+          setMessages((curr) => curr.filter((m) => m.id !== tempId));
+          setDraft((d) => (d.trim() ? d : trimmed));
+          setSendError(err.message);
+        } else {
+          setMessages((curr) =>
+            curr.map((m) => (m.id === tempId ? { ...m, clientStatus: "failed" } : m)),
+          );
+          if (err instanceof ApiError) setSendError(err.message);
+        }
       }
     },
     [conversationId, me?.id, scrollToBottom],
@@ -257,6 +270,7 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
     const body = draft;
     if (!body.trim()) return;
     setDraft("");
+    setSendError(null);
     setIcebreakers(null);
     void sendBody(body);
   }, [draft, sendBody]);
@@ -307,10 +321,9 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
         <button
           type="button"
           aria-label="뒤로"
-          onClick={() => {
-            if (window.history.length > 1) router.back();
-            else router.replace("/conversations");
-          }}
+          // Always go to the canonical parent: a deep link (push / shared URL)
+          // has an about:blank history entry, so router.back() would dead-end.
+          onClick={() => router.replace("/conversations")}
           className={css({
             display: "grid",
             placeItems: "center",
@@ -413,6 +426,10 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
           </button>
         )}
       </header>
+
+      <div className={css({ flexShrink: 0, paddingX: "3", maxWidth: "480px", width: "100%", marginX: "auto" })}>
+        <OfflineBanner />
+      </div>
 
       {/* ---------------- messages (only this scrolls) ---------------- */}
       <div
@@ -550,7 +567,15 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
 
       {/* ---------------- composer ---------------- */}
       {loadState === "ready" && (
-        <Composer value={draft} onChange={setDraft} onSend={onSend} />
+        <Composer
+          value={draft}
+          onChange={(v) => {
+            setDraft(v);
+            if (sendError) setSendError(null);
+          }}
+          onSend={onSend}
+          notice={sendError}
+        />
       )}
 
       {/* ---------------- safety sheet ---------------- */}
