@@ -1,5 +1,6 @@
-import { createNodeWebSocket } from "@hono/node-ws";
+import { upgradeWebSocket } from "@hono/node-server";
 import type { Hono } from "hono";
+import type { WebSocket as NodeWebSocket } from "ws";
 import { and, eq, isNotNull } from "drizzle-orm";
 import { db } from "../db/client";
 import { users } from "../db/schema";
@@ -15,11 +16,8 @@ const MAX_MISSED_PONGS = 2;
  * server-pushed events (new messages, new matches, heartbeat pings). Sending
  * is done via REST (`POST /conversations/:id/messages`), which broadcasts here.
  *
- * Returns `injectWebSocket`, which must be called on the Node server.
  */
 export function setupWebSocket(app: Hono) {
-  const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
-
   startAppHeartbeat();
 
   app.get(
@@ -56,7 +54,9 @@ export function setupWebSocket(app: Hono) {
           });
 
           // Server heartbeat: protocol-level ping; kill sockets that stop ponging.
-          const raw = ws.raw;
+          // The Node adapter intentionally exposes only a minimal WebSocketLike
+          // interface, while the configured `ws` server also supports ping/pong.
+          const raw = ws.raw as NodeWebSocket | undefined;
           if (raw) {
             let missedPongs = 0;
             raw.on("pong", () => {
@@ -81,5 +81,4 @@ export function setupWebSocket(app: Hono) {
     }),
   );
 
-  return injectWebSocket;
 }
