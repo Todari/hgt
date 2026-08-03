@@ -19,24 +19,25 @@
   },
   "dependencies": {
     "@hgt-client/contract": "workspace:*",
-    "@hono/node-server": "^1.13.0",
-    "@hono/node-ws": "^1.0.0",
-    "@sentry/node": "^10.57.0",
-    "cheerio": "^1.0.0",
-    "dotenv": "^16.4.0",
-    "drizzle-orm": "^0.36.0",
-    "firebase-admin": "^12.0.0",
-    "hono": "^4.6.0",
+    "@hono/node-server": "^2.0.12",
+    "@sentry/node": "^10.69.0",
+    "cheerio": "^1.2.0",
+    "dotenv": "^16.6.1",
+    "drizzle-orm": "^0.45.2",
+    "firebase-admin": "^12.7.0",
+    "hono": "^4.12.34",
     "iconv-lite": "^0.6.3",
-    "postgres": "^3.4.0",
-    "zod": "^3.23.8"
+    "postgres": "^3.4.9",
+    "ws": "8.21.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@hgt-client/eslint-config": "workspace:*",
     "@hgt-client/typescript-config": "workspace:*",
-    "@types/node": "^20.11.0",
-    "drizzle-kit": "^0.28.0",
-    "tsx": "^4.19.0",
+    "@types/node": "^20.19.43",
+    "@types/ws": "^8.18.1",
+    "drizzle-kit": "^0.28.1",
+    "tsx": "^4.23.5",
     "typescript": "5.5.4"
   }
 }

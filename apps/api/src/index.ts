@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
+import { WebSocketServer } from "ws";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { bodyLimit } from "hono/body-limit";
@@ -87,7 +88,7 @@ app.route("/", adminRoutes);
 
 // Realtime WebSocket (/ws?token=...) — token-authed; registered BEFORE the
 // protected wildcard so session auth doesn't reject the upgrade.
-const injectWebSocket = setupWebSocket(app);
+setupWebSocket(app);
 
 // Protected routes (require a valid bearer session).
 const protectedRoutes = new Hono();
@@ -102,10 +103,10 @@ protectedRoutes.route("/", safetyRoutes);
 app.route("/", protectedRoutes);
 
 const port = Number(process.env.PORT ?? 8080);
-const server = serve({ fetch: app.fetch, port }, (info) => {
+const webSocketServer = new WebSocketServer({ noServer: true });
+serve({ fetch: app.fetch, port, websocket: { server: webSocketServer } }, (info) => {
   console.log(`hgt api listening on http://localhost:${info.port}`);
 });
-injectWebSocket(server);
 
 // Opt-in weekly matching (no-op unless MATCH_CRON_ENABLED=true).
 startMatchScheduler();
