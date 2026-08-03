@@ -6,9 +6,8 @@ TypeScript 모노레포에서 관리합니다.
 
 HGT는 홍익대학교가 운영하거나 보증하는 공식 서비스가 아닌 독립 프로젝트입니다.
 
-> 이 저장소가 현재 HGT 제품의 정본입니다. 2023년 Flutter 프로토타입은
-> [`Todari/hgt-flutter-legacy`](https://github.com/Todari/hgt-flutter-legacy)에 비공개
-> 아카이브로 보존합니다.
+> 이 저장소가 현재 HGT 제품의 정본입니다. 이전 Flutter 앱과 Go 서버 구현은 공개 배포·유지보수
+> 대상에서 제외하고 별도의 비공개 아카이브로 보존합니다.
 
 ## 핵심 흐름
 
@@ -41,7 +40,6 @@ API 요청·응답 형태는 `packages/contract`의 zod 스키마를 정본으�
 | `apps/landing`      | 서비스 소개 페이지             | Next.js                              |
 | `packages/contract` | 공유 zod 스키마와 API 타입     | TypeScript, zod                      |
 | `packages/ui`       | 공유 UI 컴포넌트               | React                                |
-| `legacy/hgt-server` | 재작성 전 서버 참고 자료       | Go, MongoDB                          |
 
 상세 설계는 [아키텍처 문서](docs/architecture.md), 운영 환경은
 [배포 문서](DEPLOY.md), 저장소 작업 규칙은 [CLAUDE.md](CLAUDE.md)를 참고하세요.
