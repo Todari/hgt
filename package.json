@@ -1,5 +1,5 @@
 {
-  "name": "hgt-client",
+  "name": "hgt",
   "private": true,
   "scripts": {
     "build": "turbo build",
@@ -36,14 +36,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Todari/hgt-client.git"
+    "url": "git+https://github.com/Todari/hgt.git"
   },
-  "keywords": [],
+  "keywords": [
+    "hgt",
+    "nextjs",
+    "hono",
+    "postgresql",
+    "capacitor",
+    "turborepo"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/Todari/hgt-client/issues"
+    "url": "https://github.com/Todari/hgt/issues"
   },
-  "homepage": "https://github.com/Todari/hgt-client#readme"
+  "homepage": "https://github.com/Todari/hgt#readme"
 }
