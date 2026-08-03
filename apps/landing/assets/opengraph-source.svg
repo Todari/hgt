@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#11110f" stroke-opacity="0.06" stroke-width="1" />
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="#f6f0e4" />
+  <rect width="1200" height="630" fill="url(#grid)" />
+
+  <rect x="78" y="74" width="88" height="88" fill="#11110f" />
+  <rect x="66" y="62" width="88" height="88" fill="#ff4f3f" stroke="#11110f" stroke-width="5" />
+  <path d="M88 84h12v18h20V84h12v44h-12v-16h-20v16H88z" fill="#11110f" />
+  <text x="184" y="128" fill="#11110f" font-family="Arial, sans-serif" font-size="54" font-weight="900">HGT</text>
+
+  <text x="66" y="330" fill="#11110f" font-family="Apple SD Gothic Neo, Arial Unicode MS, sans-serif" font-size="76" font-weight="800" letter-spacing="-4">이번 주에는, 단 한 사람만.</text>
+  <text x="70" y="400" fill="#11110f" font-family="Apple SD Gothic Neo, Arial Unicode MS, sans-serif" font-size="34" font-weight="600">홍익대 인증 · 키워드 프로필 · 매주 1:1 매칭</text>
+
+  <rect x="70" y="494" width="260" height="62" fill="#11110f" />
+  <rect x="62" y="486" width="260" height="62" fill="#ffd84d" stroke="#11110f" stroke-width="4" />
+  <text x="84" y="527" fill="#11110f" font-family="Arial, sans-serif" font-size="25" font-weight="700">hgt.todari.dev</text>
+
+  <g transform="translate(1000 88) rotate(8)">
+    <rect width="120" height="120" rx="60" fill="#86a9ff" stroke="#11110f" stroke-width="4" />
+    <text x="60" y="55" text-anchor="middle" fill="#11110f" font-family="Arial, sans-serif" font-size="19" font-weight="800">HONGIK</text>
+    <text x="60" y="82" text-anchor="middle" fill="#11110f" font-family="Arial, sans-serif" font-size="17" font-weight="800">VERIFIED</text>
+  </g>
+</svg>
