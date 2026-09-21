@@ -16,6 +16,7 @@ import { maxWeightBipartite } from "./assign";
 import { sendPush } from "../push/send";
 import { broadcastToUser } from "../ws/registry";
 import { toPartnerUser } from "../lib/public-user";
+import { persistMatches, repairMissingConversations } from "./persistence";
 
 /** KST (Asia/Seoul) is UTC+9 with no DST — a fixed offset is exact. */
 export const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
@@ -136,6 +137,7 @@ async function loadCandidates(): Promise<Candidate[]> {
  * Idempotent: a completed round is returned as-is rather than re-run.
  */
 export async function runWeeklyMatch(weekStart: string = weekStartMonday()): Promise<MatchRunResult> {
+  await repairMissingConversations(db);
   const [existing] = await db
     .select()
     .from(matchRounds)
@@ -145,7 +147,8 @@ export async function runWeeklyMatch(weekStart: string = weekStartMonday()): Pro
   const firstRun = !existing;
   let round = existing;
   if (!round) {
-    const [created] = await db.insert(matchRounds).values({ weekStart }).returning();
+    const [created] = await db.insert(matchRounds).values({ weekStart })
+      .onConflictDoUpdate({ target: matchRounds.weekStart, set: { weekStart } }).returning();
     round = created!;
   }
 
@@ -185,15 +188,8 @@ export async function runWeeklyMatch(weekStart: string = weekStartMonday()): Pro
     score: weights[mi]![fi]!,
   }));
   if (rows.length > 0) {
-    const inserted = await db
-      .insert(matches)
-      .values(rows)
-      .returning({ id: matches.id, male: matches.maleUserId, female: matches.femaleUserId });
-    // a conversation per matched pair (idempotent), then notify both sides
-    await db
-      .insert(conversations)
-      .values(inserted.map((mt) => ({ matchId: mt.id, userAId: mt.male, userBId: mt.female })))
-      .onConflictDoNothing();
+    // Notifications only run after both writes have committed.
+    const inserted = await persistMatches(db, rows);
 
     // Conflicting (pre-existing) conversations keep their row — look the ids
     // up by pair. Full user rows feed the WS event's partner payload.
