@@ -18,10 +18,10 @@
     "cap:android": "cap open android"
   },
   "dependencies": {
-    "@capacitor/android": "^6.2.1",
+    "@capacitor/android": "^6.2.2",
     "@capacitor/app": "^6.0.3",
     "@capacitor/core": "^6.2.1",
-    "@capacitor/ios": "^6.2.1",
+    "@capacitor/ios": "^6.2.2",
     "@capacitor/keyboard": "^6.0.4",
     "@capacitor/push-notifications": "^6.0.5",
     "@capacitor/status-bar": "^6.0.3",
@@ -48,7 +48,7 @@
     "@types/node": "^20.19.43",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
-    "storybook": "^8.6.18",
+    "storybook": "^8.6.19",
     "typescript": "5.5.4"
   }
 }
