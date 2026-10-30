@@ -29,7 +29,7 @@
     "iconv-lite": "^0.6.3",
     "postgres": "^3.4.9",
     "ws": "8.21.0",
-    "zod": "^3.25.76"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@hgt-client/eslint-config": "workspace:*",
