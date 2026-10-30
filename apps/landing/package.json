@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@hgt-client/ui": "workspace:*",
-    "next": "15.5.22",
+    "next": "15.5.27",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
