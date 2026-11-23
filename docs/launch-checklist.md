@@ -38,9 +38,11 @@
       `FIREBASE_SERVICE_ACCOUNT`, Apple App ID Push capability/프로비저닝 프로필
       갱신, APNs 키 → Firebase 업로드 후 이태훈 iPhone에서 실제 알림 수신 확인.
       전체 런북: CAPACITOR.md "Push notifications".
-- [ ] **Capacitor 6 → 7 마이그레이션** — Google Play의 **target API 35** 하한 때문에
-      Capacitor 7(targetSdk 35) 필요 (현재 6.2.x). `npx cap migrate` 실행 후
-      iOS/Android 빌드·푸시 재검증.
+- [ ] **Capacitor 6 → 8 마이그레이션** — Google Play가 2026-08-31부터 신규 앱에
+      **target API 36**을 요구한다. PR #29에서 Capacitor 8.6(targetSdk 36, iOS 15+,
+      Gradle에 JDK 21 필요)으로 올렸고 iOS 시뮬레이터·Android debug 빌드는 통과.
+      **실기기 검증 후 머지** — 확인 항목(edge-to-edge, 네이티브 탭바, 키보드, 푸시)은
+      PR 본문 참고.
 - [x] **이용약관/개인정보처리방침 공개 URL** — `https://app.hgt.todari.dev/terms`,
       `https://app.hgt.todari.dev/privacy`. 본문은 `apps/app/src/content/legal.ts`
       하나만 고치면 앱 내부·공개 URL에 함께 반영된다.
@@ -67,8 +69,9 @@
 
 ## 스토어 제출
 
-- [ ] **스토어 자산 제작** — 앱 아이콘·스플래시가 아직 Capacitor 템플릿 기본값.
-      실제 아이콘 + 스플래시(`@capacitor/assets` 활용 가능) + 기기별 스크린샷.
+- [~] **스토어 자산 제작** — 앱 아이콘·스플래시는 브랜드 마크(코랄 + H)로 교체함
+      (소스 `apps/app/assets/`, `@capacitor/assets` 레이아웃). **남은 작업:** 기기에서
+      아이콘·스플래시 확인, 기기별 스토어 스크린샷.
 - [x] **App Review용 데모 계정 (`DEMO_ACCOUNTS`) — 코드 구현 완료** — 포털 우회
       데모 로그인은 구현됨(`apps/api/src/routes/auth.ts`: `DEMO_ACCOUNTS="id:pw,..."`
       매칭 시 포털 스크래핑 생략, 고정 데모 프로필 upsert). `.env.example`에 문서화됨.
@@ -141,8 +144,8 @@
   ✅ `/me/match` `score` 제거, ✅ 온보딩 'AI' 과장 카피 정직화 — 모두 완료.
   남은 P2 cosmetic(선택): 홈 "다시 시도" 버튼/브랜드 H 로고 코럴 통일, 라디우스
   토큰 정리, 내부 `/design-system` 쇼케이스 라우트의 'AI 매칭' 카피(프로덕션 번들 포함).
-- **디바이스/Xcode (P0):** https URL로 네이티브 재빌드 → Capacitor 6→7 마이그레이션
-  (Play target API 35) → Apple Push capability/프로필/APNs 키와 실기기 푸시 확인 → 앱 아이콘/스플래시/
+- **디바이스/Xcode (P0):** https URL로 네이티브 재빌드 → Capacitor 8 PR #29 실기기 검증·머지
+  (Play target API 36) → Apple Push capability/프로필/APNs 키와 실기기 푸시 확인 → 앱 아이콘/스플래시/
   스크린샷 → 데이팅 앱 연령 등급.
 - **서버운영/제품 (런치 후):** Sentry, 애널리틱스 결정, 어드민 콘솔 확장.
 
