@@ -1,8 +1,8 @@
 # Deployment
 
 ```
- Native app ──HTTP──▶  EC2 :8090 (apps/api)  ──▶  Postgres :5455 (docker, localhost)
- Vercel web ─rewrites─▶ (same EC2)
+ Native app ──HTTPS──▶ api.hgt.todari.dev ─▶ Nginx ─▶ EC2 :8090 (apps/api)
+ Vercel web ──HTTPS───┘                              └─▶ Postgres :5455 (localhost)
 ```
 
 ## ✅ Status (live)
@@ -11,26 +11,26 @@ Backend is **deployed and running** on `ec2-52-78-45-209.ap-northeast-2`:
 - Postgres (docker `hgt-postgres`) on **127.0.0.1:5455** (localhost-only)
 - migrations applied, catalog seeded (88 keywords / 33 attribute options)
 - weekly match scheduler **on**; `GET /health` → `{"ok":true}`
+- Nginx + Certbot serves `https://api.hgt.todari.dev` → `127.0.0.1:8090`
+- Vercel projects deployed: `hgt-landing` and `hgt-app`
+- Custom domains live: `hgt.todari.dev` and `app.hgt.todari.dev`
 
 > This EC2 already hosts other projects (Postgres on 5432–5436, web on 8080),
 > so HGT auto-moved to **8090 / 5455**. Those are this box's real ports.
 
-### ✅ External access (open)
-Inbound TCP 8090 (0.0.0.0/0) is open on SG `sg-01f4daecf394a97da` (added via local
-`aws` CLI). The API is reachable from the internet:
-```bash
-curl http://ec2-52-78-45-209.ap-northeast-2.compute.amazonaws.com:8090/health   # {"ok":true}
-# manage the SG later (mac has working creds for acct 236677164563):
-aws ec2 authorize-security-group-ingress --region ap-northeast-2 \
-  --group-id sg-01f4daecf394a97da --ip-permissions 'IpProtocol=tcp,FromPort=8090,ToPort=8090,IpRanges=[{CidrIp=0.0.0.0/0}]'
-```
-Postgres (5455) stays localhost-only — never add it to the SG.
+### ✅ External access (HTTPS only)
 
-> No domain yet ⇒ the API is plain **HTTP**, so the portal password transits HTTP.
-> Fine for testing; before real users add a domain + Caddy TLS (§4).
+The API is public only through Nginx on 80/443. Direct inbound TCP 8090 was
+removed from SG `sg-01f4daecf394a97da` after TLS verification:
+
+```bash
+curl https://api.hgt.todari.dev/health   # {"ok":true}
+```
+
+Ports 8090 and 5455 stay private — never add them back to the SG.
 
 > **출시 전 전체 점검 목록**: [docs/launch-checklist.md](docs/launch-checklist.md)
-> (TLS, DB 비밀번호, 푸시, 스토어 제출, PIPA 등 — 이 문서의 §4–§7과 교차 참조).
+> (TLS, DB 비밀번호, 푸시, 스토어 제출, PIPA 등 — 이 문서의 §4–§8과 교차 참조).
 
 ---
 
@@ -79,38 +79,56 @@ rsync에서 제외해 보존한다. 수동 실행도 가능(Actions → Deploy (
 - `EC2_HOST` — `ec2-52-78-45-209.ap-northeast-2.compute.amazonaws.com`
 
 시크릿이 없으면 deploy 잡은 경고만 남기고 건너뛴다(verify는 항상 실행).
-⚠️ 단일 브랜치(`dev`)→프로덕션 직접 배포다(스테이징 없음). TLS 적용 전까지는
-실사용자 트래픽을 받지 말 것(§4). 스키마 변경은 `db:migrate`가 자동 적용하되,
-파괴적 마이그레이션은 §5 백업 후 수동 검토를 권장.
+⚠️ 단일 브랜치(`dev`)→프로덕션 직접 배포다(스테이징 없음).
+스키마 변경은 `db:migrate`가 자동 적용하되,
+파괴적 마이그레이션은 §6 백업 후 수동 검토를 권장.
 
 ## 2. Native app → the EC2
 ```bash
-NEXT_PUBLIC_API_URL=http://ec2-52-78-45-209.ap-northeast-2.compute.amazonaws.com:8090 \
+NEXT_PUBLIC_API_URL=https://api.hgt.todari.dev \
   pnpm --filter app build:app && pnpm --filter app cap:sync
 pnpm --filter app cap:ios     # Xcode → Run
 ```
-(Requires SG 8090 open. The native webview origin `capacitor://localhost` is already allowed by CORS.)
+(The native webview origin `capacitor://localhost` is already allowed by CORS.)
 
-## 3. Web on Vercel (optional, no domain)
-```js
-// apps/app/next.config.js
-async rewrites() {
-  return [{ source: "/api/:path*", destination: "http://ec2-…:8090/:path*" }];
-}
+## 3. Web on Vercel
+
+| Project | Root directory | Domain | Production env |
+|---|---|---|---|
+| `hgt-landing` | `apps/landing` | `hgt.todari.dev` | `NEXT_PUBLIC_APP_URL=https://app.hgt.todari.dev/signin` |
+| `hgt-app` | `apps/app` | `app.hgt.todari.dev` | `NEXT_PUBLIC_API_URL=https://api.hgt.todari.dev`, `NEXT_PUBLIC_WEB_APP_MODE=waitlist` |
+
+## 4. DNS + HTTPS
+
+Gabia DNS:
+
+| Host | Type | Value |
+|---|---|---|
+| `hgt` | A | `76.76.21.21` |
+| `app.hgt` | A | `76.76.21.21` |
+| `api.hgt` | A | `52.78.45.209` |
+
+The Nginx vhost is versioned at `deploy/nginx-api.hgt.todari.dev.conf`.
+Certbot manages the deployed TLS directives and automatic renewal:
+
+```bash
+sudo certbot --nginx -d api.hgt.todari.dev --redirect
+curl -fsS https://api.hgt.todari.dev/health
 ```
-Set `NEXT_PUBLIC_API_URL=/api`, Root Directory `apps/app`. (Browser → HTTPS Vercel → EC2.)
 
-## 4. Production hardening (before real users)
-- **Domain + HTTPS:** `api.yourdomain.com` → EC2 IP, `sudo apt install caddy`,
-  `deploy/Caddyfile` (reverse_proxy localhost:8090), then
-  `NEXT_PUBLIC_API_URL=https://api.yourdomain.com` and rebuild. Close 8090, open 443.
-- **Push:** set `FIREBASE_SERVICE_ACCOUNT` + native Firebase config (google-services.json /
-  GoogleService-Info.plist + APNs key) — full runbook: `apps/app/CAPACITOR.md`.
-- **DB password:** prod currently runs the committed dev password — fix per §6 below.
+The native app has been rebuilt using §2. Public SG port 8090 is closed; keep
+80/443 open for Nginx and certificate renewal.
+
+## 5. Production hardening (before real users)
+- **Push:** native Firebase config/bridge is versioned. Set
+  `FIREBASE_SERVICE_ACCOUNT`, enable the Apple App ID's Push capability, refresh
+  its provisioning profile, and upload the APNs key to Firebase — full runbook:
+  `apps/app/CAPACITOR.md`.
+- **DB password:** prod currently runs the committed dev password — fix per §7 below.
 - SG must never expose 5455.
 - 나머지 출시 전 항목: [docs/launch-checklist.md](docs/launch-checklist.md).
 
-## 5. 백업
+## 6. 백업
 
 `deploy/backup-db.sh`가 도커 Postgres를 `pg_dump | gzip`으로 `/var/backups/hgt/`에
 덤프하고 **14일 지난 덤프를 자동 삭제**한다. EC2에서:
@@ -138,7 +156,7 @@ gunzip -c /var/backups/hgt/hgt-YYYYMMDD-HHMMSS.sql.gz | docker exec -i hgt-postg
 > /var/backups/hgt s3://<bucket>/hgt-backups/`) 또는 rclone으로 복사하는 단계를
 > cron 끝에 추가할 것.
 
-## 6. DB 비밀번호 (운영 필수)
+## 7. DB 비밀번호 (운영 필수)
 
 `docker-compose.yml`은 `POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hgt_local_dev}` —
 로컬은 기본값, **운영은 반드시 강한 비밀번호로 override** 해야 한다.
@@ -162,7 +180,7 @@ sudo systemctl restart hgt-api && curl -fsS localhost:8090/health
 echo "POSTGRES_PASSWORD=$NEW_PW" >> ~/hgt-client/.env
 ```
 
-## 7. 모니터링
+## 8. 모니터링
 
 - **업타임 체크 — `GET /health`** (DB ping 포함, 실패 시 503):
   [UptimeRobot](https://uptimerobot.com) 무료 플랜에 `http://<EC2>:8090/health`
