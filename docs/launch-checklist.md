@@ -7,9 +7,10 @@
 >
 > **상태 갱신 (2026-11-23):** 8월 작업분을 `dev`에 정본화했고, API는 `dev` push 시
 > 자동 배포(CD)된다. TLS·약관 공개 URL·웹 대기 화면 게이트·zod 4/보안 패치가 운영에
-> 반영됐다. DB 비밀번호 교체와 백업 cron·복구 리허설도 끝났다. 남은 P0는 백업
-> 오프사이트 복사, 푸시(유료 Apple Developer 가입 필요) 실기기 검증, Capacitor 8
-> 실기기 확인, 스토어 스크린샷이다 (아래 각 항목 참고).
+> 반영됐다. DB 비밀번호 교체, 백업 cron·복구 리허설, Capacitor 8 머지와 실기기 QA도
+> 끝났다. 남은 P0는 **iPhone Duo 탭바 터치 불가**(아래 "실기기 QA에서 발견된 문제"),
+> 백업 오프사이트 복사, 푸시(유료 Apple Developer 가입 필요) 실기기 검증, 스토어
+> 스크린샷이다.
 >
 > **최종 출시 점검 (2026-06-15):** 코드 품질은 양호 — `app`/`api` check-types +
 > `app` lint 통과, 코럴 그라데이션 WCAG 대비(흰 글자) 회귀 수정 확인, QA 픽스처
@@ -39,11 +40,11 @@
       `FIREBASE_SERVICE_ACCOUNT`, Apple App ID Push capability/프로비저닝 프로필
       갱신, APNs 키 → Firebase 업로드 후 이태훈 iPhone에서 실제 알림 수신 확인.
       전체 런북: CAPACITOR.md "Push notifications".
-- [ ] **Capacitor 6 → 8 마이그레이션** — Google Play가 2026-08-31부터 신규 앱에
-      **target API 36**을 요구한다. PR #29에서 Capacitor 8.6(targetSdk 36, iOS 15+,
-      Gradle에 JDK 21 필요)으로 올렸고 iOS 시뮬레이터·Android debug 빌드는 통과.
-      **실기기 검증 후 머지** — 확인 항목(edge-to-edge, 네이티브 탭바, 키보드, 푸시)은
-      PR 본문 참고.
+- [x] **Capacitor 6 → 8 마이그레이션** — Google Play가 2026-08-31부터 신규 앱에
+      **target API 36**을 요구한다. Capacitor 8.6(targetSdk 36, iOS 15+, Gradle에
+      JDK 21 필요)으로 올려 머지함(PR #29). iOS 27 시뮬레이터, Android API 34/36
+      에뮬레이터, 실기기 iPhone 2대에서 실행·데모 로그인·탭바·키보드·뒤로가기·복귀를
+      확인했다. 푸시 등록만 미검증(유료 Apple Developer 팀 필요).
 - [x] **이용약관/개인정보처리방침 공개 URL** — `https://app.hgt.todari.dev/terms`,
       `https://app.hgt.todari.dev/privacy`. 본문은 `apps/app/src/content/legal.ts`
       하나만 고치면 앱 내부·공개 URL에 함께 반영된다.
@@ -67,6 +68,22 @@
       성별 대칭성 확인(저심각 항목만). **수정 완료:** 병역(군필/미필) 필드를
       남성에게만 노출하도록 게이팅(`StepBasics` `gender` prop, `gender===true`일 때만 렌더).
       신규 가입(fresh) 여성 계정의 온보딩→매칭→신고/차단 전 구간은 실유저 가입 시 재확인 권장.
+
+## 실기기 QA에서 발견된 문제 (2026-11-23, 모두 Capacitor 마이그레이션과 무관)
+
+- [ ] **iPhone Duo(iPhone19,4)에서 네이티브 탭바 터치 불가 — 출시 전 필수.** 이 기종은
+      탭바가 오른쪽 띠에 세로로 펼쳐지는데 `HGTBridgeViewController`의 탭 컨테이너가
+      화면 하단 83pt뿐이라 설정 탭만 눌리고, 설정에 들어가면 홈·대화로 돌아올 수 없다.
+      선택 색도 코랄이 아닌 파란색. 같은 기종 시뮬레이터에서 실제 터치로 재현.
+- [ ] **iPhone Duo 채팅방이 오른쪽 safe-area를 무시** — "대화 옵션"·전송 버튼이 상태 띠
+      아래로 들어간다(신고·차단 메뉴 접근에 영향 가능).
+- [ ] **Android 14 이하 다크 모드에서 상태바 아이콘이 거의 안 보임** — 테마가 `DayNight`인데
+      웹은 light 전용. 후보: 부모 테마를 `Theme.AppCompat.Light.NoActionBar`로(미검증).
+- [~] **iOS 런치 스크린이 검은 화면** — 2732² 이미지가 런치 이미지 메모리 한도(25MB)를
+      넘었다. 2048²로 줄였고 시뮬레이터에서는 브랜드 스플래시가 뜬다. **남은 작업:**
+      실기기는 런치 이미지 캐시 때문에 재시동 후 재설치해 확인.
+- [~] **채팅 입력창 포커스 시 화면 확대** — 입력창 글자 크기를 15px → 16px로 올림
+      (iOS는 16px 미만 입력에 포커스하면 확대한다). **남은 작업:** 기기에서 확인.
 
 ## 스토어 제출
 
@@ -146,8 +163,8 @@
   ✅ `/me/match` `score` 제거, ✅ 온보딩 'AI' 과장 카피 정직화 — 모두 완료.
   남은 P2 cosmetic(선택): 홈 "다시 시도" 버튼/브랜드 H 로고 코럴 통일, 라디우스
   토큰 정리, 내부 `/design-system` 쇼케이스 라우트의 'AI 매칭' 카피(프로덕션 번들 포함).
-- **디바이스/Xcode (P0):** https URL로 네이티브 재빌드 → Capacitor 8 PR #29 실기기 검증·머지
-  (Play target API 36) → Apple Push capability/프로필/APNs 키와 실기기 푸시 확인 → 앱 아이콘/스플래시/
+- **디바이스/Xcode (P0):** https URL로 네이티브 재빌드 → (Capacitor 8 머지 완료, Play target API 36) →
+  iPhone Duo 탭바·safe-area 수정 → Apple Push capability/프로필/APNs 키와 실기기 푸시 확인 → 앱 아이콘/스플래시/
   스크린샷 → 데이팅 앱 연령 등급.
 - **서버운영/제품 (런치 후):** Sentry, 애널리틱스 결정, 어드민 콘솔 확장.
 
