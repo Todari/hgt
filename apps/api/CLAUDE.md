@@ -36,7 +36,7 @@ See the `db-migrate` skill.
 ## Env vars (`.env`, template in `.env.example`)
 
 `DATABASE_URL`, `DATABASE_SSL`, `PORT`, `CORS_ORIGINS`, `HONGIK_ALLOWED_STATUSES`
-(default `재학,휴학` — blocks graduates), `ADMIN_TOKEN` (unset = admin routes 403),
+(default `재학,휴학,졸업`), `ADMIN_TOKEN` (unset = admin routes 403),
 `MATCH_CRON_ENABLED` (true on exactly ONE instance), `FIREBASE_SERVICE_ACCOUNT`.
 
 ## Domain rules worth knowing

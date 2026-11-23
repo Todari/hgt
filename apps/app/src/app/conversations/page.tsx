@@ -30,11 +30,11 @@ function formatListTime(iso: string): string {
 }
 
 const listCardCss = css({
-  background: "surface.card",
+  background: "var(--content-surface)",
   border: "1px solid",
   borderColor: "surface.hairline",
   borderRadius: "liquid",
-  boxShadow: "cardSoft",
+  boxShadow: "var(--content-shadow)",
   overflow: "hidden",
   "& > * + *": {
     borderTop: "1px solid",
@@ -44,7 +44,9 @@ const listCardCss = css({
 
 function ConversationRow({ conversation }: { conversation: Conversation }) {
   const unread = conversation.unreadCount > 0;
-  const preview = conversation.lastMessage?.body ?? "아직 메시지가 없어요. 먼저 인사해보세요.";
+  const preview =
+    conversation.lastMessage?.body ??
+    "아직 메시지가 없어요. 먼저 인사해보세요.";
 
   return (
     <Link
@@ -69,19 +71,28 @@ function ConversationRow({ conversation }: { conversation: Conversation }) {
           height: "48px",
           flexShrink: 0,
           borderRadius: "50%",
-          color: "primary.700",
+          color: "ink.950",
           fontSize: "lg",
           fontWeight: "black",
-          background: "linear-gradient(145deg, #ffe2db, #fff5f2)",
-          border: "1px solid",
-          borderColor: "primary.100",
+          background: "rgba(84,130,242,.14)",
+          border: "1px solid rgba(84,130,242,.18)",
         })}
       >
         {conversation.partner.name.slice(0, 1)}
       </span>
 
-      <span className={css({ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "1" })}>
-        <span className={css({ display: "flex", alignItems: "baseline", gap: "2" })}>
+      <span
+        className={css({
+          flex: 1,
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: "1",
+        })}
+      >
+        <span
+          className={css({ display: "flex", alignItems: "baseline", gap: "2" })}
+        >
           <span
             className={css({
               minWidth: 0,
@@ -118,11 +129,15 @@ function ConversationRow({ conversation }: { conversation: Conversation }) {
               fontWeight: unread ? "black" : "medium",
             })}
           >
-            {formatListTime(conversation.lastMessage?.createdAt ?? conversation.createdAt)}
+            {formatListTime(
+              conversation.lastMessage?.createdAt ?? conversation.createdAt,
+            )}
           </span>
         </span>
 
-        <span className={css({ display: "flex", alignItems: "center", gap: "2" })}>
+        <span
+          className={css({ display: "flex", alignItems: "center", gap: "2" })}
+        >
           <span
             className={css({
               flex: 1,
@@ -152,7 +167,7 @@ function ConversationRow({ conversation }: { conversation: Conversation }) {
                 color: "white",
                 fontSize: "11px",
                 fontWeight: "black",
-                background: "linear-gradient(135deg, #b83e3a, #d0463c)",
+                background: "primary.600",
               })}
             >
               {conversation.unreadCount > 99 ? "99+" : conversation.unreadCount}
@@ -168,12 +183,48 @@ function SkeletonRow() {
   return (
     <div
       aria-hidden
-      className={css({ display: "flex", alignItems: "center", gap: "3", minHeight: "72px", paddingX: "4", paddingY: "3" })}
+      className={css({
+        display: "flex",
+        alignItems: "center",
+        gap: "3",
+        minHeight: "72px",
+        paddingX: "4",
+        paddingY: "3",
+      })}
     >
-      <span className={css({ width: "48px", height: "48px", flexShrink: 0, borderRadius: "50%", background: "rgba(10,17,24,.06)" })} />
-      <span className={css({ flex: 1, display: "flex", flexDirection: "column", gap: "2" })}>
-        <span className={css({ width: "40%", height: "14px", borderRadius: "7px", background: "rgba(10,17,24,.06)" })} />
-        <span className={css({ width: "72%", height: "12px", borderRadius: "6px", background: "rgba(10,17,24,.05)" })} />
+      <span
+        className={css({
+          width: "48px",
+          height: "48px",
+          flexShrink: 0,
+          borderRadius: "50%",
+          background: "rgba(10,17,24,.06)",
+        })}
+      />
+      <span
+        className={css({
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          gap: "2",
+        })}
+      >
+        <span
+          className={css({
+            width: "40%",
+            height: "14px",
+            borderRadius: "7px",
+            background: "rgba(10,17,24,.06)",
+          })}
+        />
+        <span
+          className={css({
+            width: "72%",
+            height: "12px",
+            borderRadius: "6px",
+            background: "rgba(10,17,24,.05)",
+          })}
+        />
       </span>
     </div>
   );
@@ -183,11 +234,11 @@ function EmptyState() {
   return (
     <div
       className={css({
-        background: "surface.card",
+        background: "var(--content-surface)",
         border: "1px solid",
         borderColor: "surface.hairline",
         borderRadius: "liquid",
-        boxShadow: "cardSoft",
+        boxShadow: "var(--content-shadow)",
         paddingX: "6",
         paddingY: "10",
         display: "flex",
@@ -205,19 +256,43 @@ function EmptyState() {
           width: "56px",
           height: "56px",
           borderRadius: "50%",
-          color: "primary.600",
-          background: "linear-gradient(145deg, #ffe2db, #fff5f2)",
+          color: "ink.950",
+          background: "#fff3bd",
+          border: "1px solid rgba(218,167,22,.22)",
         })}
       >
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <svg
+          width="26"
+          height="26"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
           <path d="M21 11.6c0 4.2-4 7.6-9 7.6-1 0-2-.14-2.9-.4L4 20.5l1.2-3.6C3.8 15.5 3 13.6 3 11.6 3 7.4 7 4 12 4s9 3.4 9 7.6Z" />
         </svg>
       </span>
       <div>
-        <h2 className={css({ color: "ink.950", fontSize: "lg", fontWeight: "black" })}>
+        <h2
+          className={css({
+            color: "ink.950",
+            fontSize: "lg",
+            fontWeight: "black",
+          })}
+        >
           아직 대화가 없어요
         </h2>
-        <p className={css({ marginTop: "1.5", color: "ink.500", fontSize: "sm", lineHeight: "1.7" })}>
+        <p
+          className={css({
+            marginTop: "1.5",
+            color: "ink.500",
+            fontSize: "sm",
+            lineHeight: "1.7",
+          })}
+        >
           매주 월요일 저녁, 새로운 매칭과 함께 대화가 열려요.
         </p>
       </div>
@@ -228,14 +303,14 @@ function EmptyState() {
           alignItems: "center",
           justifyContent: "center",
           minHeight: "44px",
-          borderRadius: "capsule",
+          borderRadius: "14px",
           paddingX: "5",
-          color: "primary.700",
+          color: "white",
           fontSize: "sm",
           fontWeight: "black",
-          background: "primary.50",
-          border: "1px solid",
-          borderColor: "primary.100",
+          background: "primary.500",
+          border: "1px solid rgba(190,48,36,.18)",
+          boxShadow: "0 8px 20px rgba(255,79,63,.18)",
         })}
       >
         홈에서 매칭 확인하기
@@ -260,7 +335,11 @@ export default function ConversationsPage() {
       setConversations(next);
       setError(null);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "대화 목록을 불러오지 못했어요.");
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "대화 목록을 불러오지 못했어요.",
+      );
     }
   }, []);
 
@@ -281,7 +360,11 @@ export default function ConversationsPage() {
         setConversations(next);
       } catch (err) {
         if (!active) return;
-        setError(err instanceof ApiError ? err.message : "대화 목록을 불러오지 못했어요.");
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : "대화 목록을 불러오지 못했어요.",
+        );
       } finally {
         if (active) setLoading(false);
       }
@@ -309,7 +392,8 @@ export default function ConversationsPage() {
           }
           setConversations((previous) => {
             const index = previous.findIndex(
-              (conversation) => conversation.id === event.message.conversationId,
+              (conversation) =>
+                conversation.id === event.message.conversationId,
             );
             if (index === -1) return previous;
             const target = previous[index];
@@ -340,8 +424,20 @@ export default function ConversationsPage() {
   return (
     <>
       <Ambient />
-      <AppShell unreadDot={conversations.some((conversation) => conversation.unreadCount > 0)}>
-        <div className={css({ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: "3" })}>
+      <AppShell
+        unreadDot={conversations.some(
+          (conversation) => conversation.unreadCount > 0,
+        )}
+      >
+        <div
+          className={css({
+            position: "relative",
+            zIndex: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: "3",
+          })}
+        >
           <header
             className={css({
               display: "flex",
@@ -353,9 +449,23 @@ export default function ConversationsPage() {
               paddingTop: "2",
             })}
           >
-            <h1 className={css({ color: "ink.950", fontSize: "2xl", fontWeight: "black" })}>대화</h1>
+            <h1
+              className={css({
+                color: "ink.950",
+                fontSize: "2xl",
+                fontWeight: "black",
+              })}
+            >
+              대화
+            </h1>
             {!loading && conversations.length > 0 && (
-              <p className={css({ color: "ink.500", fontSize: "xs", fontWeight: "bold" })}>
+              <p
+                className={css({
+                  color: "ink.500",
+                  fontSize: "xs",
+                  fontWeight: "bold",
+                })}
+              >
                 {conversations.length}개의 대화
               </p>
             )}
@@ -379,7 +489,14 @@ export default function ConversationsPage() {
                 gap: "3",
               })}
             >
-              <p className={css({ color: "primary.900", fontSize: "sm", fontWeight: "bold", lineHeight: "1.6" })}>
+              <p
+                className={css({
+                  color: "primary.900",
+                  fontSize: "sm",
+                  fontWeight: "bold",
+                  lineHeight: "1.6",
+                })}
+              >
                 {error}
               </p>
               {session && (
@@ -413,7 +530,10 @@ export default function ConversationsPage() {
           ) : conversations.length ? (
             <div className={listCardCss}>
               {conversations.map((conversation) => (
-                <ConversationRow key={conversation.id} conversation={conversation} />
+                <ConversationRow
+                  key={conversation.id}
+                  conversation={conversation}
+                />
               ))}
             </div>
           ) : (

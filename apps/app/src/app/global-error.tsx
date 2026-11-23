@@ -16,13 +16,13 @@ export default function GlobalError({
       <body
         style={{
           margin: 0,
-          minHeight: "100dvh",
+          minHeight: "var(--hgt-page-height)",
           display: "grid",
           placeItems: "center",
           padding:
             "env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)",
-          background: "linear-gradient(160deg, #fffaf8 0%, #f8efec 48%, #eee6e3 100%)",
-          color: "#0a1118",
+          background: "#f7f3ea",
+          color: "#11110f",
           fontFamily:
             '"Pretendard Variable", ui-sans-serif, system-ui, -apple-system, sans-serif',
           wordBreak: "keep-all",
@@ -33,10 +33,10 @@ export default function GlobalError({
             width: "calc(100% - 40px)",
             maxWidth: "420px",
             padding: "32px 24px",
-            borderRadius: "24px",
-            background: "rgba(255, 255, 255, 0.92)",
-            border: "1px solid rgba(15, 25, 35, 0.1)",
-            boxShadow: "0 6px 24px rgba(17, 24, 32, 0.08)",
+            borderRadius: "20px",
+            background: "#fffef9",
+            border: "1px solid rgba(54,45,40,.11)",
+            boxShadow: "0 12px 34px rgba(73,48,38,.07)",
             textAlign: "center",
           }}
         >
@@ -59,10 +59,11 @@ export default function GlobalError({
             style={{
               width: "100%",
               minHeight: "52px",
-              border: "none",
-              borderRadius: "999px",
-              background: "linear-gradient(135deg, #b83e3a, #d0463c)",
+              border: "1px solid rgba(190,48,36,.18)",
+              borderRadius: "16px",
+              background: "#ff4f3f",
               color: "white",
+              boxShadow: "0 10px 24px rgba(255,79,63,.2)",
               fontSize: "16px",
               fontWeight: 900,
               cursor: "pointer",

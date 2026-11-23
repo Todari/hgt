@@ -6,21 +6,19 @@ import { css, cx } from "_panda/css";
 import { SwitchKnob } from "@/components/ui/glass";
 
 /*
- * iOS-style grouped settings list: a section label above a solid card whose
- * rows are divided by hairlines. Solid surfaces only (GPU budget) — no
- * backdrop blur, one soft shadow.
+ * iOS-style grouped settings list. Content groups stay opaque and quiet;
+ * Liquid Glass is reserved for the floating navigation layer.
  */
 
 const sectionCardCss = css({
-  background: "surface.card",
-  border: "1px solid",
-  borderColor: "surface.hairline",
-  borderRadius: "liquid",
-  boxShadow: "cardSoft",
+  borderRadius: "18px",
+  background: "var(--content-surface)",
+  border: "1px solid var(--content-border)",
+  boxShadow: "var(--content-shadow)",
   overflow: "hidden",
   "& > * + *": {
     borderTop: "1px solid",
-    borderTopColor: "surface.hairline",
+    borderTopColor: "rgba(17,17,15,.1)",
   },
 });
 
@@ -34,21 +32,32 @@ export function SettingsSection({
   footer?: string;
 }) {
   return (
-    <section className={css({ display: "flex", flexDirection: "column", gap: "2" })}>
+    <section
+      className={css({ display: "flex", flexDirection: "column", gap: "1.5" })}
+    >
       <h2
         className={css({
           paddingX: "4",
           color: "ink.500",
-          fontSize: "xs",
-          fontWeight: "black",
-          letterSpacing: "0.02em",
+          fontFamily:
+            "-apple-system, BlinkMacSystemFont, 'Pretendard Variable', sans-serif",
+          fontSize: "13px",
+          fontWeight: "semibold",
+          letterSpacing: "-0.01em",
         })}
       >
         {title}
       </h2>
       <div className={sectionCardCss}>{children}</div>
       {footer && (
-        <p className={css({ paddingX: "4", color: "ink.500", fontSize: "xs", lineHeight: "1.6" })}>
+        <p
+          className={css({
+            paddingX: "4",
+            color: "ink.500",
+            fontSize: "xs",
+            lineHeight: "1.6",
+          })}
+        >
           {footer}
         </p>
       )}
@@ -64,13 +73,16 @@ const rowCss = css({
   alignItems: "center",
   gap: "3",
   paddingX: "4",
-  paddingY: "3",
+  paddingY: "2.5",
   textAlign: "left",
   background: "transparent",
   border: "none",
   cursor: "pointer",
-  transition: "background 120ms ease",
-  _active: { background: "rgba(10,17,24,.05)" },
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, 'Pretendard Variable', sans-serif",
+  WebkitTapHighlightColor: "transparent",
+  transition: "background 100ms ease, opacity 100ms ease",
+  _active: { background: "rgba(17,17,15,.055)" },
   _disabled: { cursor: "not-allowed", opacity: 0.55 },
 });
 
@@ -95,16 +107,25 @@ function RowText({
     >
       <span
         className={css({
-          color: danger ? "primary.700" : "ink.950",
-          fontSize: "md",
-          fontWeight: "bold",
-          lineHeight: "1.4",
+          color: danger ? "primary.600" : "ink.950",
+          fontSize: "16px",
+          fontWeight: "medium",
+          lineHeight: "1.35",
+          letterSpacing: "-0.015em",
         })}
       >
         {label}
       </span>
       {description && (
-        <span className={css({ color: "ink.500", fontSize: "xs", lineHeight: "1.55" })}>
+        <span
+          className={css({
+            color: "ink.500",
+            fontSize: "13px",
+            fontWeight: "normal",
+            lineHeight: "1.45",
+            letterSpacing: "-0.01em",
+          })}
+        >
           {description}
         </span>
       )}
@@ -115,16 +136,16 @@ function RowText({
 function Chevron() {
   return (
     <svg
-      width="18"
-      height="18"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2.2"
+      strokeWidth="2.4"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden
-      className={css({ flexShrink: 0, color: "ink.300" })}
+      className={css({ flexShrink: 0, color: "rgba(104,99,91,.56)" })}
     >
       <path d="m9 6 6 6-6 6" />
     </svg>
@@ -146,7 +167,16 @@ export function SettingsLinkRow({
     <Link href={href} className={rowCss}>
       <RowText label={label} description={description} />
       {value && (
-        <span className={css({ color: "ink.500", fontSize: "sm", flexShrink: 0 })}>{value}</span>
+        <span
+          className={css({
+            color: "ink.500",
+            fontSize: "15px",
+            fontWeight: "normal",
+            flexShrink: 0,
+          })}
+        >
+          {value}
+        </span>
       )}
       <Chevron />
     </Link>
@@ -169,7 +199,12 @@ export function SettingsButtonRow({
   trailing?: ReactNode;
 }) {
   return (
-    <button type="button" className={rowCss} onClick={onClick} disabled={disabled}>
+    <button
+      type="button"
+      className={rowCss}
+      onClick={onClick}
+      disabled={disabled}
+    >
       <RowText label={label} description={description} danger={danger} />
       {trailing ?? <Chevron />}
     </button>
@@ -215,7 +250,12 @@ export function SettingsInfoRow({
   trailing?: ReactNode;
 }) {
   return (
-    <div className={cx(rowCss, css({ cursor: "default", _active: { background: "transparent" } }))}>
+    <div
+      className={cx(
+        rowCss,
+        css({ cursor: "default", _active: { background: "transparent" } }),
+      )}
+    >
       <RowText label={label} description={description} />
       {trailing}
     </div>

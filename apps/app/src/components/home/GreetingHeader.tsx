@@ -8,11 +8,11 @@ import { css } from "_panda/css";
  */
 export function GreetingHeader({ name }: { name: string }) {
   return (
-    <header className={css({ display: "flex", flexDirection: "column", gap: "1", paddingTop: "1" })}>
-      <p className={css({ color: "primary.700", fontSize: "xs", fontWeight: "black", letterSpacing: "0.02em" })}>
-        HGT · 홍익대 인증 매칭
+    <header className={css({ display: "flex", flexDirection: "column", gap: "1.5", paddingTop: "1" })}>
+      <p className={css({ color: "primary.700", fontFamily: "monospace", fontSize: "10px", fontWeight: "black", letterSpacing: "0.08em" })}>
+        HGT · MONDAY 19:00
       </p>
-      <h1 className={css({ color: "ink.950", fontSize: "2xl", fontWeight: "black", lineHeight: "1.2" })}>
+      <h1 className={css({ color: "ink.950", fontSize: "28px", fontWeight: "black", lineHeight: "1.12", letterSpacing: "-0.04em" })}>
         {name}님, 안녕하세요
       </h1>
       <p className={css({ color: "ink.500", fontSize: "sm", lineHeight: "1.6" })}>

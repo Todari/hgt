@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { css } from "_panda/css";
+import { css, cx } from "_panda/css";
 
 const MAX_LEN = 2000;
 const MAX_HEIGHT = 120;
@@ -69,13 +69,10 @@ export function Composer({
     <div
       className={css({
         flexShrink: 0,
-        background: "surface.card",
-        borderTop: "1px solid",
-        borderTopColor: "surface.hairline",
         paddingX: "3",
-        paddingTop: "2.5",
+        paddingTop: "2",
         // pin above the home indicator
-        paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)",
+        paddingBottom: "calc(env(safe-area-inset-bottom) + 8px)",
       })}
     >
       {notice && (
@@ -95,13 +92,20 @@ export function Composer({
         </p>
       )}
       <div
-        className={css({
-          display: "flex",
-          alignItems: "flex-end",
-          gap: "2",
-          maxWidth: "480px",
-          marginX: "auto",
-        })}
+        className={cx(
+          "liquid-glass",
+          css({
+            display: "flex",
+            alignItems: "flex-end",
+            gap: "1.5",
+            width: "100%",
+            maxWidth: "460px",
+            marginX: "auto",
+            padding: "1",
+            borderRadius: "28px",
+            overflow: "hidden",
+          }),
+        )}
       >
         <textarea
           ref={textareaRef}
@@ -115,16 +119,17 @@ export function Composer({
             flex: 1,
             minHeight: "44px",
             maxHeight: `${MAX_HEIGHT}px`,
-            borderRadius: "22px",
+            // 28px outer radius - 4px shell padding = 24px.
+            borderRadius: "24px",
             paddingX: "4",
             paddingY: "2.5",
             color: "ink.950",
             fontSize: "15px",
             lineHeight: "1.5",
             resize: "none",
-            background: "ink.50",
+            background: "rgba(255,250,240,.38)",
             border: "1px solid",
-            borderColor: "surface.hairline",
+            borderColor: "rgba(255,255,255,.48)",
             _focusVisible: {
               outline: "none",
               borderColor: "primary.300",
@@ -146,12 +151,19 @@ export function Composer({
             flexShrink: 0,
             borderRadius: "50%",
             color: "white",
-            background: "linear-gradient(135deg, #b83e3a, #d0463c)",
-            boxShadow: "0 6px 16px rgba(255,107,95,.3)",
-            border: "none",
+            background:
+              "linear-gradient(145deg, rgba(255,125,108,.94), rgba(217,54,41,.94))",
+            boxShadow:
+              "0 7px 18px rgba(217,54,41,.24), inset 0 1px 0 rgba(255,255,255,.48)",
+            border: "1px solid",
+            borderColor: "rgba(255,255,255,.54)",
             cursor: "pointer",
             transition: "transform 120ms ease, opacity 120ms ease",
-            _disabled: { opacity: 0.42, cursor: "not-allowed", boxShadow: "none" },
+            _disabled: {
+              opacity: 0.42,
+              cursor: "not-allowed",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,.28)",
+            },
             _active: { transform: canSend ? "scale(0.92)" : "none" },
           })}
         >

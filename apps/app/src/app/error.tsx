@@ -19,7 +19,7 @@ export default function ErrorPage({
   return (
     <main
       className={css({
-        minHeight: "100dvh",
+        minHeight: "var(--hgt-page-height)",
         display: "grid",
         placeItems: "center",
         padding: "5",

@@ -1,5 +1,11 @@
 @layer reset, base, tokens, recipes, utilities;
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 @font-face {
   font-family: "Pretendard Variable";
   src: url("./fonts/PretendardVariable.woff2") format("woff2-variations");
@@ -20,7 +26,8 @@
 
   button,
   input,
-  select {
+  select,
+  textarea {
     font: inherit;
   }
 }
@@ -28,32 +35,33 @@
 @layer base {
   :root {
     color-scheme: light;
-    --hgt-ink: #0a1118;
-    --hgt-paper: #f4f8f7;
-    --hgt-glass-clear: rgba(255, 255, 255, 0.46);
-    --hgt-glass-milk: rgba(255, 255, 255, 0.68);
-    --hgt-glass-stroke: rgba(255, 255, 255, 0.74);
-    --hgt-glass-hairline: rgba(15, 25, 35, 0.12);
-    --hgt-primary: #ff6b5f;
-    --hgt-primary-deep: #b83e3a;
-    --hgt-primary-soft: #ffe2db;
-    --hgt-shadow-float:
-      0 1px 0 rgba(255, 255, 255, 0.76) inset,
-      0 -1px 0 rgba(21, 38, 51, 0.08) inset,
-      0 24px 60px rgba(17, 40, 52, 0.15),
-      0 14px 38px rgba(255, 107, 95, 0.18),
-      -18px 16px 46px rgba(255, 107, 95, 0.1),
-      18px -18px 38px rgba(255, 107, 95, 0.08);
-    --hgt-shadow-lift:
-      0 1px 0 rgba(255, 255, 255, 0.82) inset,
-      0 18px 38px rgba(10, 17, 24, 0.13),
-      0 8px 24px rgba(255, 107, 95, 0.18),
-      14px -10px 28px rgba(255, 107, 95, 0.1);
-    --hgt-shadow-action:
-      0 1px 0 rgba(255, 255, 255, 0.58) inset,
-      0 22px 48px rgba(255, 107, 95, 0.32),
-      -14px 16px 36px rgba(255, 107, 95, 0.18),
-      16px -14px 32px rgba(255, 107, 95, 0.14);
+    --hgt-ink: #11110f;
+    --hgt-paper: #f6f0e4;
+    --hgt-card: #fffaf0;
+    --hgt-red: #ff4f3f;
+    --hgt-red-deep: #d93629;
+    --hgt-blue: #86a9ff;
+    --hgt-yellow: #ffd84d;
+    --hgt-mint: #9de7c3;
+    --hgt-line: rgba(17, 17, 15, 0.18);
+    --hgt-shadow: 4px 4px 0 #11110f;
+    --content-surface: rgba(255, 252, 247, 0.94);
+    --content-border: rgba(54, 45, 40, 0.11);
+    --content-shadow: 0 12px 34px rgba(73, 48, 38, 0.07);
+    --liquid-surface: rgba(255, 250, 240, 0.58);
+    --liquid-surface-strong: rgba(255, 250, 240, 0.78);
+    --liquid-border: rgba(255, 255, 255, 0.76);
+    --liquid-filter: saturate(145%) blur(12px);
+    --liquid-shadow: 0 18px 44px rgba(80, 46, 36, 0.16),
+      0 3px 10px rgba(17, 17, 15, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.92),
+      inset 0 -1px 0 rgba(17, 17, 15, 0.06);
+    --liquid-shadow-soft: 0 8px 26px rgba(80, 46, 36, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    /* `body` owns the safe-area padding. Full-height page shells must use the
+       remaining content height or iOS gets a blank inset-sized scroll range. */
+    --hgt-page-height: calc(
+      100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    );
   }
 
   html {
@@ -65,14 +73,19 @@
     min-height: 100dvh;
     margin: 0;
     color: var(--hgt-ink);
-    background:
-      linear-gradient(125deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 245, 242, 0.9) 42%, rgba(248, 238, 235, 0.88) 100%),
-      radial-gradient(ellipse 130% 80% at 52% -18%, rgba(255, 107, 95, 0.18), transparent 48%),
-      linear-gradient(160deg, #fffaf8 0%, #f8efec 48%, #eee6e3 100%);
+    background: radial-gradient(
+        circle at 104% 4%,
+        rgba(255, 79, 63, 0.08),
+        transparent 28%
+      ),
+      radial-gradient(
+        circle at -8% 92%,
+        rgba(255, 216, 77, 0.08),
+        transparent 24%
+      ),
+      var(--hgt-paper);
     font-family:
       "Pretendard Variable",
-      ui-sans-serif,
-      system-ui,
       -apple-system,
       BlinkMacSystemFont,
       "Segoe UI",
@@ -80,41 +93,10 @@
     font-feature-settings: "ss05";
     letter-spacing: 0;
     overflow-x: hidden;
-    /* Korean must break at word boundaries, not mid-word (default CJK breaking
-       splits 단어 like "진심이" → "진"/"심이"). break-word handles long tokens. */
     word-break: keep-all;
     overflow-wrap: break-word;
-    /* Keep content clear of the notch / status bar / home indicator.
-       Backgrounds (body::before/after) stay full-bleed (position: fixed). */
-    padding:
-      env(safe-area-inset-top) env(safe-area-inset-right)
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
       env(safe-area-inset-bottom) env(safe-area-inset-left);
-  }
-
-  body::before {
-    position: fixed;
-    inset: 0;
-    z-index: -2;
-    pointer-events: none;
-    content: "";
-    background:
-      linear-gradient(100deg, transparent 0%, rgba(255, 107, 95, 0.15) 19%, transparent 38%),
-      linear-gradient(78deg, transparent 20%, rgba(255, 107, 95, 0.1) 47%, transparent 70%),
-      linear-gradient(143deg, transparent 36%, rgba(255, 107, 95, 0.08) 62%, transparent 86%);
-    filter: blur(13px) saturate(1.05);
-    transform: translateZ(0);
-  }
-
-  body::after {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    content: "";
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.36'/%3E%3C/svg%3E");
-    background-size: 180px 180px;
-    mix-blend-mode: soft-light;
-    opacity: 0.16;
   }
 
   a {
@@ -122,150 +104,181 @@
     text-decoration: none;
   }
 
+  /* iOS owns the bottom navigation through a real UITabBarController. Keep
+     this web implementation as the browser/Android fallback only. */
+  html.hgt-native-ios .hgt-web-tab-bar {
+    display: none;
+  }
+
   ::selection {
-    color: #071217;
-    background: rgba(255, 226, 219, 0.78);
+    color: var(--hgt-ink);
+    background: var(--hgt-yellow);
   }
 
   .glass-panel,
   .glass-control,
-  .glass-field,
+  .glass-field {
+    position: relative;
+    border: 1px solid var(--content-border);
+    background: var(--content-surface);
+    box-shadow: var(--content-shadow);
+  }
+
+  .content-surface {
+    background: var(--content-surface);
+    border: 1px solid var(--content-border);
+    box-shadow: var(--content-shadow);
+  }
+
   .glass-nav {
     position: relative;
-    border: 1px solid var(--hgt-glass-stroke);
-    background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.34)),
-      linear-gradient(100deg, rgba(255, 107, 95, 0.13), rgba(255, 107, 95, 0.04) 72%);
-    box-shadow: var(--hgt-shadow-float);
-    backdrop-filter: blur(14px) saturate(1.3);
-    -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    border: 1px solid rgba(17, 17, 15, 0.18);
+    background: rgba(255, 250, 240, 0.94);
+    box-shadow: 0 -1px 0 rgba(17, 17, 15, 0.08);
+    backdrop-filter: blur(12px) saturate(1.08);
+    -webkit-backdrop-filter: blur(12px) saturate(1.08);
   }
 
-  .glass-panel::before,
-  .glass-control::before,
-  .glass-field::before,
-  .glass-nav::before {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    content: "";
-    background:
-      linear-gradient(116deg, rgba(255, 255, 255, 0.92) 0%, transparent 22%, transparent 72%, rgba(255, 255, 255, 0.46) 100%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent 48%);
-    mix-blend-mode: screen;
+  /*
+   * iOS 26-inspired Liquid Glass primitives. These are reserved for chrome
+   * (navigation, sheets, input docks) rather than branded content cards.
+   */
+  .liquid-glass,
+  .liquid-chrome,
+  .liquid-icon {
+    position: relative;
+    isolation: isolate;
+    background-clip: padding-box;
+    background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.58) 0%,
+        rgba(255, 255, 255, 0.14) 36%,
+        rgba(255, 125, 108, 0.08) 100%
+      ),
+      var(--liquid-surface);
+    border: 1px solid var(--liquid-border);
+    box-shadow: var(--liquid-shadow);
+    -webkit-backdrop-filter: var(--liquid-filter);
+    backdrop-filter: var(--liquid-filter);
   }
 
-  .glass-panel::after,
-  .glass-control::after,
-  .glass-nav::after {
-    position: absolute;
-    inset: 1px;
-    border: 1px solid rgba(255, 255, 255, 0.38);
-    border-radius: inherit;
-    pointer-events: none;
-    content: "";
+  .liquid-chrome {
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.36),
+        transparent 72%
+      ),
+      var(--liquid-surface-strong);
     box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.18) inset,
-      0 18px 42px rgba(255, 255, 255, 0.2) inset;
+      0 8px 28px rgba(80, 46, 36, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  }
+
+  .liquid-icon {
+    background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.66),
+        rgba(255, 255, 255, 0.12)
+      ),
+      rgba(255, 250, 240, 0.54);
+    box-shadow:
+      0 7px 18px rgba(80, 46, 36, 0.13),
+      inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  }
+
+  .liquid-interactive {
+    transition:
+      transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 120ms ease,
+      background 180ms ease;
+  }
+
+  .liquid-interactive:active {
+    transform: scale(0.96);
+    opacity: 0.72;
   }
 
   .glass-control {
     overflow: hidden;
     cursor: pointer;
     transition:
-      border-color 180ms ease,
-      box-shadow 180ms ease,
-      transform 180ms ease;
+      transform 120ms ease,
+      box-shadow 120ms ease,
+      background 120ms ease;
+  }
+
+  .glass-control:active {
+    transform: scale(0.985);
+    box-shadow: 0 7px 20px rgba(73, 48, 38, 0.08);
   }
 
   .glass-control:focus-visible,
   .glass-field:focus-visible {
-    outline: none;
-    border-color: rgba(255, 107, 95, 0.7);
-    box-shadow:
-      0 0 0 4px rgba(255, 107, 95, 0.16),
-      0 0 0 1px rgba(255, 255, 255, 0.76) inset,
-      0 16px 34px rgba(255, 107, 95, 0.18);
+    outline: 3px solid var(--hgt-yellow);
+    outline-offset: 2px;
   }
 
   .glass-field {
     width: 100%;
-    color: #10202b;
+    color: var(--hgt-ink);
     appearance: none;
   }
 
   .glass-field::placeholder {
-    color: rgba(41, 56, 67, 0.48);
-  }
-
-  /* Nav bars: a card radius, not a full capsule — a capsule on a tall (wrapped)
-     nav reads as a lumpy lozenge. Overrides the per-page inline radius. */
-  .glass-nav {
-    border-radius: 28px !important;
+    color: rgba(17, 17, 15, 0.42);
   }
 
   .liquid-sheen {
-    position: absolute;
-    inset: -32% -18% auto;
-    height: 58%;
-    pointer-events: none;
-    background:
-      linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.76) 34%, transparent 60%),
-      linear-gradient(85deg, rgba(255, 107, 95, 0.18), rgba(255, 107, 95, 0.08));
-    filter: blur(10px);
-    opacity: 0.68;
-    transform: rotate(-7deg);
-  }
-
-  /* Ambient drift (components/ui/Ambient.tsx): static everywhere by default.
-     Desktop pointers get ONE slow transform-only drift — transform never
-     re-rasterizes the blurred layer, so it stays within the GPU budget.
-     Touch devices and reduced-motion users keep the static wash. */
-  @keyframes hgt-ambient-drift {
-    0% {
-      transform: rotate(9deg) translate3d(0, 0, 0);
-    }
-    50% {
-      transform: rotate(9deg) translate3d(-2.5%, 2%, 0);
-    }
-    100% {
-      transform: rotate(9deg) translate3d(0, 0, 0);
-    }
-  }
-
-  @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
-    .hgt-ambient-drift {
-      animation: hgt-ambient-drift 16s ease-in-out infinite;
-    }
+    display: none;
   }
 
   .mesh-field {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background-image:
-      linear-gradient(rgba(10, 17, 24, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(10, 17, 24, 0.035) 1px, transparent 1px);
-    background-size: 42px 42px;
-    mask-image: linear-gradient(180deg, transparent 0%, black 24%, black 70%, transparent 100%);
+    background: radial-gradient(
+        circle at 100% 0%,
+        rgba(255, 79, 63, 0.08),
+        transparent 32%
+      ),
+      radial-gradient(
+        circle at 0% 100%,
+        rgba(255, 216, 77, 0.07),
+        transparent 28%
+      );
   }
 
-  /* Touch / mobile (esp. iOS WebView): cut the heaviest GPU effects to kill jank.
-     The full-screen soft-light noise + large backdrop blurs are the main culprits. */
   @media (pointer: coarse) {
-    body::after {
-      display: none;
-    }
-    body::before {
-      filter: blur(8px) saturate(1.05);
-    }
-    .glass-panel,
-    .glass-control,
-    .glass-field,
     .glass-nav {
-      backdrop-filter: blur(7px) saturate(1.2);
-      -webkit-backdrop-filter: blur(7px) saturate(1.2);
+      backdrop-filter: blur(7px) saturate(1.04);
+      -webkit-backdrop-filter: blur(7px) saturate(1.04);
+    }
+
+    .liquid-glass,
+    .liquid-chrome,
+    .liquid-icon {
+      -webkit-backdrop-filter: saturate(132%) blur(7px);
+      backdrop-filter: saturate(132%) blur(7px);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .liquid-glass,
+    .liquid-chrome,
+    .liquid-icon {
+      background: rgba(255, 250, 240, 0.96);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  @supports not (
+    (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+  ) {
+    .liquid-glass,
+    .liquid-chrome,
+    .liquid-icon {
+      background: rgba(255, 250, 240, 0.96);
     }
   }
 

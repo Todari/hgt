@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { css } from "_panda/css";
+import { css, cx } from "_panda/css";
 
 /**
  * Fullscreen onboarding wizard shell — its own progress header + sticky
@@ -47,19 +47,28 @@ function StepDots({
             onClick={() => canJump && onJump(index)}
             className={css({
               flex: 1,
-              height: "6px",
-              borderRadius: "capsule",
-              border: "none",
+              height: "44px",
+              display: "flex",
+              alignItems: "center",
               padding: 0,
               cursor: canJump ? "pointer" : "default",
-              background:
-                active || done
-                  ? "linear-gradient(135deg, #ff7a6b, #d0463c)"
-                  : "rgba(10,17,24,.12)",
-              opacity: done && !active ? 0.85 : 1,
-              transition: "background 200ms ease, opacity 200ms ease",
+              background: "transparent",
+              border: "none",
             })}
-          />
+          >
+            <span
+              aria-hidden
+              className={css({
+                width: "100%",
+                height: "6px",
+                borderRadius: "capsule",
+                background:
+                  active || done ? "primary.500" : "rgba(17,17,15,.12)",
+                opacity: done && !active ? 0.78 : 1,
+                transition: "background 200ms ease, opacity 200ms ease",
+              })}
+            />
+          </button>
         );
       })}
     </div>
@@ -93,7 +102,7 @@ export function WizardChrome({
     <div
       className={css({
         position: "relative",
-        minHeight: "100dvh",
+        minHeight: "var(--hgt-page-height)",
         display: "flex",
         flexDirection: "column",
       })}
@@ -108,8 +117,8 @@ export function WizardChrome({
           width: "100%",
           maxWidth: "480px",
           marginX: "auto",
-          paddingX: "5",
-          paddingTop: "3",
+          paddingX: "4",
+          paddingTop: "2",
           display: "flex",
           flexDirection: "column",
           gap: "3",
@@ -132,9 +141,9 @@ export function WizardChrome({
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: "32px",
-                height: "32px",
-                marginLeft: "-6px",
+                width: "44px",
+                height: "44px",
+                marginLeft: "-10px",
                 borderRadius: "capsule",
                 color: "ink.700",
                 _active: { background: "rgba(10,17,24,.06)" },
@@ -155,7 +164,7 @@ export function WizardChrome({
               </svg>
             </button>
           ) : (
-            <span className={css({ width: "32px" })} aria-hidden />
+            <span className={css({ width: "44px" })} aria-hidden />
           )}
           <p
             className={css({
@@ -169,7 +178,7 @@ export function WizardChrome({
           >
             {current + 1} / {steps.length}
           </p>
-          <span className={css({ width: "32px" })} aria-hidden />
+          <span className={css({ width: "44px" })} aria-hidden />
         </div>
 
         <StepDots
@@ -212,10 +221,10 @@ export function WizardChrome({
           width: "100%",
           maxWidth: "480px",
           marginX: "auto",
-          paddingX: "5",
+          paddingX: "4",
           paddingTop: "4",
-          // clear the sticky action bar (≈80px) + its safe-area inset
-          paddingBottom: "calc(96px + env(safe-area-inset-bottom))",
+          // clear the floating glass action dock + its safe-area inset
+          paddingBottom: "calc(112px + env(safe-area-inset-bottom))",
         })}
       >
         {children}
@@ -229,25 +238,41 @@ export function WizardChrome({
           left: 0,
           right: 0,
           zIndex: 10,
-          background: "surface.card",
-          borderTop: "1px solid",
-          borderTopColor: "surface.hairline",
-          paddingBottom: "env(safe-area-inset-bottom)",
-          paddingLeft: "env(safe-area-inset-left)",
-          paddingRight: "env(safe-area-inset-right)",
+          paddingX: "3",
+          paddingTop: "2",
+          paddingBottom: "calc(env(safe-area-inset-bottom) + 8px)",
+          paddingLeft: "max(12px, env(safe-area-inset-left))",
+          paddingRight: "max(12px, env(safe-area-inset-right))",
+          pointerEvents: "none",
+          _before: {
+            content: '""',
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: "-26px",
+            height: "38px",
+            background:
+              "linear-gradient(to bottom, transparent, rgba(246,240,228,.82))",
+            pointerEvents: "none",
+          },
         })}
       >
         <div
-          className={css({
-            width: "100%",
-            maxWidth: "480px",
-            marginX: "auto",
-            paddingX: "5",
-            paddingY: "3",
-            display: "flex",
-            gap: "3",
-            alignItems: "center",
-          })}
+          className={cx(
+            "liquid-glass",
+            css({
+              width: "100%",
+              maxWidth: "430px",
+              marginX: "auto",
+              padding: "1.5",
+              display: "flex",
+              gap: "2",
+              alignItems: "center",
+              borderRadius: "26px",
+              overflow: "hidden",
+              pointerEvents: "auto",
+            }),
+          )}
         >
           {footer}
         </div>
@@ -276,16 +301,20 @@ export function WizardPrimaryButton({
       className={css({
         flex: 1,
         minHeight: "52px",
-        borderRadius: "capsule",
-        border: "none",
+        // 26px dock radius - 6px padding = 20px.
+        borderRadius: "20px",
+        border: "1px solid rgba(217,54,41,.2)",
         color: "white",
         fontSize: "md",
         fontWeight: "black",
-        // White-text-safe coral (light end clamped to primary.600). See ui/glass.tsx.
-        background: "linear-gradient(135deg, #b83e3a, #d0463c)",
-        boxShadow: "0 10px 24px rgba(255,107,95,.28)",
+        background: "primary.500",
+        boxShadow:
+          "0 8px 20px rgba(217,54,41,.18), inset 0 1px 0 rgba(255,255,255,.42)",
         transition: "opacity 160ms ease, transform 120ms ease",
-        _active: { transform: disabled ? "none" : "scale(0.99)" },
+        _active: {
+          transform: disabled ? "none" : "scale(.985)",
+          boxShadow: disabled ? "none" : "0 4px 12px rgba(217,54,41,.14)",
+        },
         _disabled: {
           cursor: "not-allowed",
           opacity: 0.45,
@@ -313,10 +342,9 @@ export function WizardGhostButton({
       className={css({
         minHeight: "52px",
         paddingX: "5",
-        borderRadius: "capsule",
-        border: "1px solid",
-        borderColor: "surface.hairline",
-        background: "transparent",
+        borderRadius: "20px",
+        border: "1px solid var(--content-border)",
+        background: "rgba(255,252,247,.76)",
         color: "ink.700",
         fontSize: "md",
         fontWeight: "bold",

@@ -12,10 +12,11 @@ import { formatWeekLabel } from "@/lib/format";
  */
 const CATEGORY_ORDER = ["성격", "취미", "관심사", "라이프스타일", "가치관"];
 
-/* Darkest-coral gradient that keeps white text ≥4.5:1 (see ui/glass.tsx). */
-const CORAL_TEXT_GRADIENT = "linear-gradient(135deg, #b83e3a, #d0463c)";
+const MATCH_RED = "#ff4f3f";
 
-function orderedCategories(byCategory: Record<string, string[]>): [string, string[]][] {
+function orderedCategories(
+  byCategory: Record<string, string[]>,
+): [string, string[]][] {
   const known = CATEGORY_ORDER.filter((c) => byCategory[c]?.length);
   const extra = Object.keys(byCategory).filter(
     (c) => !CATEGORY_ORDER.includes(c) && byCategory[c]?.length,
@@ -33,10 +34,9 @@ function VerifiedBadge() {
         minHeight: "28px",
         borderRadius: "capsule",
         paddingX: "2.5",
-        background: "rgba(255,255,255,.72)",
-        border: "1px solid",
-        borderColor: "surface.hairline",
-        color: "ink.700",
+        background: "rgba(84,130,242,.14)",
+        border: "1px solid rgba(84,130,242,.18)",
+        color: "ink.950",
         fontSize: "xs",
         fontWeight: "bold",
       })}
@@ -75,13 +75,14 @@ function KeywordChip({ value, shared }: { value: string; shared: boolean }) {
         },
         shared
           ? {
-              color: "white",
-              background: CORAL_TEXT_GRADIENT,
-              boxShadow: "0 4px 12px rgba(255,107,95,.28)",
+              color: "ink.950",
+              background: "#fff3bd",
+              border: "1px solid rgba(218,167,22,.22)",
+              boxShadow: "none",
             }
           : {
               color: "ink.700",
-              background: "rgba(255,255,255,.7)",
+              background: "surface.card",
               border: "1px solid",
               borderColor: "surface.hairline",
             },
@@ -123,25 +124,23 @@ export function MatchHeroCard({ match }: { match: MatchResult }) {
       className={css({
         position: "relative",
         overflow: "hidden",
-        borderRadius: "vessel",
+        borderRadius: "liquid",
         padding: "5",
-        background: "surface.card",
+        background: "var(--content-surface)",
         border: "1px solid",
-        borderColor: "primary.200",
-        boxShadow: "0 8px 28px rgba(255,107,95,.16)",
+        borderColor: "surface.hairline",
+        boxShadow: "var(--content-shadow)",
       })}
     >
-      {/* static decorative wash — rasterizes once, no blur/animation */}
       <div
         aria-hidden
         className={css({
           position: "absolute",
-          top: "-26%",
-          right: "-18%",
-          width: "72%",
-          height: "52%",
-          background:
-            "radial-gradient(ellipse 60% 55% at 60% 40%, rgba(255,107,95,.13), transparent 72%)",
+          top: 0,
+          right: 0,
+          left: 0,
+          height: "5px",
+          background: "primary.500",
           pointerEvents: "none",
         })}
       />
@@ -155,7 +154,14 @@ export function MatchHeroCard({ match }: { match: MatchResult }) {
           gap: "4",
         })}
       >
-        <div className={css({ display: "flex", alignItems: "center", gap: "2", flexWrap: "wrap" })}>
+        <div
+          className={css({
+            display: "flex",
+            alignItems: "center",
+            gap: "2",
+            flexWrap: "wrap",
+          })}
+        >
           <span
             className={css({
               display: "inline-flex",
@@ -163,8 +169,9 @@ export function MatchHeroCard({ match }: { match: MatchResult }) {
               minHeight: "28px",
               borderRadius: "capsule",
               paddingX: "3",
-              background: "primary.100",
-              color: "primary.900",
+              background: "primary.500",
+              color: "ink.950",
+              border: "1px solid rgba(190,48,36,.18)",
               fontSize: "xs",
               fontWeight: "black",
             })}
@@ -174,7 +181,13 @@ export function MatchHeroCard({ match }: { match: MatchResult }) {
           <VerifiedBadge />
         </div>
 
-        <div className={css({ display: "flex", flexDirection: "column", gap: "1" })}>
+        <div
+          className={css({
+            display: "flex",
+            flexDirection: "column",
+            gap: "1",
+          })}
+        >
           <h2
             className={css({
               color: "ink.950",
@@ -185,11 +198,23 @@ export function MatchHeroCard({ match }: { match: MatchResult }) {
           >
             {partner.name}
           </h2>
-          <p className={css({ color: "ink.500", fontSize: "sm", fontWeight: "bold" })}>
+          <p
+            className={css({
+              color: "ink.500",
+              fontSize: "sm",
+              fontWeight: "bold",
+            })}
+          >
             {partner.major} · {partner.age}세
           </p>
           {propertyMeta && (
-            <p className={css({ color: "ink.500", fontSize: "xs", lineHeight: "1.6" })}>
+            <p
+              className={css({
+                color: "ink.500",
+                fontSize: "xs",
+                lineHeight: "1.6",
+              })}
+            >
               {propertyMeta}
             </p>
           )}
@@ -199,11 +224,10 @@ export function MatchHeroCard({ match }: { match: MatchResult }) {
           <blockquote
             className={css({
               margin: 0,
-              borderRadius: "18px",
+              borderRadius: "14px",
               padding: "4",
-              background: "primary.50",
-              border: "1px solid",
-              borderColor: "primary.100",
+              background: "rgba(54,185,128,.09)",
+              border: "1px solid rgba(54,185,128,.15)",
             })}
           >
             <p
@@ -220,7 +244,13 @@ export function MatchHeroCard({ match }: { match: MatchResult }) {
         )}
 
         {categories.length > 0 && (
-          <div className={css({ display: "flex", flexDirection: "column", gap: "3" })}>
+          <div
+            className={css({
+              display: "flex",
+              flexDirection: "column",
+              gap: "3",
+            })}
+          >
             <div
               className={css({
                 display: "flex",
@@ -229,11 +259,23 @@ export function MatchHeroCard({ match }: { match: MatchResult }) {
                 gap: "2",
               })}
             >
-              <p className={css({ color: "ink.500", fontSize: "xs", fontWeight: "black" })}>
+              <p
+                className={css({
+                  color: "ink.500",
+                  fontSize: "xs",
+                  fontWeight: "black",
+                })}
+              >
                 {partner.name}님을 표현하는 키워드
               </p>
               {match.sharedKeywords.length > 0 && (
-                <p className={css({ color: "primary.700", fontSize: "xs", fontWeight: "bold" })}>
+                <p
+                  className={css({
+                    color: "primary.700",
+                    fontSize: "xs",
+                    fontWeight: "bold",
+                  })}
+                >
                   ✨ 둘 다 골랐어요
                 </p>
               )}
@@ -241,7 +283,11 @@ export function MatchHeroCard({ match }: { match: MatchResult }) {
             {categories.map(([category, values]) => (
               <div
                 key={category}
-                className={css({ display: "flex", flexDirection: "column", gap: "1.5" })}
+                className={css({
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "1.5",
+                })}
               >
                 <p
                   className={css({
@@ -253,9 +299,19 @@ export function MatchHeroCard({ match }: { match: MatchResult }) {
                 >
                   {category}
                 </p>
-                <div className={css({ display: "flex", flexWrap: "wrap", gap: "1.5" })}>
+                <div
+                  className={css({
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "1.5",
+                  })}
+                >
                   {values.map((value) => (
-                    <KeywordChip key={value} value={value} shared={shared.has(value)} />
+                    <KeywordChip
+                      key={value}
+                      value={value}
+                      shared={shared.has(value)}
+                    />
                   ))}
                 </div>
               </div>
@@ -263,7 +319,13 @@ export function MatchHeroCard({ match }: { match: MatchResult }) {
           </div>
         )}
 
-        <div className={css({ display: "flex", flexDirection: "column", gap: "2" })}>
+        <div
+          className={css({
+            display: "flex",
+            flexDirection: "column",
+            gap: "2",
+          })}
+        >
           <Link
             href={chatHref}
             className={css({
@@ -272,12 +334,17 @@ export function MatchHeroCard({ match }: { match: MatchResult }) {
               justifyContent: "center",
               width: "100%",
               minHeight: "54px",
-              borderRadius: "capsule",
+              borderRadius: "16px",
               color: "white",
               fontSize: "md",
               fontWeight: "black",
-              background: CORAL_TEXT_GRADIENT,
-              boxShadow: "actionGlow",
+              background: MATCH_RED,
+              border: "1px solid rgba(190,48,36,.18)",
+              boxShadow: "0 10px 24px rgba(255,79,63,.2)",
+              _active: {
+                transform: "scale(.985)",
+                boxShadow: "0 5px 14px rgba(255,79,63,.17)",
+              },
             })}
           >
             대화 시작하기

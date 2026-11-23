@@ -53,7 +53,7 @@ export const users = pgTable(
     gender: boolean("gender").notNull(), // true = 남 (verified from portal)
     army: boolean("army"), // true = 군필, null = 미입력 (not provided by the portal)
     age: integer("age").notNull(),
-    academicStatus: text("academic_status"), // 재학 / 휴학 / 졸업 ... (재학생 gating)
+    academicStatus: text("academic_status"), // 재학 / 휴학 / 졸업 ... (학적 gating)
 
     // Optional profile
     description: text("description"),
@@ -271,7 +271,7 @@ export const messages = pgTable(
   }),
 );
 
-/** Push device tokens (FCM/APNs) per user. */
+/** FCM registration tokens per user. */
 export const deviceTokens = pgTable("device_tokens", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")

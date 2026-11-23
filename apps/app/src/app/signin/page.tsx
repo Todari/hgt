@@ -3,16 +3,17 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { css, cx } from "_panda/css";
+import { css } from "_panda/css";
 import { hongikLoginSchema } from "@hgt-client/contract";
 import { Ambient } from "@/components/ui/Ambient";
 import { GlassButton, GlassTextField } from "@/components/ui/glass";
 import { api, ApiError } from "@/lib/api";
+import { getPostAuthRoute } from "@/lib/release";
 import { setSession } from "@/lib/session";
 
 const trustPoints = [
-  "홍익대 포털로 재학생만 인증해요.",
-  "비밀번호는 저장하지 않고 인증에만 써요.",
+  "포털 인증을 통과한 홍익대 구성원만 이용해요.",
+  "비밀번호는 저장하지 않고 인증에만 사용해요.",
 ];
 
 export default function SignInPage() {
@@ -37,11 +38,13 @@ export default function SignInPage() {
       const response = await api.hongikLogin(parsed.data);
       setSession(response.session);
       setPw("");
-      // Verified users who already agreed to terms go straight home; everyone
-      // else completes onboarding. replace() so back doesn't return to the form.
-      router.replace(response.user?.termsAgreedAt ? "/home" : "/onboarding");
+      router.replace(getPostAuthRoute(response.user?.termsAgreedAt));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "로그인에 실패했어요. 잠시 후 다시 시도해주세요.");
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "로그인에 실패했어요. 잠시 후 다시 시도해주세요.",
+      );
       setLoading(false);
     }
   }
@@ -53,106 +56,213 @@ export default function SignInPage() {
         className={css({
           position: "relative",
           zIndex: 1,
-          minHeight: "100dvh",
+          minHeight: "var(--hgt-page-height)",
           width: "100%",
           maxWidth: "480px",
           marginX: "auto",
-          paddingX: "5",
-          paddingTop: "8",
-          paddingBottom: "10",
+          paddingX: "4",
+          paddingTop: "4",
+          paddingBottom: "8",
           display: "flex",
           flexDirection: "column",
-          gap: "7",
+          gap: "6",
         })}
       >
-        <header className={css({ display: "flex", flexDirection: "column", gap: "4" })}>
-          <Link
-            href="/"
-            aria-label="홈으로"
+        <header>
+          <div
             className={css({
-              display: "inline-grid",
-              placeItems: "center",
-              width: "48px",
-              height: "48px",
-              borderRadius: "16px",
-              color: "white",
-              fontSize: "lg",
-              fontWeight: "black",
-              background: "linear-gradient(140deg, #b83e3a 0%, #ff6b5f 58%, #ff9a87 100%)",
-              boxShadow: "0 14px 28px rgba(255,107,95,.26)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "6",
             })}
           >
-            H
-          </Link>
-          <div>
-            <h1 className={css({ color: "ink.950", fontSize: "3xl", fontWeight: "black", lineHeight: "1.12" })}>
-              재학생 인증으로
-              <br />
-              시작해요
-            </h1>
-            <p className={css({ marginTop: "3", color: "ink.700", fontSize: "md", lineHeight: "1.7" })}>
-              홍익대 포털 계정으로 재학생인지만 확인해요. 믿을 수 있는 상대부터 만나요.
-            </p>
+            <Link
+              href="/"
+              aria-label="이전 화면"
+              className={css({
+                display: "grid",
+                placeItems: "center",
+                width: "44px",
+                height: "44px",
+                borderRadius: "50%",
+                color: "ink.950",
+                background: "surface.card",
+                border: "1px solid",
+                borderColor: "surface.hairline",
+                fontSize: "xl",
+                fontWeight: "black",
+              })}
+            >
+              ‹
+            </Link>
+            <span
+              className={css({
+                paddingX: "3",
+                paddingY: "1.5",
+                border: "1px solid rgba(84,130,242,.18)",
+                borderRadius: "capsule",
+                background: "rgba(84,130,242,.14)",
+                fontFamily: "monospace",
+                fontSize: "10px",
+                fontWeight: "black",
+                letterSpacing: "0.08em",
+              })}
+            >
+              HONGIK VERIFIED
+            </span>
           </div>
+          <p
+            className={css({
+              marginBottom: "2",
+              color: "primary.700",
+              fontFamily: "monospace",
+              fontSize: "xs",
+              fontWeight: "black",
+              letterSpacing: "0.08em",
+            })}
+          >
+            STEP 01 · VERIFY
+          </p>
+          <h1
+            className={css({
+              color: "ink.950",
+              fontSize: "34px",
+              fontWeight: "black",
+              lineHeight: "1.08",
+              letterSpacing: "-0.05em",
+            })}
+          >
+            같은 학교라는
+            <br />
+            신뢰부터 확인해요.
+          </h1>
+          <p
+            className={css({
+              marginTop: "3",
+              color: "ink.700",
+              fontSize: "md",
+              lineHeight: "1.65",
+            })}
+          >
+            홍익대 포털 계정으로 재학·휴학·졸업 상태를 확인합니다.
+          </p>
         </header>
 
-        <form
-          onSubmit={onSubmit}
-          className={css({ display: "flex", flexDirection: "column", gap: "4" })}
+        <section
+          className={css({
+            position: "relative",
+            padding: "5",
+            border: "1px solid",
+            borderColor: "surface.hairline",
+            borderRadius: "18px",
+            background: "var(--content-surface)",
+            boxShadow: "var(--content-shadow)",
+          })}
         >
-          <GlassTextField
-            id="hongik-id"
-            label="학번"
-            value={id}
-            onChange={(event) => setId(event.target.value)}
-            autoComplete="username"
-            inputMode="numeric"
-            placeholder="B000000"
-            disabled={loading}
-          />
-          <GlassTextField
-            id="hongik-password"
-            label="포털 비밀번호"
-            type="password"
-            value={pw}
-            onChange={(event) => setPw(event.target.value)}
-            autoComplete="current-password"
-            placeholder="비밀번호"
-            disabled={loading}
-            error={error ?? undefined}
-          />
+          <span
+            aria-hidden
+            className={css({
+              position: "absolute",
+              top: "-15px",
+              right: "18px",
+              paddingX: "2.5",
+              paddingY: "1",
+              border: "1px solid rgba(218,167,22,.22)",
+              borderRadius: "capsule",
+              background: "#fff3bd",
+              fontFamily: "monospace",
+              fontSize: "10px",
+              fontWeight: "black",
+            })}
+          >
+            HONGIK ONLY
+          </span>
+          <form
+            onSubmit={onSubmit}
+            className={css({
+              display: "flex",
+              flexDirection: "column",
+              gap: "4",
+            })}
+          >
+            <GlassTextField
+              id="hongik-id"
+              label="학번"
+              value={id}
+              onChange={(event) => setId(event.target.value)}
+              autoComplete="username"
+              inputMode="text"
+              placeholder="B000000"
+              disabled={loading}
+            />
+            <GlassTextField
+              id="hongik-password"
+              label="포털 비밀번호"
+              type="password"
+              value={pw}
+              onChange={(event) => setPw(event.target.value)}
+              autoComplete="current-password"
+              placeholder="비밀번호"
+              disabled={loading}
+              error={error ?? undefined}
+            />
+            <GlassButton
+              type="submit"
+              disabled={loading}
+              className={css({ width: "100%", marginTop: "1" })}
+            >
+              {loading ? "인증하는 중..." : "홍익대 포털 인증하기 →"}
+            </GlassButton>
+          </form>
+        </section>
 
-          <GlassButton type="submit" disabled={loading} className={css({ width: "100%", marginTop: "1" })}>
-            {loading ? "인증하는 중..." : "재학 인증하고 시작하기"}
-          </GlassButton>
-        </form>
-
-        <ul className={css({ display: "flex", flexDirection: "column", gap: "2.5", marginTop: "auto" })}>
-          {trustPoints.map((point) => (
+        <ul
+          className={css({
+            display: "flex",
+            flexDirection: "column",
+            gap: "2.5",
+            padding: 0,
+            listStyle: "none",
+          })}
+        >
+          {trustPoints.map((point, index) => (
             <li
               key={point}
-              className={css({ display: "flex", alignItems: "center", gap: "2.5" })}
+              className={css({
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "2.5",
+              })}
             >
               <span
                 aria-hidden
-                className={cx(
-                  "glass-control",
-                  css({
-                    display: "grid",
-                    placeItems: "center",
-                    width: "24px",
-                    height: "24px",
-                    flexShrink: 0,
-                    borderRadius: "50%",
-                    color: "primary.700",
-                  }),
-                )}
+                className={css({
+                  display: "grid",
+                  placeItems: "center",
+                  width: "24px",
+                  height: "24px",
+                  flexShrink: 0,
+                  border: "1px solid rgba(17,17,15,.07)",
+                  borderRadius: "8px",
+                  background:
+                    index === 0
+                      ? "rgba(84,130,242,.14)"
+                      : "rgba(54,185,128,.14)",
+                  fontSize: "xs",
+                  fontWeight: "black",
+                })}
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="m5 12 5 5 9-11" />
-                </svg>
+                ✓
               </span>
-              <span className={css({ color: "ink.700", fontSize: "sm", fontWeight: "bold", lineHeight: "1.6" })}>
+              <span
+                className={css({
+                  color: "ink.700",
+                  fontSize: "sm",
+                  fontWeight: "bold",
+                  lineHeight: "1.6",
+                })}
+              >
                 {point}
               </span>
             </li>

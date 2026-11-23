@@ -10,7 +10,7 @@ import { db } from "../src/db/client";
 import { users, keywords, matchRounds } from "../src/db/schema";
 import { runWeeklyMatch, weekStartMonday } from "../src/matching/engine";
 
-const BASE = "http://localhost:8080";
+const BASE = process.env.HGT_QA_BASE ?? "http://localhost:8080";
 const PREFIX = "QASEED_";
 const SM = "qa_seed_male_000000000000000000000000000";
 const SF = "qa_seed_female_0000000000000000000000000";

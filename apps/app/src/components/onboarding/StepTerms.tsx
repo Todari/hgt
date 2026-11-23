@@ -24,9 +24,9 @@ function CheckBox({ checked }: { checked: boolean }) {
         width: "24px",
         height: "24px",
         borderRadius: "8px",
-        border: "1.5px solid",
-        borderColor: checked ? "transparent" : "surface.hairline",
-        background: checked ? "linear-gradient(135deg, #ff7a6b, #d0463c)" : "surface.card",
+        border: "1px solid",
+        borderColor: checked ? "rgba(218,167,22,.32)" : "surface.hairline",
+        background: checked ? "#fff3bd" : "surface.card",
         transition: "background 140ms ease, border-color 140ms ease",
       })}
     >
@@ -36,7 +36,7 @@ function CheckBox({ checked }: { checked: boolean }) {
           height="14"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="white"
+          stroke="#11110f"
           strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -87,7 +87,7 @@ function ConsentRow({
             gap: "3",
             flex: 1,
             minWidth: 0,
-            minHeight: "32px",
+            minHeight: "44px",
             textAlign: "left",
             background: "transparent",
             border: "none",
@@ -95,7 +95,14 @@ function ConsentRow({
           })}
         >
           <CheckBox checked={checked} />
-          <span className={css({ minWidth: 0, display: "flex", alignItems: "baseline", gap: "1.5" })}>
+          <span
+            className={css({
+              minWidth: 0,
+              display: "flex",
+              alignItems: "baseline",
+              gap: "1.5",
+            })}
+          >
             <span
               className={css({
                 fontSize: "sm",
@@ -124,7 +131,8 @@ function ConsentRow({
             onClick={onView}
             className={css({
               flexShrink: 0,
-              minHeight: "32px",
+              minWidth: "44px",
+              minHeight: "44px",
               paddingX: "2.5",
               borderRadius: "capsule",
               fontSize: "xs",
@@ -188,7 +196,9 @@ export function StepTerms({
   const bothRequired = termsAccepted && privacyAccepted;
 
   return (
-    <div className={css({ display: "flex", flexDirection: "column", gap: "4" })}>
+    <div
+      className={css({ display: "flex", flexDirection: "column", gap: "4" })}
+    >
       {/* "Agree to all required" master toggle */}
       {!alreadyAgreed && (
         <button
@@ -203,13 +213,13 @@ export function StepTerms({
             alignItems: "center",
             gap: "3",
             padding: "3.5",
-            borderRadius: "liquid",
+            borderRadius: "18px",
             background: bothRequired
-              ? "linear-gradient(135deg, rgba(255,122,107,.12), rgba(208,70,60,.08))"
-              : "surface.card",
+              ? "rgba(255,79,63,.12)"
+              : "var(--content-surface)",
             border: "1px solid",
-            borderColor: bothRequired ? "primary.200" : "surface.hairline",
-            boxShadow: "cardSoft",
+            borderColor: bothRequired ? "primary.300" : "var(--content-border)",
+            boxShadow: "var(--content-shadow)",
             cursor: "pointer",
             textAlign: "left",
           })}
@@ -249,7 +259,9 @@ export function StepTerms({
 
       {openDoc && (
         <StepCard>
-          <LegalDocument markdown={openDoc === "terms" ? TERMS_OF_SERVICE : PRIVACY_POLICY} />
+          <LegalDocument
+            markdown={openDoc === "terms" ? TERMS_OF_SERVICE : PRIVACY_POLICY}
+          />
         </StepCard>
       )}
 

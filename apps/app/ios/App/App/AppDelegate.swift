@@ -1,13 +1,23 @@
 import UIKit
 import Capacitor
+import FirebaseCore
+import FirebaseMessaging
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
 
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // The config is supplied per environment. Keeping startup tolerant of a
+        // missing plist lets local UI builds run while making push fail loudly
+        // at registration time instead of storing a raw APNs token as FCM.
+        if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
+            FirebaseApp.configure()
+            Messaging.messaging().delegate = self
+        } else {
+            NSLog("[push] GoogleService-Info.plist missing; Firebase Messaging disabled")
+        }
         return true
     }
 
@@ -47,22 +57,65 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     // MARK: - Remote notifications (APNs)
-    // These two callbacks forward the OS registration result to the Capacitor
-    // PushNotifications plugin via NotificationCenter — without them the plugin's
-    // `registration` / `registrationError` JS events never fire.
-    //
-    // NOTE: this forwards the raw *APNs* device token. The backend sends via
-    // firebase-admin (FCM registration tokens only), so on iOS you must bridge
-    // through FirebaseMessaging before push actually delivers. The FirebaseMessaging
-    // pod is not installed on this machine yet; see CAPACITOR.md "device-required"
-    // for the Firebase bridge steps that replace the first callback below.
+    // The backend sends through firebase-admin, so Capacitor must receive the
+    // FCM registration token rather than the raw APNs device token.
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
+        guard FirebaseApp.app() != nil else {
+            notifyPushRegistrationFailure(FirebaseBridgeError.missingConfiguration)
+            return
+        }
+
+        Messaging.messaging().apnsToken = deviceToken
+        Messaging.messaging().token { token, error in
+            if let error = error {
+                self.notifyPushRegistrationFailure(error)
+            } else if let token = token {
+                self.notifyPushRegistrationSuccess(token)
+            } else {
+                self.notifyPushRegistrationFailure(FirebaseBridgeError.missingRegistrationToken)
+            }
+        }
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)
+        notifyPushRegistrationFailure(error)
     }
 
+    // FCM invokes this on app start and whenever it rotates the registration
+    // token. `enablePush()` also re-registers previously enabled devices at boot,
+    // so the latest token is persisted by the API.
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        guard let token = fcmToken else { return }
+        notifyPushRegistrationSuccess(token)
+    }
+
+    private func notifyPushRegistrationSuccess(_ token: String) {
+        NotificationCenter.default.post(
+            name: .capacitorDidRegisterForRemoteNotifications,
+            object: token
+        )
+    }
+
+    private func notifyPushRegistrationFailure(_ error: Error) {
+        NotificationCenter.default.post(
+            name: .capacitorDidFailToRegisterForRemoteNotifications,
+            object: error
+        )
+    }
+
+}
+
+private enum FirebaseBridgeError: LocalizedError {
+    case missingConfiguration
+    case missingRegistrationToken
+
+    var errorDescription: String? {
+        switch self {
+        case .missingConfiguration:
+            return "Firebase iOS configuration is missing."
+        case .missingRegistrationToken:
+            return "Firebase did not return a registration token."
+        }
+    }
 }

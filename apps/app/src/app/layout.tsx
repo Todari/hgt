@@ -4,8 +4,9 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "HGT",
-  description: "대학생 매칭 서비스",
+  title: "HGT | 홍익대 인증 키워드 매칭",
+  description:
+    "검증된 홍익대 구성원과 매주 한 번. 사진 대신 취향과 키워드로 만나는 1:1 매칭 서비스.",
 };
 
 // viewport-fit=cover makes env(safe-area-inset-*) non-zero on notched devices
@@ -17,7 +18,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
-  themeColor: "#f8efec",
+  themeColor: "#f6f0e4",
 };
 
 export default function RootLayout({

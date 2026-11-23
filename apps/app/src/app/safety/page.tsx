@@ -78,9 +78,9 @@ export default function SafetyPage() {
               className={css({
                 display: "grid",
                 placeItems: "center",
-                width: "36px",
-                height: "36px",
-                marginLeft: "-8px",
+                width: "44px",
+                height: "44px",
+                marginLeft: "-10px",
                 flexShrink: 0,
                 borderRadius: "capsule",
                 color: "ink.700",
@@ -90,11 +90,29 @@ export default function SafetyPage() {
                 _active: { background: "rgba(10,17,24,.05)" },
               })}
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
                 <path d="m15 6-6 6 6 6" />
               </svg>
             </button>
-            <h1 className={css({ color: "ink.950", fontSize: "2xl", fontWeight: "black" })}>안전 가이드</h1>
+            <h1
+              className={css({
+                color: "ink.950",
+                fontSize: "2xl",
+                fontWeight: "black",
+              })}
+            >
+              안전 가이드
+            </h1>
           </header>
 
           <section
@@ -103,10 +121,9 @@ export default function SafetyPage() {
               overflow: "hidden",
               borderRadius: "liquid",
               padding: "5",
-              background: "linear-gradient(150deg, #fff5f2, #ffffff 70%)",
-              border: "1px solid",
-              borderColor: "primary.100",
-              boxShadow: "cardSoft",
+              background: "rgba(84,130,242,.1)",
+              border: "1px solid rgba(84,130,242,.16)",
+              boxShadow: "var(--content-shadow)",
               display: "flex",
               flexDirection: "column",
               gap: "3",
@@ -121,40 +138,75 @@ export default function SafetyPage() {
                 height: "44px",
                 borderRadius: "14px",
                 color: "white",
-                background: "linear-gradient(140deg, #b83e3a, #ff6b5f)",
-                boxShadow: "0 10px 22px rgba(255,107,95,.24)",
+                background: "primary.500",
+                border: "1px solid rgba(190,48,36,.18)",
+                boxShadow: "0 7px 18px rgba(255,79,63,.18)",
               })}
             >
               <ShieldIcon />
             </span>
-            <h2 className={css({ color: "ink.950", fontSize: "xl", fontWeight: "black", lineHeight: "1.3" })}>
+            <h2
+              className={css({
+                color: "ink.950",
+                fontSize: "xl",
+                fontWeight: "black",
+                lineHeight: "1.3",
+              })}
+            >
               안전은 내 속도와 경계를 지키는 것부터예요.
             </h2>
-            <p className={css({ color: "ink.700", fontSize: "sm", lineHeight: "1.7" })}>
-              HGT는 재학 인증과 1:1 매칭을 제공하지만, 실제 만남에서는 본인의 속도와 경계를
-              가장 우선해 주세요.
+            <p
+              className={css({
+                color: "ink.700",
+                fontSize: "sm",
+                lineHeight: "1.7",
+              })}
+            >
+              HGT는 홍익대 구성원 인증과 1:1 매칭을 제공하지만, 실제 만남에서는
+              본인의 속도와 경계를 가장 우선해 주세요.
             </p>
           </section>
 
-          <section className={css({ display: "flex", flexDirection: "column", gap: "2" })}>
-            <h2 className={css({ paddingX: "4", color: "ink.500", fontSize: "xs", fontWeight: "black" })}>
+          <section
+            className={css({
+              display: "flex",
+              flexDirection: "column",
+              gap: "2",
+            })}
+          >
+            <h2
+              className={css({
+                paddingX: "4",
+                color: "ink.500",
+                fontSize: "xs",
+                fontWeight: "black",
+              })}
+            >
               안전 수칙
             </h2>
             <div
               className={css({
-                background: "surface.card",
+                background: "var(--content-surface)",
                 border: "1px solid",
                 borderColor: "surface.hairline",
                 borderRadius: "liquid",
-                boxShadow: "cardSoft",
                 overflow: "hidden",
-                "& > * + *": { borderTop: "1px solid", borderTopColor: "surface.hairline" },
+                boxShadow: "var(--content-shadow)",
+                "& > * + *": {
+                  borderTop: "1px solid",
+                  borderTopColor: "surface.hairline",
+                },
               })}
             >
               {guideItems.map((item, index) => (
                 <div
                   key={item.title}
-                  className={css({ display: "flex", gap: "3", paddingX: "4", paddingY: "4" })}
+                  className={css({
+                    display: "flex",
+                    gap: "3",
+                    paddingX: "4",
+                    paddingY: "4",
+                  })}
                 >
                   <span
                     aria-hidden
@@ -165,21 +217,34 @@ export default function SafetyPage() {
                       height: "26px",
                       flexShrink: 0,
                       borderRadius: "50%",
-                      color: "primary.700",
+                      color: "ink.950",
                       fontSize: "xs",
                       fontWeight: "black",
-                      background: "primary.50",
-                      border: "1px solid",
-                      borderColor: "primary.100",
+                      background: "#fff3bd",
+                      border: "1px solid rgba(218,167,22,.22)",
                     })}
                   >
                     {index + 1}
                   </span>
                   <div className={css({ minWidth: 0 })}>
-                    <h3 className={css({ color: "ink.950", fontSize: "md", fontWeight: "bold", lineHeight: "1.4" })}>
+                    <h3
+                      className={css({
+                        color: "ink.950",
+                        fontSize: "md",
+                        fontWeight: "bold",
+                        lineHeight: "1.4",
+                      })}
+                    >
                       {item.title}
                     </h3>
-                    <p className={css({ marginTop: "1", color: "ink.500", fontSize: "sm", lineHeight: "1.65" })}>
+                    <p
+                      className={css({
+                        marginTop: "1",
+                        color: "ink.500",
+                        fontSize: "sm",
+                        lineHeight: "1.65",
+                      })}
+                    >
                       {item.body}
                     </p>
                   </div>
@@ -188,32 +253,68 @@ export default function SafetyPage() {
             </div>
           </section>
 
-          <section className={css({ display: "flex", flexDirection: "column", gap: "2" })}>
-            <h2 className={css({ paddingX: "4", color: "ink.500", fontSize: "xs", fontWeight: "black" })}>
+          <section
+            className={css({
+              display: "flex",
+              flexDirection: "column",
+              gap: "2",
+            })}
+          >
+            <h2
+              className={css({
+                paddingX: "4",
+                color: "ink.500",
+                fontSize: "xs",
+                fontWeight: "black",
+              })}
+            >
               차단과 신고
             </h2>
             <div
               className={css({
-                background: "surface.card",
+                background: "var(--content-surface)",
                 border: "1px solid",
                 borderColor: "surface.hairline",
                 borderRadius: "liquid",
-                boxShadow: "cardSoft",
                 paddingX: "4",
                 paddingY: "4",
+                boxShadow: "var(--content-shadow)",
               })}
             >
-              <p className={css({ color: "ink.700", fontSize: "sm", lineHeight: "1.75" })}>
+              <p
+                className={css({
+                  color: "ink.700",
+                  fontSize: "sm",
+                  lineHeight: "1.75",
+                })}
+              >
                 불편한 상대가 있다면 채팅방 오른쪽 위{" "}
-                <span className={css({ color: "ink.950", fontWeight: "black" })}>⋯ 메뉴</span>에서 바로
-                차단하거나 신고할 수 있어요. 차단하면 그 상대와의 대화와 매칭이 모두 멈추고,
-                신고 내용은 운영팀이 검토해 조치해요.
+                <span
+                  className={css({ color: "ink.950", fontWeight: "black" })}
+                >
+                  ⋯ 메뉴
+                </span>
+                에서 바로 차단하거나 신고할 수 있어요. 차단하면 그 상대와의
+                대화와 매칭이 모두 멈추고, 신고 내용은 운영팀이 검토해 조치해요.
               </p>
             </div>
           </section>
 
-          <section className={css({ display: "flex", flexDirection: "column", gap: "2" })}>
-            <h2 className={css({ paddingX: "4", color: "ink.500", fontSize: "xs", fontWeight: "black" })}>
+          <section
+            className={css({
+              display: "flex",
+              flexDirection: "column",
+              gap: "2",
+            })}
+          >
+            <h2
+              className={css({
+                paddingX: "4",
+                color: "ink.500",
+                fontSize: "xs",
+                fontWeight: "black",
+              })}
+            >
               도움이 필요하면
             </h2>
             <a
@@ -225,24 +326,49 @@ export default function SafetyPage() {
                 minHeight: "56px",
                 paddingX: "4",
                 paddingY: "3",
-                background: "surface.card",
+                background: "var(--content-surface)",
                 border: "1px solid",
                 borderColor: "surface.hairline",
                 borderRadius: "liquid",
-                boxShadow: "cardSoft",
+                boxShadow: "var(--content-shadow)",
                 transition: "background 120ms ease",
                 _active: { background: "rgba(10,17,24,.05)" },
               })}
             >
               <span className={css({ flex: 1, minWidth: 0 })}>
-                <span className={css({ display: "block", color: "ink.950", fontSize: "md", fontWeight: "bold" })}>
+                <span
+                  className={css({
+                    display: "block",
+                    color: "ink.950",
+                    fontSize: "md",
+                    fontWeight: "bold",
+                  })}
+                >
                   운영팀에 문의하기
                 </span>
-                <span className={css({ display: "block", marginTop: "0.5", color: "ink.500", fontSize: "xs" })}>
+                <span
+                  className={css({
+                    display: "block",
+                    marginTop: "0.5",
+                    color: "ink.500",
+                    fontSize: "xs",
+                  })}
+                >
                   {SUPPORT_EMAIL}
                 </span>
               </span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={css({ flexShrink: 0, color: "ink.300" })}>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+                className={css({ flexShrink: 0, color: "ink.300" })}
+              >
                 <path d="M7 17 17 7M9 7h8v8" />
               </svg>
             </a>
