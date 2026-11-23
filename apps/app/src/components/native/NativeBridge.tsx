@@ -15,20 +15,47 @@ import { StatusBar, Style } from "@capacitor/status-bar";
  *  - Android hardware back button: pop the in-app history when possible,
  *    otherwise minimise the app (Android convention) instead of leaving a
  *    dead button or killing the process.
- *  - Status bar: light (white) content over the coral chrome, non-overlay so
- *    the web layout's safe-area padding (env(safe-area-inset-top)) is the only
- *    thing reserving the notch — we don't want the WebView drawn under the bar.
+ *  - Status bar: native styling plus Android's non-overlay mode. iOS does not
+ *    implement `setOverlaysWebView`; its safe area is handled by the web
+ *    layout's `env(safe-area-inset-top)` padding.
  */
 export function NativeBridge() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Status bar style — run once. Light icons read against coral; overlay off so
-  // the bar occupies its own space and the CSS safe-area padding handles insets.
+  // iOS uses a real UITabBarController owned by the Capacitor shell. Mark the
+  // document so the web fallback is removed, and bridge native tab selections
+  // back into the existing Next.js history.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== "ios") {
+      return;
+    }
+
+    const root = document.documentElement;
+    root.classList.add("hgt-native-ios");
+
+    const handleNativeTab = (event: Event) => {
+      const path = (event as CustomEvent<{ path?: string }>).detail?.path;
+      if (path === "/home" || path === "/conversations" || path === "/settings") {
+        router.push(path);
+      }
+    };
+
+    window.addEventListener("hgt:native-tab", handleNativeTab);
+    return () => {
+      root.classList.remove("hgt-native-ios");
+      window.removeEventListener("hgt:native-tab", handleNativeTab);
+    };
+  }, [router]);
+
+  // Status bar style — run once. `setOverlaysWebView` is Android-only in
+  // @capacitor/status-bar, so do not emit an UNIMPLEMENTED native error on iOS.
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     void StatusBar.setStyle({ style: Style.Light });
-    void StatusBar.setOverlaysWebView({ overlay: false });
+    if (Capacitor.getPlatform() === "android") {
+      void StatusBar.setOverlaysWebView({ overlay: false });
+    }
   }, []);
 
   // Android hardware back button. `canGoBack` is the OS view-stack flag, but in

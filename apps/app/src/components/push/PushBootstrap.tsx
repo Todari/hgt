@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { attachPushListeners } from "@/lib/push";
+import { attachPushListeners, enablePush, getStoredPushToken } from "@/lib/push";
+import { getSession } from "@/lib/session";
 
 /**
  * Mounted once in providers.tsx so the notification-tap handler exists from
@@ -14,6 +15,13 @@ export function PushBootstrap() {
 
   useEffect(() => {
     attachPushListeners((path) => router.push(path));
+
+    // FCM registration tokens can rotate. Refresh devices that have already
+    // opted in, without prompting users who never enabled notifications.
+    const session = getSession();
+    if (session && getStoredPushToken()) {
+      void enablePush(session);
+    }
   }, [router]);
 
   return null;

@@ -1,18 +1,21 @@
 /** @type {import('next').NextConfig} */
 const isCapacitor = process.env.BUILD_TARGET === "capacitor";
 
-// Guard the #1 native gotcha: NEXT_PUBLIC_API_URL is baked in at build time and
-// a packaged app can't reach the Mac's localhost. Warn loudly (don't fail) when
-// a Capacitor bundle is about to ship with the localhost default — a phone build
-// that points at localhost looks "working" in the simulator but is dead on a
-// real device / in the store.
-if (isCapacitor && !process.env.NEXT_PUBLIC_API_URL) {
-  console.warn(
-    "\n\x1b[33m⚠ [capacitor build] NEXT_PUBLIC_API_URL is unset — the bundle will " +
-      "bake in the localhost default (http://localhost:8080).\n" +
-      "  A packaged phone build cannot reach your Mac's localhost; set " +
-      "NEXT_PUBLIC_API_URL to a LAN IP (device) or your deployed HTTPS backend (store).\n" +
-      "  e.g. NEXT_PUBLIC_API_URL=https://api.example.com pnpm --filter app build:app\x1b[0m\n",
+// Guard the #1 native gotcha: the API URL is baked into the bundle. A localhost
+// bundle works in the simulator but can never reach the Mac from a real phone.
+// Simulator-only builds may opt in explicitly.
+const nativeApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+const allowsLocalNativeApi =
+  process.env.CAPACITOR_ALLOW_LOCAL_API === "true";
+const isLocalNativeApi =
+  !nativeApiUrl ||
+  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(?:\/|$)/.test(nativeApiUrl);
+
+if (isCapacitor && isLocalNativeApi && !allowsLocalNativeApi) {
+  throw new Error(
+    "\n[capacitor build] Refusing to bake a localhost API URL into a native bundle.\n" +
+      "Set NEXT_PUBLIC_API_URL to the deployed HTTPS API. For simulator-only work, " +
+      "also set CAPACITOR_ALLOW_LOCAL_API=true.\n",
   );
 }
 

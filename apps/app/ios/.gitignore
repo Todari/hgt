@@ -11,3 +11,6 @@ capacitor-cordova-ios-plugins
 # Generated Config files
 App/App/capacitor.config.json
 App/App/config.xml
+
+# Firebase config — local-only; download from the Firebase console
+App/App/GoogleService-Info.plist

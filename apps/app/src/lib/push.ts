@@ -61,7 +61,7 @@ export function attachPushListeners(navigate: (path: string) => void): void {
 let enabling: Promise<boolean> | null = null;
 
 /**
- * Ask for permission, register with FCM/APNs and forward the device token to
+ * Ask for permission, register with FCM and forward the registration token to
  * the backend. Resolves `true` only when the token actually reached the
  * backend; on web it's always `false` (push is native-only).
  */
