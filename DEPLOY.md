@@ -69,14 +69,27 @@ journalctl -u hgt-api -f
 
 ## 1b. 자동 배포 (CD) — `.github/workflows/deploy.yml`
 
-`dev` 브랜치에 푸시하면 GitHub Actions가 위 수동 절차(§1: rsync → install →
-`db:migrate` → `systemctl restart`)를 그대로 실행한다. lint·type 게이트를 먼저
-통과해야 배포되고, 서버의 `apps/api/.env`와 포트 수정된 `docker-compose.yml`은
-rsync에서 제외해 보존한다. 수동 실행도 가능(Actions → Deploy (EC2) → Run).
+`dev` 브랜치에 푸시하면 GitHub Actions가 lint·type 게이트를 통과한 커밋 sha를
+서버에 SSH로 넘기고, 서버의 `deploy/remote-deploy.sh`가 나머지를 수행한다:
+공개 레포 `origin/dev`에서 그 커밋을 받아 `~/hgt-client`로 동기화 → install →
+`db:migrate` → `systemctl restart` → `/health` 확인. 서버의 `apps/api/.env`와
+포트 수정된 `docker-compose.yml`은 동기화에서 제외해 보존한다.
+수동 실행도 가능(Actions → Deploy (EC2) → Run).
 
-**활성화: 레포 Settings → Secrets and variables → Actions 에 2개 시크릿 추가**
-- `EC2_SSH_KEY` — 개인키 전체 내용 (`~/.ssh/todari-consolidated.pem`)
-- `EC2_HOST` — `ec2-52-78-45-209.ap-northeast-2.compute.amazonaws.com`
+**배포 키는 전용·제한 키다.** EC2가 다른 프로젝트와 공용이라 CD 키는 셸 권한이
+없고 `remote-deploy.sh`만 실행한다(`authorized_keys`의 `restrict,command=…`).
+`dev`에 없는 커밋은 스크립트가 거부한다. `todari-consolidated.pem`은 GitHub에
+올리지 않는다.
+
+**시크릿 (레포 Settings → Secrets and variables → Actions)**
+- `EC2_SSH_KEY` — CD 전용 ed25519 개인키
+- `EC2_HOST` — `api.hgt.todari.dev`
+
+키 교체: 새 키쌍 생성 → 서버 `~/.ssh/authorized_keys`의
+`hgt-github-actions-deploy` 줄을 새 공개키로 교체(옵션 접두사 유지) →
+`gh secret set EC2_SSH_KEY < 새_개인키`.
+
+수동 배포·롤백(운영자 키로 접속한 뒤): `~/hgt-client/deploy/remote-deploy.sh <sha>`.
 
 시크릿이 없으면 deploy 잡은 경고만 남기고 건너뛴다(verify는 항상 실행).
 ⚠️ 단일 브랜치(`dev`)→프로덕션 직접 배포다(스테이징 없음).

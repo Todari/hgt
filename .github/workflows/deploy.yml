@@ -47,9 +47,6 @@ jobs:
           echo "::warning::EC2_SSH_KEY / EC2_HOST not set — skipping deploy. Add them in repo Settings → Secrets."
           exit 0
 
-      - uses: actions/checkout@v4
-        if: env.HAS_SECRETS == 'true'
-
       - name: Set up SSH
         if: env.HAS_SECRETS == 'true'
         run: |
@@ -58,30 +55,9 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Rsync code (preserve server .env + docker-compose.yml)
+      - name: Deploy this commit (forced command on the server)
         if: env.HAS_SECRETS == 'true'
-        run: |
-          rsync -az --delete -e "ssh -i ~/.ssh/deploy_key" \
-            --exclude=node_modules --exclude=.next --exclude=out \
-            --exclude=ios --exclude=android --exclude=styled-system \
-            --exclude=.turbo --exclude=.git \
-            --exclude=apps/api/.env --exclude=docker-compose.yml \
-            ./ "ubuntu@${{ secrets.EC2_HOST }}:~/hgt-client/"
-
-      - name: Install, migrate, restart
-        if: env.HAS_SECRETS == 'true'
-        run: |
-          ssh -i ~/.ssh/deploy_key "ubuntu@${{ secrets.EC2_HOST }}" 'set -e
-            export PATH="$HOME/.local/share/pnpm:$PATH"
-            cd ~/hgt-client
-            pnpm install --frozen-lockfile --filter "api..."
-            pnpm --filter api db:migrate
-            sudo systemctl restart hgt-api'
-
-      - name: Health check
-        if: env.HAS_SECRETS == 'true'
-        run: |
-          sleep 5
-          ssh -i ~/.ssh/deploy_key "ubuntu@${{ secrets.EC2_HOST }}" \
-            'curl -fsS http://localhost:8090/health' | grep -q '"ok":true' \
-            && echo "deploy healthy" || { echo "::error::health check failed"; exit 1; }
+        # The deploy key is restricted to deploy/remote-deploy.sh, which pulls
+        # this commit from origin/dev, installs, migrates, restarts and
+        # health-checks. Whatever we send is treated as a commit sha, not a command.
+        run: ssh -i ~/.ssh/deploy_key "ubuntu@${{ secrets.EC2_HOST }}" "$GITHUB_SHA"
