@@ -178,7 +178,7 @@ export type MeProfile = z.infer<typeof meProfileSchema>;
  * selected properties resolved to display values (absent key = not set).
  */
 export const matchPartnerSchema = partnerUserSchema.extend({
-  partnerKeywords: z.record(z.array(z.string())), // category → keyword values
+  partnerKeywords: z.record(z.string(), z.array(z.string())), // category → keyword values
   partnerProperties: z.object({
     height: z.string().optional(),
     smoke: z.string().optional(),
