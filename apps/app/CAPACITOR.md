@@ -78,7 +78,10 @@ JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradle
   Messaging ✓ (Xcode 27.2), and Android `assembleDebug` ✓ (JDK 21, merged
   manifest `targetSdkVersion 36`). `out/` includes the waitlist route as well as
   the native app routes. appId `com.todari.hgt` is unchanged on both platforms.
-  These are compile checks only — nothing was run on a device or simulator.
+  Runtime QA (2026-11-23): launched and driven in the iOS 27 simulator, Android
+  API 34/36 emulators, and two physical iPhones against the production API —
+  launch, demo login, native tab bar, keyboard, back button, resume all pass.
+  Push registration is still unverified (needs a paid Apple Developer team).
 
 **Still requires account/console setup:**
 
@@ -197,3 +200,31 @@ message from the other account of a matched pair, or run
 - Store submission blockers (icons, demo account, …): see
   `docs/launch-checklist.md`. The Android target-API blocker is cleared by the
   Capacitor 8 migration (`targetSdk 36`).
+
+### Device builds with a free Personal Team
+
+A Personal Team cannot sign the Push Notifications capability, so a plain
+device build fails provisioning. For a QA build, point the entitlements at an
+empty plist instead of editing the project (an empty string is ignored):
+
+```bash
+printf '<?xml version="1.0" encoding="UTF-8"?>\n<plist version="1.0"><dict/></plist>\n' > /tmp/empty.entitlements
+xcodebuild … -allowProvisioningUpdates CODE_SIGN_ENTITLEMENTS=/tmp/empty.entitlements build
+```
+
+Push does not work in such a build. Deleting the app drops the developer trust
+on the phone, so reinstall over it instead.
+
+### Launch screen changes need a reboot to verify
+
+`splashboardd` caches launch images per app; after changing `Splash.imageset`
+restart the device (or erase the simulator) before judging the result. Keep the
+launch image at 2048×2048 or smaller — larger images exceed the launch-image
+memory limit and iOS shows a black screen instead.
+
+### Android emulator against a local API
+
+The WebView origin is `https://localhost`, so a local `http://10.0.2.2:8080`
+API is blocked as cleartext/mixed content. For emulator-only work add
+`server.cleartext: true` and `android.allowMixedContent: true` to
+`capacitor.config.ts`, sync, and revert before committing.

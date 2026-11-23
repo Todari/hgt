@@ -124,7 +124,8 @@ export function Composer({
             paddingX: "4",
             paddingY: "2.5",
             color: "ink.950",
-            fontSize: "15px",
+            // 16px minimum: iOS zooms the page when a focused field is smaller.
+            fontSize: "16px",
             lineHeight: "1.5",
             resize: "none",
             background: "rgba(255,250,240,.38)",

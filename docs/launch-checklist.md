@@ -7,8 +7,10 @@
 >
 > **상태 갱신 (2026-11-23):** 8월 작업분을 `dev`에 정본화했고, API는 `dev` push 시
 > 자동 배포(CD)된다. TLS·약관 공개 URL·웹 대기 화면 게이트·zod 4/보안 패치가 운영에
-> 반영됐다. 남은 P0는 DB 비밀번호 교체, 백업 cron, 푸시 실기기 검증, Capacitor 8
-> 실기기 검증, 스토어 자산이다 (아래 각 항목 참고).
+> 반영됐다. DB 비밀번호 교체, 백업 cron·복구 리허설, Capacitor 8 머지와 실기기 QA도
+> 끝났다. 남은 P0는 **iPhone Duo 탭바 터치 불가**(아래 "실기기 QA에서 발견된 문제"),
+> 백업 오프사이트 복사, 푸시(유료 Apple Developer 가입 필요) 실기기 검증, 스토어
+> 스크린샷이다.
 >
 > **최종 출시 점검 (2026-06-15):** 코드 품질은 양호 — `app`/`api` check-types +
 > `app` lint 통과, 코럴 그라데이션 WCAG 대비(흰 글자) 회귀 수정 확인, QA 픽스처
@@ -23,14 +25,14 @@
 - [x] **네이티브 빌드에 https URL 굽기** — `next.config.js`가 localhost API URL이
       박힌 Capacitor 빌드를 거부한다(`CAPACITOR_ALLOW_LOCAL_API=true`는 시뮬레이터 전용).
       스토어 빌드는 `NEXT_PUBLIC_API_URL=https://api.hgt.todari.dev`로 만들 것.
-- [ ] **DB 비밀번호 교체** — 운영이 커밋된 dev 비밀번호로 돌고 있음 (확인된 리스크).
-      DEPLOY.md §7 절차: `ALTER USER` → `DATABASE_URL` 갱신 → `POSTGRES_PASSWORD`
-      compose env 고정. (완화 요인: DB 포트는 `127.0.0.1:5455`에만 바인딩돼 외부
-      미노출. 단 EC2가 다른 프로젝트와 공용이므로 교체는 여전히 필요.)
-- [ ] **백업 + 오프사이트** — `deploy/backup-db.sh` cron 등록(매일 04:30 KST,
-      DEPLOY.md §6) + S3/rclone 오프사이트 복사 단계 추가. 복구 리허설 1회.
-      2026-11-23 기준 cron 미등록 — 수동 덤프 1회만 존재
-      (`~/backups/hgt/hgt-20261123-predeploy.sql.gz`).
+- [x] **DB 비밀번호 교체** — 2026-11-23 운영 DB 비밀번호를 무작위 값으로 교체
+      (DEPLOY.md §7). `apps/api/.env`의 `DATABASE_URL`과 서버 루트 `.env`의
+      `POSTGRES_PASSWORD`에만 있고, 배포 동기화에서 제외된다. 이전 dev 비밀번호는
+      TCP 접속에서 거부됨을 확인.
+- [~] **백업 + 오프사이트** — 2026-11-23 `deploy/backup-db.sh` cron 등록(매일 04:30 KST,
+      `/var/backups/hgt/`, 14일 보관)하고 복구 리허설 1회 완료(스크래치 DB에 복원해
+      테이블·행 수 일치 확인). **남은 작업:** 오프사이트 복사 — 서버에 `aws`/`rclone`이
+      없고 버킷·자격 증명이 필요하다. 실사용자를 받기 전에 추가할 것.
 - [x] **푸시 클라이언트 배선** — `cap sync`, AppDelegate FCM 토큰 브리지,
       `GoogleService-Info.plist` / `google-services.json`, `aps-environment`
       entitlement까지 구현하고 Firebase 포함 iOS Simulator 빌드 통과.
@@ -38,11 +40,11 @@
       `FIREBASE_SERVICE_ACCOUNT`, Apple App ID Push capability/프로비저닝 프로필
       갱신, APNs 키 → Firebase 업로드 후 이태훈 iPhone에서 실제 알림 수신 확인.
       전체 런북: CAPACITOR.md "Push notifications".
-- [ ] **Capacitor 6 → 8 마이그레이션** — Google Play가 2026-08-31부터 신규 앱에
-      **target API 36**을 요구한다. PR #29에서 Capacitor 8.6(targetSdk 36, iOS 15+,
-      Gradle에 JDK 21 필요)으로 올렸고 iOS 시뮬레이터·Android debug 빌드는 통과.
-      **실기기 검증 후 머지** — 확인 항목(edge-to-edge, 네이티브 탭바, 키보드, 푸시)은
-      PR 본문 참고.
+- [x] **Capacitor 6 → 8 마이그레이션** — Google Play가 2026-08-31부터 신규 앱에
+      **target API 36**을 요구한다. Capacitor 8.6(targetSdk 36, iOS 15+, Gradle에
+      JDK 21 필요)으로 올려 머지함(PR #29). iOS 27 시뮬레이터, Android API 34/36
+      에뮬레이터, 실기기 iPhone 2대에서 실행·데모 로그인·탭바·키보드·뒤로가기·복귀를
+      확인했다. 푸시 등록만 미검증(유료 Apple Developer 팀 필요).
 - [x] **이용약관/개인정보처리방침 공개 URL** — `https://app.hgt.todari.dev/terms`,
       `https://app.hgt.todari.dev/privacy`. 본문은 `apps/app/src/content/legal.ts`
       하나만 고치면 앱 내부·공개 URL에 함께 반영된다.
@@ -67,6 +69,22 @@
       남성에게만 노출하도록 게이팅(`StepBasics` `gender` prop, `gender===true`일 때만 렌더).
       신규 가입(fresh) 여성 계정의 온보딩→매칭→신고/차단 전 구간은 실유저 가입 시 재확인 권장.
 
+## 실기기 QA에서 발견된 문제 (2026-11-23, 모두 Capacitor 마이그레이션과 무관)
+
+- [ ] **iPhone Duo(iPhone19,4)에서 네이티브 탭바 터치 불가 — 출시 전 필수.** 이 기종은
+      탭바가 오른쪽 띠에 세로로 펼쳐지는데 `HGTBridgeViewController`의 탭 컨테이너가
+      화면 하단 83pt뿐이라 설정 탭만 눌리고, 설정에 들어가면 홈·대화로 돌아올 수 없다.
+      선택 색도 코랄이 아닌 파란색. 같은 기종 시뮬레이터에서 실제 터치로 재현.
+- [ ] **iPhone Duo 채팅방이 오른쪽 safe-area를 무시** — "대화 옵션"·전송 버튼이 상태 띠
+      아래로 들어간다(신고·차단 메뉴 접근에 영향 가능).
+- [ ] **Android 14 이하 다크 모드에서 상태바 아이콘이 거의 안 보임** — 테마가 `DayNight`인데
+      웹은 light 전용. 후보: 부모 테마를 `Theme.AppCompat.Light.NoActionBar`로(미검증).
+- [~] **iOS 런치 스크린이 검은 화면** — 2732² 이미지가 런치 이미지 메모리 한도(25MB)를
+      넘었다. 2048²로 줄였고 시뮬레이터에서는 브랜드 스플래시가 뜬다. **남은 작업:**
+      실기기는 런치 이미지 캐시 때문에 재시동 후 재설치해 확인.
+- [~] **채팅 입력창 포커스 시 화면 확대** — 입력창 글자 크기를 15px → 16px로 올림
+      (iOS는 16px 미만 입력에 포커스하면 확대한다). **남은 작업:** 기기에서 확인.
+
 ## 스토어 제출
 
 - [~] **스토어 자산 제작** — 앱 아이콘·스플래시는 브랜드 마크(코랄 + H)로 교체함
@@ -78,9 +96,10 @@
       ② **데모 매칭/대화 시드 — 코드 구현 완료**(`apps/api/scripts/demo-seed.ts`):
       데모 계정에 완성 프로필 + 이번 주 매치(데모 파트너) + 대화를 직접 insert해
       심사자가 로그인 즉시 매칭/채팅을 본다. 프로덕션 안전(전역 매치 라운드/타
-      사용자 무영향, 멱등). **남은 운영 작업:** ① 운영 EC2의 systemd env에
-      `DEMO_ACCOUNTS` 실제 값 설정 후 `pnpm --filter api exec tsx scripts/demo-seed.ts`
-      1회 실행, ③ 스토어 심사 노트에 계정 기재. (소유: 서버운영)
+      사용자 무영향, 멱등). **2026-11-23 운영 반영:** 서버 `apps/api/.env`에
+      `DEMO_ACCOUNTS=review01:<무작위>` 설정 후 `demo-seed.ts` 실행 — 데모 로그인,
+      이번 주 매치, 대화 2건 확인. **남은 작업:** ③ 스토어 심사 노트에 계정 기재
+      (비밀번호는 서버 env에서 확인). 심사가 끝나면 env에서 지워 비활성화할 수 있다.
 - [ ] **"프로필 사진 없음"은 의도된 설계임을 명시** — 외모 비중심 키워드 매칭이
       제품 컨셉. 심사 노트(리뷰어 메모)와 스토어 설명에 명시해 미완성 앱으로
       오해받지 않게 할 것.
@@ -106,8 +125,8 @@
 **보안·법무·운영 차단 항목**이 미해소다. 아래 P0를 닫으면 GO.
 
 > **갱신 (2026-11-23):** 아래 NO-GO 사유 중 #1 TLS, #2 https URL 빌드 가드,
-> #5 약관 공개 URL은 해소됐다. 남은 차단 항목은 #4 DB 비밀번호와 백업 cron/오프사이트,
-> 푸시 운영 자격 증명 + 실기기 검증, Capacitor 8 실기기 검증, 스토어 자산이다.
+> #5 약관 공개 URL은 해소됐다. #4 DB 비밀번호도 교체했다. 남은 차단 항목은 백업 오프사이트,
+> 푸시 운영 자격 증명 + 실기기 검증, Capacitor 8 실기기 확인, 스토어 스크린샷이다.
 > 운영 DB에는 실사용자가 아직 없다(계정 1개).
 
 ### NO-GO 사유 (Top 블로커, 모두 코드 외 작업)
@@ -144,8 +163,8 @@
   ✅ `/me/match` `score` 제거, ✅ 온보딩 'AI' 과장 카피 정직화 — 모두 완료.
   남은 P2 cosmetic(선택): 홈 "다시 시도" 버튼/브랜드 H 로고 코럴 통일, 라디우스
   토큰 정리, 내부 `/design-system` 쇼케이스 라우트의 'AI 매칭' 카피(프로덕션 번들 포함).
-- **디바이스/Xcode (P0):** https URL로 네이티브 재빌드 → Capacitor 8 PR #29 실기기 검증·머지
-  (Play target API 36) → Apple Push capability/프로필/APNs 키와 실기기 푸시 확인 → 앱 아이콘/스플래시/
+- **디바이스/Xcode (P0):** https URL로 네이티브 재빌드 → (Capacitor 8 머지 완료, Play target API 36) →
+  iPhone Duo 탭바·safe-area 수정 → Apple Push capability/프로필/APNs 키와 실기기 푸시 확인 → 앱 아이콘/스플래시/
   스크린샷 → 데이팅 앱 연령 등급.
 - **서버운영/제품 (런치 후):** Sentry, 애널리틱스 결정, 어드민 콘솔 확장.
 

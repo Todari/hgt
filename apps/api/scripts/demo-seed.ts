@@ -27,7 +27,10 @@ import {
 } from "../src/db/schema";
 import { weekStartMonday } from "../src/matching/engine";
 
-const BASE = process.env.DEMO_SEED_BASE ?? "http://localhost:8080";
+// Follow the API's own PORT from .env (prod runs on 8090; 8080 may belong to
+// another service on a shared host). DEMO_SEED_BASE still overrides.
+const BASE =
+  process.env.DEMO_SEED_BASE ?? `http://localhost:${process.env.PORT ?? 8080}`;
 const PARTNER_PREFIX = "DEMOSEED_";
 // Deterministic throwaway sessions so we can call the authed profile endpoint.
 // The reviewer's real login rotates the demo user's session afterwards.

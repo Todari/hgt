@@ -137,7 +137,7 @@ The native app has been rebuilt using §2. Public SG port 8090 is closed; keep
   `FIREBASE_SERVICE_ACCOUNT`, enable the Apple App ID's Push capability, refresh
   its provisioning profile, and upload the APNs key to Firebase — full runbook:
   `apps/app/CAPACITOR.md`.
-- **DB password:** prod currently runs the committed dev password — fix per §7 below.
+- **DB password:** rotated to a random value on 2026-11-23 (§7); it lives only in the server's env files.
 - SG must never expose 5455.
 - 나머지 출시 전 항목: [docs/launch-checklist.md](docs/launch-checklist.md).
 
@@ -174,9 +174,10 @@ gunzip -c /var/backups/hgt/hgt-YYYYMMDD-HHMMSS.sql.gz | docker exec -i hgt-postg
 `docker-compose.yml`은 `POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hgt_local_dev}` —
 로컬은 기본값, **운영은 반드시 강한 비밀번호로 override** 해야 한다.
 
-> ⚠️ **확인된 리스크**: 현재 운영 EC2는 git에 커밋된 dev 비밀번호(`hgt_local_dev`)
-> 그대로 돌고 있다 (`.env.production.example`의 DATABASE_URL 참고). 5455가
-> localhost 전용이라 당장 외부 노출은 없지만, 실사용자 전에 반드시 교체할 것.
+> ✅ **2026-11-23 교체 완료**: 운영 DB는 무작위 비밀번호를 쓴다(값은 서버의
+> `apps/api/.env`와 루트 `.env`에만 있음). 서버 `docker-compose.yml`도
+> `${POSTGRES_PASSWORD:-…}` 형태라 컨테이너를 다시 만들어도 유지된다. 아래 절차는
+> 다음 교체 때 그대로 쓴다.
 
 운영 교체 절차 (Postgres는 `POSTGRES_PASSWORD`를 **볼륨 최초 초기화 때만** 반영하므로,
 이미 돌고 있는 DB는 `ALTER USER`로 바꿔야 한다):
