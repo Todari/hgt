@@ -5,7 +5,14 @@ import { usePathname } from "next/navigation";
 import { isWebWaitlistMode } from "@/lib/release";
 import { getSession } from "@/lib/session";
 
-const WAITLIST_WEB_ROUTES = new Set(["/", "/signin", "/waitlist", "/safety"]);
+const WAITLIST_WEB_ROUTES = new Set([
+  "/",
+  "/signin",
+  "/waitlist",
+  "/safety",
+  "/terms",
+  "/privacy",
+]);
 
 /**
  * Prevent a verified web user from bypassing the pre-launch waitlist with a

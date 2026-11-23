@@ -42,3 +42,5 @@ yarn-error.log*
 ## Panda
 styled-system
 styled-system-studio
+# Claude Code agent worktrees (local scratch checkouts)
+.claude/worktrees/
