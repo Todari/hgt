@@ -12,65 +12,54 @@ export default defineConfig({
       tokens: {
         colors: {
           ink: {
-            50: { value: "#f6f8f9" },
-            100: { value: "#e7ecef" },
-            300: { value: "#a8b5bf" },
-            500: { value: "#5e6f7a" },
-            700: { value: "#293843" },
-            900: { value: "#121a24" },
-            950: { value: "#0a1118" },
+            50: { value: "#f1ede3" },
+            100: { value: "#e5dfd2" },
+            300: { value: "#9a9488" },
+            500: { value: "#68635b" },
+            700: { value: "#37342f" },
+            900: { value: "#1e1d1a" },
+            950: { value: "#11110f" },
           },
           primary: {
-            50: { value: "#fff5f2" },
-            100: { value: "#ffe2db" },
-            200: { value: "#ffc6bb" },
-            300: { value: "#ff9a87" },
-            500: { value: "#ff6b5f" },
-            // Darkest coral that still reads "coral"; the LIGHT end of any
-            // white-text gradient must not go above this (≥4.5:1 vs white).
-            600: { value: "#d0463c" },
-            700: { value: "#b83e3a" },
-            900: { value: "#6e201f" },
+            50: { value: "#fff0ec" },
+            100: { value: "#ffd3ca" },
+            200: { value: "#ffad9f" },
+            300: { value: "#ff7d6c" },
+            500: { value: "#ff4f3f" },
+            600: { value: "#d93629" },
+            700: { value: "#b9261c" },
+            900: { value: "#681811" },
           },
-          // Solid content surfaces (cards). True glass is reserved for nav
-          // chrome / floating accents — see GlassPanel's `variant` prop.
+          accent: {
+            blue: { value: "#9fd6ff" },
+            yellow: { value: "#ffe14f" },
+            mint: { value: "#a9e8c4" },
+          },
           surface: {
-            card: { value: "rgba(255, 255, 255, 0.92)" },
-            hairline: { value: "rgba(15, 25, 35, 0.1)" },
+            card: { value: "#fffaf0" },
+            paper: { value: "#f6f0e4" },
+            hairline: { value: "rgba(17, 17, 15, 0.18)" },
+            strong: { value: "#11110f" },
           },
           glass: {
-            clear: { value: "rgba(255, 255, 255, 0.42)" },
-            milk: { value: "rgba(255, 255, 255, 0.66)" },
-            frost: { value: "rgba(243, 249, 248, 0.78)" },
-            stroke: { value: "rgba(255, 255, 255, 0.72)" },
-            hairline: { value: "rgba(19, 31, 42, 0.12)" },
+            clear: { value: "rgba(255, 250, 240, 0.72)" },
+            milk: { value: "rgba(255, 250, 240, 0.9)" },
+            frost: { value: "rgba(246, 240, 228, 0.9)" },
+            stroke: { value: "rgba(17, 17, 15, 0.22)" },
+            hairline: { value: "rgba(17, 17, 15, 0.18)" },
           },
         },
         radii: {
-          liquid: { value: "24px" },
-          vessel: { value: "32px" },
+          liquid: { value: "14px" },
+          vessel: { value: "18px" },
           capsule: { value: "999px" },
         },
         shadows: {
-          // The one card shadow: single soft layer (replaces the 4–6-layer
-          // coral stacks on content surfaces).
-          cardSoft: { value: "0 6px 24px rgba(17, 24, 32, 0.08)" },
-          glassFloat: {
-            value:
-              "0 1px 0 rgba(255, 255, 255, 0.76) inset, 0 -1px 0 rgba(21, 38, 51, 0.08) inset, 0 24px 60px rgba(17, 40, 52, 0.15), 0 14px 38px rgba(255, 107, 95, 0.18), -18px 16px 46px rgba(255, 107, 95, 0.1), 18px -18px 38px rgba(255, 107, 95, 0.08)",
-          },
-          glassLift: {
-            value:
-              "0 1px 0 rgba(255, 255, 255, 0.82) inset, 0 18px 38px rgba(10, 17, 24, 0.13), 0 8px 24px rgba(255, 107, 95, 0.18), 14px -10px 28px rgba(255, 107, 95, 0.1)",
-          },
-          glassInset: {
-            value:
-              "0 1px 0 rgba(255, 255, 255, 0.84) inset, 0 -1px 0 rgba(10, 17, 24, 0.06) inset, 0 0 0 1px rgba(255, 255, 255, 0.38) inset",
-          },
-          actionGlow: {
-            value:
-              "0 1px 0 rgba(255, 255, 255, 0.58) inset, 0 22px 48px rgba(255, 107, 95, 0.32), -14px 16px 36px rgba(255, 107, 95, 0.18), 16px -14px 32px rgba(255, 107, 95, 0.14)",
-          },
+          cardSoft: { value: "0 12px 30px rgba(73, 48, 38, 0.10)" },
+          glassFloat: { value: "4px 4px 0 #11110f" },
+          glassLift: { value: "3px 3px 0 #11110f" },
+          glassInset: { value: "inset 0 0 0 1px rgba(17,17,15,.12)" },
+          actionGlow: { value: "5px 5px 0 #11110f" },
         },
       },
     },

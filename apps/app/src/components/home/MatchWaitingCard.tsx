@@ -30,7 +30,12 @@ function nextRevealTime(now: Date): Date {
   return new Date(reveal.getTime() - KST_OFFSET_MS); // back to a real UTC instant
 }
 
-type Remaining = { days: number; hours: number; minutes: number; total: number };
+type Remaining = {
+  days: number;
+  hours: number;
+  minutes: number;
+  total: number;
+};
 
 function remainingUntil(target: Date, now: Date): Remaining {
   const total = Math.max(0, target.getTime() - now.getTime());
@@ -48,21 +53,35 @@ function CountUnit({ value, label }: { value: number; label: string }) {
     <div
       className={css({
         flex: "1",
-        borderRadius: "18px",
+        borderRadius: "13px",
         paddingY: "3",
-        background: "primary.50",
-        border: "1px solid",
-        borderColor: "primary.100",
+        background: "#fff3bd",
+        border: "1px solid rgba(218,167,22,.22)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         gap: "0.5",
       })}
     >
-      <span className={css({ color: "primary.700", fontSize: "2xl", fontWeight: "black", lineHeight: "1" })}>
+      <span
+        className={css({
+          color: "ink.950",
+          fontSize: "2xl",
+          fontWeight: "black",
+          lineHeight: "1",
+        })}
+      >
         {String(value).padStart(2, "0")}
       </span>
-      <span className={css({ color: "ink.500", fontSize: "11px", fontWeight: "bold" })}>{label}</span>
+      <span
+        className={css({
+          color: "ink.500",
+          fontSize: "11px",
+          fontWeight: "bold",
+        })}
+      >
+        {label}
+      </span>
     </div>
   );
 }
@@ -74,7 +93,11 @@ function CountUnit({ value, label }: { value: number; label: string }) {
  *   then still count down to the next reveal.
  * Reduced-motion safe — no animation, just a ticking value.
  */
-export function MatchWaitingCard({ noMatchThisWeek = false }: { noMatchThisWeek?: boolean }) {
+export function MatchWaitingCard({
+  noMatchThisWeek = false,
+}: {
+  noMatchThisWeek?: boolean;
+}) {
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -87,16 +110,18 @@ export function MatchWaitingCard({ noMatchThisWeek = false }: { noMatchThisWeek?
 
   return (
     <section
-      aria-label={noMatchThisWeek ? "이번 주 매칭 결과" : "이번 주 인연을 찾는 중"}
+      aria-label={
+        noMatchThisWeek ? "이번 주 매칭 결과" : "이번 주 인연을 찾는 중"
+      }
       className={css({
         position: "relative",
         overflow: "hidden",
-        borderRadius: "vessel",
+        borderRadius: "liquid",
         padding: "5",
-        background: "surface.card",
+        background: "var(--content-surface)",
         border: "1px solid",
-        borderColor: "primary.200",
-        boxShadow: "0 8px 28px rgba(255,107,95,.16)",
+        borderColor: "surface.hairline",
+        boxShadow: "var(--content-shadow)",
         display: "flex",
         flexDirection: "column",
         gap: "4",
@@ -106,16 +131,23 @@ export function MatchWaitingCard({ noMatchThisWeek = false }: { noMatchThisWeek?
         aria-hidden
         className={css({
           position: "absolute",
-          top: "-26%",
-          right: "-18%",
-          width: "72%",
-          height: "52%",
-          background:
-            "radial-gradient(ellipse 60% 55% at 60% 40%, rgba(255,107,95,.13), transparent 72%)",
+          top: 0,
+          right: 0,
+          left: 0,
+          height: "5px",
+          background: noMatchThisWeek ? "#86a9ff" : "primary.500",
           pointerEvents: "none",
         })}
       />
-      <div className={css({ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: "4" })}>
+      <div
+        className={css({
+          position: "relative",
+          zIndex: 1,
+          display: "flex",
+          flexDirection: "column",
+          gap: "4",
+        })}
+      >
         <span
           className={css({
             display: "inline-flex",
@@ -124,19 +156,41 @@ export function MatchWaitingCard({ noMatchThisWeek = false }: { noMatchThisWeek?
             minHeight: "28px",
             borderRadius: "capsule",
             paddingX: "3",
-            background: "primary.100",
-            color: "primary.900",
+            background: noMatchThisWeek ? "#86a9ff" : "primary.500",
+            color: "ink.950",
+            border: "1px solid rgba(17,17,15,.08)",
             fontSize: "xs",
             fontWeight: "black",
           })}
         >
           {noMatchThisWeek ? "이번 주 매칭 결과" : "이번 주 인연을 찾는 중"}
         </span>
-        <div className={css({ display: "flex", flexDirection: "column", gap: "1" })}>
-          <h2 className={css({ color: "ink.950", fontSize: "22px", fontWeight: "black", lineHeight: "1.3" })}>
-            {noMatchThisWeek ? "이번 주는 인연을 찾지 못했어요" : "곧 한 사람을 소개해드릴게요"}
+        <div
+          className={css({
+            display: "flex",
+            flexDirection: "column",
+            gap: "1",
+          })}
+        >
+          <h2
+            className={css({
+              color: "ink.950",
+              fontSize: "22px",
+              fontWeight: "black",
+              lineHeight: "1.3",
+            })}
+          >
+            {noMatchThisWeek
+              ? "이번 주는 인연을 찾지 못했어요"
+              : "곧 한 사람을 소개해드릴게요"}
           </h2>
-          <p className={css({ color: "ink.500", fontSize: "sm", lineHeight: "1.7" })}>
+          <p
+            className={css({
+              color: "ink.500",
+              fontSize: "sm",
+              lineHeight: "1.7",
+            })}
+          >
             {noMatchThisWeek
               ? "아쉽지만 이번 주엔 맞는 분을 찾지 못했어요. 키워드를 다듬으면 다음 주 인연을 만날 확률이 높아져요."
               : "매주 월요일 저녁 7시, 키워드가 맞는 단 한 사람을 골라 보내드려요."}
@@ -144,10 +198,22 @@ export function MatchWaitingCard({ noMatchThisWeek = false }: { noMatchThisWeek?
         </div>
 
         <div
-          className={css({ display: "flex", flexDirection: "column", gap: "2" })}
+          className={css({
+            display: "flex",
+            flexDirection: "column",
+            gap: "2",
+          })}
           aria-live="polite"
         >
-          <p className={css({ color: "ink.700", fontSize: "xs", fontWeight: "bold" })}>다음 소개까지</p>
+          <p
+            className={css({
+              color: "ink.700",
+              fontSize: "xs",
+              fontWeight: "bold",
+            })}
+          >
+            다음 소개까지
+          </p>
           <div className={css({ display: "flex", gap: "2" })}>
             {remaining ? (
               <>

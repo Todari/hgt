@@ -6,7 +6,7 @@ import { css } from "_panda/css";
 import { SwitchKnob } from "@/components/ui/glass";
 import { FieldHeader, Pill, PillRow, StepCard } from "./primitives";
 
-const CORAL_TEXT_GRADIENT = "linear-gradient(135deg, #b83e3a, #d0463c)";
+const BRAND_RED = "#ff4f3f";
 
 /**
  * MBTI is four binary axes, so pick one letter per axis instead of choosing from
@@ -36,10 +36,13 @@ function MbtiPicker({
   selectedId: string | null;
   onSelect: (id: string | null) => void;
 }) {
-  const valueOf = (id: string | null) => options.find((o) => o.id === id)?.value ?? "";
+  const valueOf = (id: string | null) =>
+    options.find((o) => o.id === id)?.value ?? "";
   // Local 4-letter state so partial selections (one axis at a time) persist —
   // a partial type has no property id, so it can't live in `selectedId`.
-  const [letters, setLetters] = useState<string[]>(() => toLetters(valueOf(selectedId)));
+  const [letters, setLetters] = useState<string[]>(() =>
+    toLetters(valueOf(selectedId)),
+  );
   // Adopt EXTERNAL changes to selectedId (async prefill / reset) without
   // clobbering our own in-progress edits.
   const lastEmitted = useRef<string | null>(selectedId);
@@ -73,7 +76,9 @@ function MbtiPicker({
   };
 
   return (
-    <StepCard className={css({ display: "flex", flexDirection: "column", gap: "3" })}>
+    <StepCard
+      className={css({ display: "flex", flexDirection: "column", gap: "3" })}
+    >
       <FieldHeader
         title="MBTI"
         helper="대화 성향을 가볍게 참고하는 신호로 써요."
@@ -90,7 +95,9 @@ function MbtiPicker({
                 fontWeight: "black",
                 letterSpacing: "0.04em",
                 color: "white",
-                background: CORAL_TEXT_GRADIENT,
+                background: BRAND_RED,
+                border: "1px solid",
+                borderColor: "rgba(190,48,36,.18)",
               })}
             >
               {selectedType}
@@ -99,14 +106,23 @@ function MbtiPicker({
             <button
               type="button"
               onClick={clear}
-              className={css({ color: "ink.400", fontSize: "xs", fontWeight: "bold", cursor: "pointer", background: "transparent", border: "none" })}
+              className={css({
+                color: "ink.400",
+                fontSize: "xs",
+                fontWeight: "bold",
+                cursor: "pointer",
+                background: "transparent",
+                border: "none",
+              })}
             >
               지우기
             </button>
           ) : undefined
         }
       />
-      <div className={css({ display: "flex", flexDirection: "column", gap: "2" })}>
+      <div
+        className={css({ display: "flex", flexDirection: "column", gap: "2" })}
+      >
         {MBTI_AXES.map((axis, i) => {
           const active = letters[i];
           return (
@@ -139,17 +155,25 @@ function MbtiPicker({
                       fontSize: "sm",
                       fontWeight: "bold",
                       cursor: "pointer",
-                      color: on ? "white" : "ink.700",
-                      background: on ? CORAL_TEXT_GRADIENT : "surface.card",
+                      color: "ink.950",
+                      background: on ? "rgba(255,79,63,.13)" : "surface.card",
                       border: "1px solid",
-                      borderColor: on ? "transparent" : "surface.hairline",
-                      boxShadow: on ? "0 6px 14px rgba(255,107,95,.2)" : "none",
+                      borderColor: on
+                        ? "rgba(255,79,63,.4)"
+                        : "surface.hairline",
+                      boxShadow: on ? "0 5px 16px rgba(255,79,63,.1)" : "none",
                       transition: "background 140ms ease, color 140ms ease",
                       _active: { transform: "scale(0.97)" },
                     })}
                   >
-                    <span className={css({ fontWeight: "black", fontSize: "md" })}>{opt.letter}</span>
-                    <span className={css({ fontSize: "12px", opacity: 0.9 })}>{opt.ko}</span>
+                    <span
+                      className={css({ fontWeight: "black", fontSize: "md" })}
+                    >
+                      {opt.letter}
+                    </span>
+                    <span className={css({ fontSize: "12px", opacity: 0.9 })}>
+                      {opt.ko}
+                    </span>
                   </button>
                 );
               })}
@@ -161,7 +185,7 @@ function MbtiPicker({
   );
 }
 
-/** Solid toggle row matching the other step-4 cards (vs. the glass GlassToggle). */
+/** Solid toggle row matching the other onboarding cards (vs. the glass GlassToggle). */
 function ToggleRow({
   checked,
   onChange,
@@ -193,10 +217,33 @@ function ToggleRow({
           cursor: "pointer",
         })}
       >
-        <span className={css({ minWidth: 0, display: "flex", flexDirection: "column", gap: "1" })}>
-          <span className={css({ color: "ink.950", fontSize: "sm", fontWeight: "black" })}>{label}</span>
+        <span
+          className={css({
+            minWidth: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: "1",
+          })}
+        >
+          <span
+            className={css({
+              color: "ink.950",
+              fontSize: "sm",
+              fontWeight: "black",
+            })}
+          >
+            {label}
+          </span>
           {description && (
-            <span className={css({ color: "ink.500", fontSize: "xs", lineHeight: "1.5" })}>{description}</span>
+            <span
+              className={css({
+                color: "ink.500",
+                fontSize: "xs",
+                lineHeight: "1.5",
+              })}
+            >
+              {description}
+            </span>
           )}
         </span>
         <SwitchKnob checked={checked} />
@@ -226,6 +273,7 @@ function PropertyPicker({
   selectedId,
   onSelect,
   disabled = false,
+  mode = "pills",
 }: {
   title: string;
   helper?: string;
@@ -233,22 +281,58 @@ function PropertyPicker({
   selectedId: string | null;
   onSelect: (id: string | null) => void;
   disabled?: boolean;
+  mode?: "pills" | "select";
 }) {
   return (
-    <StepCard className={css({ display: "flex", flexDirection: "column", gap: "3" })}>
+    <StepCard
+      className={css({ display: "flex", flexDirection: "column", gap: "3" })}
+    >
       <FieldHeader title={title} helper={helper} />
-      <PillRow>
-        {options.map((option) => (
-          <Pill
-            key={option.id}
-            selected={selectedId === option.id}
-            disabled={disabled}
-            onClick={() => onSelect(selectedId === option.id ? null : option.id)}
-          >
-            {option.value}
-          </Pill>
-        ))}
-      </PillRow>
+      {mode === "select" ? (
+        <select
+          value={selectedId ?? ""}
+          disabled={disabled}
+          onChange={(event) => onSelect(event.target.value || null)}
+          className={css({
+            width: "100%",
+            minHeight: "52px",
+            paddingX: "3.5",
+            borderRadius: "14px",
+            color: selectedId ? "ink.950" : "ink.500",
+            background: "rgba(255,252,247,.82)",
+            border: "1px solid rgba(54,45,40,.14)",
+            fontSize: "16px",
+            fontWeight: "bold",
+            _focusVisible: {
+              outline: "none",
+              borderColor: "primary.400",
+              boxShadow: "0 0 0 3px rgba(255,107,95,.14)",
+            },
+          })}
+        >
+          <option value="">선택하지 않음</option>
+          {options.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.value}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <PillRow>
+          {options.map((option) => (
+            <Pill
+              key={option.id}
+              selected={selectedId === option.id}
+              disabled={disabled}
+              onClick={() =>
+                onSelect(selectedId === option.id ? null : option.id)
+              }
+            >
+              {option.value}
+            </Pill>
+          ))}
+        </PillRow>
+      )}
     </StepCard>
   );
 }
@@ -273,8 +357,8 @@ const ageInputCss = css({
 });
 
 /**
- * Step ④ — basic info. Single-select property pickers (키/흡연/종교/MBTI),
- * 병역, 자기소개 (≤500), 원하는 나이 범위, 같은 과 매칭 허용 토글.
+ * Steps ④–⑥ — profile facts, personality signals, then matching preferences.
+ * Each group stays close to one mobile viewport instead of one long form.
  * The religion picker is disabled (with a quiet explanation) unless the user
  * gave the optional 민감정보 처리 동의 in step ①.
  */
@@ -283,168 +367,254 @@ export function StepBasics({
   state,
   sensitiveAccepted,
   gender,
+  section,
   onChange,
 }: {
   properties: Property[];
   state: BasicsState;
   sensitiveAccepted: boolean;
   gender: boolean; // true = 남 — 병역 항목은 남성에게만 보여준다
-  onChange: <K extends keyof BasicsState>(key: K, value: BasicsState[K]) => void;
+  section: "facts" | "personality" | "preferences";
+  onChange: <K extends keyof BasicsState>(
+    key: K,
+    value: BasicsState[K],
+  ) => void;
 }) {
-  const opts = (type: ProfilePropertyType) => properties.filter((p) => p.type === type);
+  const opts = (type: ProfilePropertyType) =>
+    properties.filter((p) => p.type === type);
 
   return (
-    <div className={css({ display: "flex", flexDirection: "column", gap: "4" })}>
-      <PropertyPicker
-        title="키"
-        helper="정확한 수치보다 가까운 구간을 골라주세요."
-        options={opts("height")}
-        selectedId={state.heightId}
-        onSelect={(id) => onChange("heightId", id)}
-      />
+    <div
+      className={css({ display: "flex", flexDirection: "column", gap: "4" })}
+    >
+      {section === "facts" && (
+        <>
+          <PropertyPicker
+            title="키"
+            helper="정확한 수치보다 가까운 구간을 골라주세요."
+            options={opts("height")}
+            selectedId={state.heightId}
+            onSelect={(id) => onChange("heightId", id)}
+            mode="select"
+          />
 
-      <PropertyPicker
-        title="흡연"
-        options={opts("smoke")}
-        selectedId={state.smokeId}
-        onSelect={(id) => onChange("smokeId", id)}
-      />
+          <PropertyPicker
+            title="흡연"
+            options={opts("smoke")}
+            selectedId={state.smokeId}
+            onSelect={(id) => onChange("smokeId", id)}
+          />
 
-      <StepCard className={css({ display: "flex", flexDirection: "column", gap: "3" })}>
-        <FieldHeader
-          title="종교"
-          helper={
-            sensitiveAccepted
-              ? "서로의 가치관을 이해하기 위한 선택 항목이에요."
-              : undefined
-          }
-        />
-        {sensitiveAccepted ? (
-          <PillRow>
-            {opts("religion").map((option) => (
-              <Pill
-                key={option.id}
-                selected={state.religionId === option.id}
-                onClick={() =>
-                  onChange("religionId", state.religionId === option.id ? null : option.id)
-                }
-              >
-                {option.value}
-              </Pill>
-            ))}
-          </PillRow>
-        ) : (
-          <p
+          <StepCard
             className={css({
-              color: "ink.500",
-              fontSize: "xs",
-              lineHeight: "1.6",
-              padding: "3",
-              borderRadius: "12px",
-              background: "rgba(10,17,24,.04)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "3",
             })}
           >
-            종교는 민감정보라, 첫 단계의 ‘민감정보 처리 동의’를 선택하셔야 입력할 수 있어요.
-            동의는 선택 사항이며, 언제든 설정에서 바꿀 수 있어요.
-          </p>
-        )}
-      </StepCard>
-
-      <MbtiPicker
-        options={opts("mbti")}
-        selectedId={state.mbtiId}
-        onSelect={(id) => onChange("mbtiId", id)}
-      />
-
-      {gender && (
-        <StepCard className={css({ display: "flex", flexDirection: "column", gap: "3" })}>
-          <FieldHeader title="병역" helper="해당하지 않으면 비워두셔도 괜찮아요." />
-          <PillRow>
-            <Pill selected={state.army === true} onClick={() => onChange("army", state.army === true ? null : true)}>
-              군필
-            </Pill>
-            <Pill selected={state.army === false} onClick={() => onChange("army", state.army === false ? null : false)}>
-              미필
-            </Pill>
-          </PillRow>
-        </StepCard>
+            <FieldHeader
+              title="종교"
+              helper={
+                sensitiveAccepted
+                  ? "서로의 가치관을 이해하기 위한 선택 항목이에요."
+                  : undefined
+              }
+            />
+            {sensitiveAccepted ? (
+              <PillRow>
+                {opts("religion").map((option) => (
+                  <Pill
+                    key={option.id}
+                    selected={state.religionId === option.id}
+                    onClick={() =>
+                      onChange(
+                        "religionId",
+                        state.religionId === option.id ? null : option.id,
+                      )
+                    }
+                  >
+                    {option.value}
+                  </Pill>
+                ))}
+              </PillRow>
+            ) : (
+              <p
+                className={css({
+                  color: "ink.500",
+                  fontSize: "xs",
+                  lineHeight: "1.6",
+                  padding: "3",
+                  borderRadius: "12px",
+                  background: "rgba(10,17,24,.04)",
+                })}
+              >
+                종교는 민감정보라, 첫 단계의 ‘민감정보 처리 동의’를 선택하셔야
+                입력할 수 있어요. 동의는 선택 사항이며, 언제든 설정에서 바꿀 수
+                있어요.
+              </p>
+            )}
+          </StepCard>
+        </>
       )}
 
-      <StepCard className={css({ display: "flex", flexDirection: "column", gap: "3" })}>
-        <FieldHeader
-          title="자기소개"
-          helper="사진 없이 만나는 서비스예요. 대화 리듬이나 관계에서 중요한 태도를 적어주세요."
-          trailing={
-            <span className={css({ color: "ink.400", fontSize: "xs", fontWeight: "bold" })}>
-              {state.description.length}/500
-            </span>
-          }
-        />
-        <textarea
-          value={state.description}
-          maxLength={500}
-          onChange={(e) => onChange("description", e.target.value)}
-          placeholder="예: 천천히 친해지는 편이고, 대화가 잘 이어지는 사람을 좋아해요."
-          className={css({
-            width: "100%",
-            minHeight: "104px",
-            padding: "3.5",
-            borderRadius: "14px",
-            border: "1px solid",
-            borderColor: "surface.hairline",
-            background: "surface.card",
-            color: "ink.950",
-            fontSize: "md",
-            lineHeight: "1.6",
-            resize: "vertical",
-            _focusVisible: {
-              outline: "none",
-              borderColor: "primary.400",
-              boxShadow: "0 0 0 3px rgba(255,107,95,.14)",
-            },
-          })}
-        />
-      </StepCard>
-
-      <StepCard className={css({ display: "flex", flexDirection: "column", gap: "3" })}>
-        <FieldHeader
-          title="원하는 나이 범위"
-          helper="18세부터 99세까지 입력할 수 있어요. 비워두면 제한 없이 매칭돼요."
-        />
-        <div
-          className={css({
-            display: "grid",
-            gridTemplateColumns: "1fr auto 1fr",
-            alignItems: "center",
-            gap: "2",
-          })}
-        >
-          <input
-            inputMode="numeric"
-            value={state.minAge}
-            placeholder="최소"
-            aria-label="최소 나이"
-            onChange={(e) => onChange("minAge", e.target.value.replace(/\D/g, "").slice(0, 2))}
-            className={ageInputCss}
+      {section === "personality" && (
+        <>
+          <MbtiPicker
+            options={opts("mbti")}
+            selectedId={state.mbtiId}
+            onSelect={(id) => onChange("mbtiId", id)}
           />
-          <span className={css({ color: "ink.400", fontSize: "sm", fontWeight: "bold" })}>~</span>
-          <input
-            inputMode="numeric"
-            value={state.maxAge}
-            placeholder="최대"
-            aria-label="최대 나이"
-            onChange={(e) => onChange("maxAge", e.target.value.replace(/\D/g, "").slice(0, 2))}
-            className={ageInputCss}
-          />
-        </div>
-      </StepCard>
 
-      <ToggleRow
-        checked={state.canCc}
-        onChange={(v) => onChange("canCc", v)}
-        label="같은 과 매칭 허용"
-        description="같은 과 상대도 매칭 후보에 포함해요."
-      />
+          {gender && (
+            <StepCard
+              className={css({
+                display: "flex",
+                flexDirection: "column",
+                gap: "3",
+              })}
+            >
+              <FieldHeader
+                title="병역"
+                helper="해당하지 않으면 비워두셔도 괜찮아요."
+              />
+              <PillRow>
+                <Pill
+                  selected={state.army === true}
+                  onClick={() =>
+                    onChange("army", state.army === true ? null : true)
+                  }
+                >
+                  군필
+                </Pill>
+                <Pill
+                  selected={state.army === false}
+                  onClick={() =>
+                    onChange("army", state.army === false ? null : false)
+                  }
+                >
+                  미필
+                </Pill>
+              </PillRow>
+            </StepCard>
+          )}
+        </>
+      )}
+
+      {section === "preferences" && (
+        <>
+          <StepCard
+            className={css({
+              display: "flex",
+              flexDirection: "column",
+              gap: "3",
+            })}
+          >
+            <FieldHeader
+              title="자기소개"
+              helper="사진 없이 만나는 서비스예요. 대화 리듬이나 관계에서 중요한 태도를 적어주세요."
+              trailing={
+                <span
+                  className={css({
+                    color: "ink.400",
+                    fontSize: "xs",
+                    fontWeight: "bold",
+                  })}
+                >
+                  {state.description.length}/500
+                </span>
+              }
+            />
+            <textarea
+              value={state.description}
+              maxLength={500}
+              onChange={(e) => onChange("description", e.target.value)}
+              placeholder="예: 천천히 친해지는 편이고, 대화가 잘 이어지는 사람을 좋아해요."
+              className={css({
+                width: "100%",
+                minHeight: "104px",
+                padding: "3.5",
+                borderRadius: "14px",
+                border: "1px solid",
+                borderColor: "surface.hairline",
+                background: "surface.card",
+                color: "ink.950",
+                fontSize: "md",
+                lineHeight: "1.6",
+                resize: "vertical",
+                _focusVisible: {
+                  outline: "none",
+                  borderColor: "primary.400",
+                  boxShadow: "0 0 0 3px rgba(255,107,95,.14)",
+                },
+              })}
+            />
+          </StepCard>
+
+          <StepCard
+            className={css({
+              display: "flex",
+              flexDirection: "column",
+              gap: "3",
+            })}
+          >
+            <FieldHeader
+              title="원하는 나이 범위"
+              helper="18세부터 99세까지 입력할 수 있어요. 비워두면 제한 없이 매칭돼요."
+            />
+            <div
+              className={css({
+                display: "grid",
+                gridTemplateColumns: "1fr auto 1fr",
+                alignItems: "center",
+                gap: "2",
+              })}
+            >
+              <input
+                inputMode="numeric"
+                value={state.minAge}
+                placeholder="최소"
+                aria-label="최소 나이"
+                onChange={(e) =>
+                  onChange(
+                    "minAge",
+                    e.target.value.replace(/\D/g, "").slice(0, 2),
+                  )
+                }
+                className={ageInputCss}
+              />
+              <span
+                className={css({
+                  color: "ink.400",
+                  fontSize: "sm",
+                  fontWeight: "bold",
+                })}
+              >
+                ~
+              </span>
+              <input
+                inputMode="numeric"
+                value={state.maxAge}
+                placeholder="최대"
+                aria-label="최대 나이"
+                onChange={(e) =>
+                  onChange(
+                    "maxAge",
+                    e.target.value.replace(/\D/g, "").slice(0, 2),
+                  )
+                }
+                className={ageInputCss}
+              />
+            </div>
+          </StepCard>
+
+          <ToggleRow
+            checked={state.canCc}
+            onChange={(v) => onChange("canCc", v)}
+            label="같은 과 매칭 허용"
+            description="같은 과 상대도 매칭 후보에 포함해요."
+          />
+        </>
+      )}
     </div>
   );
 }

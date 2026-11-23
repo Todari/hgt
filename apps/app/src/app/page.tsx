@@ -6,46 +6,45 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { css } from "_panda/css";
 import { Ambient } from "@/components/ui/Ambient";
+import { isWebWaitlistMode } from "@/lib/release";
 import { getSession } from "@/lib/session";
 
-const valueProps = [
+const reasons = [
   {
-    title: "재학생만 인증해요",
-    body: "홍익대 포털 인증을 거친 사람만 들어와요. 믿을 수 있는 상대부터 시작해요.",
-    icon: (
-      <path d="M12 3 5 6v6c0 4 3 6.7 7 9 4-2.3 7-5 7-9V6l-7-3Z" />
-    ),
+    number: "01",
+    label: "VERIFIED",
+    title: "검증된 홍익인만",
+    body: "포털 인증을 거친 재학·휴학·졸업 구성원만 들어와요.",
+    color: "rgba(84,130,242,.14)",
   },
   {
-    title: "한 사람에게 집중해요",
-    body: "여러 명에게 동시에 열리는 연결 대신, 매주 한 사람을 진지하게 만나요.",
-    icon: (
-      <>
-        <circle cx="12" cy="8" r="4" />
-        <path d="M5 21c0-3.5 3-6 7-6s7 2.5 7 6" />
-      </>
-    ),
+    number: "02",
+    label: "ONLY ONE",
+    title: "매주 한 사람만",
+    body: "끝없는 탐색 대신 이번 주의 한 사람을 알아가요.",
+    color: "rgba(255,199,46,.18)",
   },
   {
-    title: "외모가 아닌 궁합을 봐요",
-    body: "생활 리듬, 관심사, 대화 성향이 맞는 상대를 키워드로 찾아 연결해요.",
-    icon: (
-      <>
-        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
-      </>
-    ),
+    number: "03",
+    label: "NO PHOTO",
+    title: "사람 자체를 먼저",
+    body: "사진 대신 취향과 관계의 태도를 키워드로 만나요.",
+    color: "rgba(54,185,128,.14)",
   },
-];
+] as const;
 
 export default function IntroPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [webWaitlist, setWebWaitlist] = useState(false);
 
   useEffect(() => {
+    const waitlist = isWebWaitlistMode();
     if (getSession()) {
-      router.replace("/home");
+      router.replace(waitlist ? "/waitlist" : "/home");
       return;
     }
+    setWebWaitlist(waitlist);
     setReady(true);
   }, [router]);
 
@@ -58,146 +57,258 @@ export default function IntroPage() {
         className={css({
           position: "relative",
           zIndex: 1,
-          minHeight: "100dvh",
+          minHeight: "var(--hgt-page-height)",
           width: "100%",
           maxWidth: "480px",
           marginX: "auto",
-          paddingX: "5",
-          paddingTop: "9",
-          paddingBottom: "9",
+          paddingX: "4",
+          paddingTop: "3",
+          paddingBottom: "3",
           display: "flex",
           flexDirection: "column",
-          gap: "8",
+          gap: "4",
         })}
       >
         <motion.header
-          className={css({ display: "flex", flexDirection: "column", gap: "5" })}
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.35 }}
+          className={css({
+            display: "flex",
+            flexDirection: "column",
+            gap: "4",
+          })}
         >
-          <span
+          <div
             className={css({
-              display: "inline-grid",
-              placeItems: "center",
-              width: "52px",
-              height: "52px",
-              borderRadius: "18px",
-              color: "white",
-              fontSize: "xl",
-              fontWeight: "black",
-              background: "linear-gradient(140deg, #b83e3a 0%, #ff6b5f 58%, #ff9a87 100%)",
-              boxShadow: "0 16px 32px rgba(255,107,95,.28)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
             })}
           >
-            H
-          </span>
-          <div>
             <span
               className={css({
-                display: "inline-block",
-                marginBottom: "3",
-                paddingX: "3",
-                paddingY: "1.5",
-                borderRadius: "capsule",
-                color: "primary.700",
-                fontSize: "xs",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "2.5",
+                fontSize: "lg",
                 fontWeight: "black",
-                background: "primary.50",
-                border: "1px solid",
-                borderColor: "primary.100",
               })}
             >
-              홍익대 키워드 매칭 소개팅
+              <span
+                className={css({
+                  display: "grid",
+                  placeItems: "center",
+                  width: "42px",
+                  height: "42px",
+                  color: "white",
+                  background: "primary.500",
+                  border: "1px solid rgba(190,48,36,.18)",
+                  borderRadius: "13px",
+                  boxShadow: "0 7px 18px rgba(255,79,63,.18)",
+                  fontWeight: "black",
+                })}
+              >
+                H
+              </span>
+              HGT
             </span>
-            <h1 className={css({ color: "ink.950", fontSize: "4xl", fontWeight: "black", lineHeight: "1.1" })}>
-              외모보다 신뢰와
+            <span
+              className={css({
+                paddingX: "2.5",
+                paddingY: "1.5",
+                border: "1px solid",
+                borderColor: "surface.hairline",
+                borderRadius: "capsule",
+                background: "rgba(255,255,255,.7)",
+                fontFamily: "monospace",
+                fontSize: "10px",
+                fontWeight: "black",
+                letterSpacing: "0.08em",
+              })}
+            >
+              HONGIK MATCH
+            </span>
+          </div>
+
+          <div>
+            <p
+              className={css({
+                marginBottom: "3",
+                color: "primary.700",
+                fontFamily: "monospace",
+                fontSize: "xs",
+                fontWeight: "black",
+                letterSpacing: "0.08em",
+              })}
+            >
+              {webWaitlist ? "APP · COMING SOON" : "MONDAY · 19:00"}
+            </p>
+            <h1
+              className={css({
+                color: "ink.950",
+                fontSize: "42px",
+                fontWeight: "black",
+                lineHeight: "0.98",
+                letterSpacing: "-0.065em",
+              })}
+            >
+              이번 주에는,
               <br />
-              진심이 먼저예요
+              <span
+                className={css({
+                  display: "inline-block",
+                  marginTop: "2",
+                  paddingX: "1.5",
+                  background: "primary.500",
+                  borderRadius: "6px",
+                })}
+              >
+                단 한 사람만.
+              </span>
             </h1>
-            <p className={css({ marginTop: "4", color: "ink.700", fontSize: "md", lineHeight: "1.75" })}>
-              홍익대 인증으로 상대의 기본 신뢰를 확인하고, 겉모습이 아닌 만남의 태도와 생활
-              신호로 한 사람에게 집중할 수 있는 연결을 제안해요.
+            <p
+              className={css({
+                marginTop: "4",
+                color: "ink.700",
+                fontSize: "md",
+                fontWeight: "semibold",
+                lineHeight: "1.65",
+              })}
+            >
+              검증된 홍익대 구성원과 매주 한 번.
+              <br />
+              사진 대신 취향과 키워드로 만나요.
             </p>
           </div>
         </motion.header>
 
-        <div className={css({ display: "flex", flexDirection: "column", gap: "3" })}>
-          {valueProps.map((prop, index) => (
+        <section
+          aria-label="HGT가 다른 이유"
+          className={css({
+            overflow: "hidden",
+            border: "1px solid",
+            borderColor: "surface.hairline",
+            borderRadius: "18px",
+            background: "var(--content-surface)",
+            boxShadow: "var(--content-shadow)",
+          })}
+        >
+          {reasons.map((reason, index) => (
             <motion.article
-              key={prop.title}
+              key={reason.number}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.08 + index * 0.07, duration: 0.28 }}
               className={css({
-                display: "flex",
-                gap: "3.5",
-                padding: "4",
-                background: "surface.card",
-                border: "1px solid",
+                display: "grid",
+                gridTemplateColumns: "38px 1fr",
+                gap: "3",
+                padding: "3.5",
+                borderTop: index === 0 ? "none" : "1px solid",
                 borderColor: "surface.hairline",
-                borderRadius: "liquid",
-                boxShadow: "cardSoft",
               })}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.1 + index * 0.08, ease: [0.22, 1, 0.36, 1] }}
             >
               <span
-                aria-hidden
                 className={css({
                   display: "grid",
                   placeItems: "center",
-                  width: "44px",
-                  height: "44px",
-                  flexShrink: 0,
-                  borderRadius: "14px",
-                  color: "primary.700",
-                  background: "primary.50",
-                  border: "1px solid",
-                  borderColor: "primary.100",
+                  alignSelf: "start",
+                  width: "34px",
+                  height: "34px",
+                  border: "1px solid rgba(17,17,15,.08)",
+                  borderRadius: "11px",
+                  background: reason.color,
+                  fontFamily: "monospace",
+                  fontSize: "xs",
+                  fontWeight: "black",
                 })}
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  {prop.icon}
-                </svg>
+                {reason.number}
               </span>
-              <div className={css({ minWidth: 0 })}>
-                <h2 className={css({ color: "ink.950", fontSize: "md", fontWeight: "black", lineHeight: "1.4" })}>
-                  {prop.title}
+              <div>
+                <p
+                  className={css({
+                    margin: 0,
+                    color: "ink.500",
+                    fontFamily: "monospace",
+                    fontSize: "10px",
+                    fontWeight: "black",
+                    letterSpacing: "0.09em",
+                  })}
+                >
+                  {reason.label}
+                </p>
+                <h2
+                  className={css({
+                    marginTop: "1",
+                    color: "ink.950",
+                    fontSize: "lg",
+                    fontWeight: "black",
+                    letterSpacing: "-0.025em",
+                  })}
+                >
+                  {reason.title}
                 </h2>
-                <p className={css({ marginTop: "1", color: "ink.500", fontSize: "sm", lineHeight: "1.65" })}>
-                  {prop.body}
+                <p
+                  className={css({
+                    marginTop: "1",
+                    color: "ink.500",
+                    fontSize: "sm",
+                    lineHeight: "1.55",
+                  })}
+                >
+                  {reason.body}
                 </p>
               </div>
             </motion.article>
           ))}
-        </div>
+        </section>
 
         <motion.div
-          className={css({ marginTop: "auto", display: "flex", flexDirection: "column", gap: "3" })}
-          initial={{ opacity: 0, y: 14 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.34, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ delay: 0.32, duration: 0.3 }}
+          className={css({
+            marginTop: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: "3",
+          })}
         >
           <Link
             href="/signin"
             className={css({
               display: "inline-flex",
               alignItems: "center",
-              justifyContent: "center",
-              minHeight: "54px",
-              borderRadius: "capsule",
+              justifyContent: "space-between",
+              minHeight: "58px",
+              paddingX: "5",
+              borderRadius: "16px",
               color: "white",
+              background: "primary.500",
+              border: "1px solid rgba(190,48,36,.18)",
+              boxShadow: "0 12px 26px rgba(255,79,63,.2)",
               fontSize: "md",
               fontWeight: "black",
-              background: "linear-gradient(135deg, #b83e3a, #d0463c)",
-              boxShadow: "0 16px 34px rgba(255,107,95,.3)",
-              transition: "transform 120ms ease",
-              _active: { transform: "scale(0.98)" },
+              _active: {
+                transform: "scale(.985)",
+                boxShadow: "0 6px 16px rgba(255,79,63,.17)",
+              },
             })}
           >
-            재학생 인증으로 시작하기
+            {webWaitlist ? "홍익대 인증하고 사전 등록하기" : "홍익대 인증하고 시작하기"}
+            <span aria-hidden>→</span>
           </Link>
-          <p className={css({ textAlign: "center", color: "ink.500", fontSize: "xs", lineHeight: "1.6" })}>
-            비밀번호는 저장하지 않고 재학 확인에만 사용해요.
+          <p
+            className={css({
+              textAlign: "center",
+              color: "ink.500",
+              fontSize: "xs",
+              lineHeight: "1.6",
+            })}
+          >
+            포털 비밀번호는 저장하지 않고 인증에만 사용해요.
           </p>
         </motion.div>
       </main>

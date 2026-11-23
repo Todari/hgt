@@ -12,8 +12,15 @@ import {
 } from "@/components/onboarding/WizardChrome";
 import { StepTerms } from "@/components/onboarding/StepTerms";
 import { StepKeywords } from "@/components/onboarding/StepKeywords";
-import { StepBasics, type BasicsState } from "@/components/onboarding/StepBasics";
-import { clearDraft, loadDraft, saveDraft } from "@/components/onboarding/draft";
+import {
+  StepBasics,
+  type BasicsState,
+} from "@/components/onboarding/StepBasics";
+import {
+  clearDraft,
+  loadDraft,
+  saveDraft,
+} from "@/components/onboarding/draft";
 import { api, ApiError } from "@/lib/api";
 import { getSession } from "@/lib/session";
 
@@ -22,6 +29,8 @@ const STEPS = [
   { label: "나를 표현하는 키워드" },
   { label: "원하는 상대 키워드" },
   { label: "기본 정보" },
+  { label: "성향 정보" },
+  { label: "소개와 매칭" },
 ];
 
 const STEP_TITLES: ReadonlyArray<{ title: string; subtitle: string }> = [
@@ -39,7 +48,15 @@ const STEP_TITLES: ReadonlyArray<{ title: string; subtitle: string }> = [
   },
   {
     title: "기본 정보",
-    subtitle: "매칭에 도움이 되는 신호예요. 편한 만큼만 채워주세요.",
+    subtitle: "나를 이해하는 데 도움이 되는 정보예요. 편한 만큼만 골라주세요.",
+  },
+  {
+    title: "성향 정보",
+    subtitle: "대화를 시작할 때 참고할 가벼운 신호만 알려주세요.",
+  },
+  {
+    title: "소개와 매칭 범위",
+    subtitle: "대화 전에 전하고 싶은 말과 원하는 범위를 알려주세요.",
   },
 ];
 
@@ -122,8 +139,10 @@ export default function OnboardingPage() {
           mbtiId: profile.mbtiId,
           army: profile.army,
           description: profile.description ?? "",
-          minAge: profile.targetMinAge != null ? String(profile.targetMinAge) : "",
-          maxAge: profile.targetMaxAge != null ? String(profile.targetMaxAge) : "",
+          minAge:
+            profile.targetMinAge != null ? String(profile.targetMinAge) : "",
+          maxAge:
+            profile.targetMaxAge != null ? String(profile.targetMaxAge) : "",
           canCc: profile.canCc,
         };
 
@@ -131,7 +150,9 @@ export default function OnboardingPage() {
         if (draft) {
           setTermsAccepted(agreed || draft.termsAccepted);
           setPrivacyAccepted(agreed || draft.privacyAccepted);
-          setSensitiveAccepted(draft.sensitiveAccepted || profile.religionId != null);
+          setSensitiveAccepted(
+            draft.sensitiveAccepted || profile.religionId != null,
+          );
           setSelf(new Set(draft.selfKeywordIds));
           setIdeal(new Set(draft.idealKeywordIds));
           setBasics({
@@ -145,7 +166,9 @@ export default function OnboardingPage() {
             maxAge: draft.maxAge,
             canCc: draft.canCc,
           });
-          setStep(Math.min(Math.max(draft.step, agreed ? 0 : 0), STEPS.length - 1));
+          setStep(
+            Math.min(Math.max(draft.step, agreed ? 0 : 0), STEPS.length - 1),
+          );
         } else {
           setTermsAccepted(agreed);
           setPrivacyAccepted(agreed);
@@ -158,7 +181,9 @@ export default function OnboardingPage() {
           setStep(agreed ? 1 : 0);
         }
       } catch (err) {
-        setError(err instanceof ApiError ? err.message : "프로필을 불러오지 못했어요.");
+        setError(
+          err instanceof ApiError ? err.message : "프로필을 불러오지 못했어요.",
+        );
       } finally {
         hydrated.current = true;
         setLoading(false);
@@ -238,7 +263,8 @@ export default function OnboardingPage() {
     const min = basics.minAge ? Number(basics.minAge) : null;
     const max = basics.maxAge ? Number(basics.maxAge) : null;
     const inRange = (n: number | null) => n == null || (n >= 18 && n <= 99);
-    if (!inRange(min) || !inRange(max)) return "나이는 18세부터 99세 사이로 입력해주세요.";
+    if (!inRange(min) || !inRange(max))
+      return "나이는 18세부터 99세 사이로 입력해주세요.";
     if (min != null && max != null && min > max)
       return "최소 나이는 최대 나이보다 클 수 없어요.";
     return null;
@@ -246,9 +272,10 @@ export default function OnboardingPage() {
 
   const basicsOk = ageError == null;
 
-  const stepValid = [termsOk, selfOk, idealOk, basicsOk][step] ?? false;
+  const stepValid =
+    [termsOk, selfOk, idealOk, true, true, basicsOk][step] ?? false;
 
-  // Which steps the user may jump to via the dots. Edit mode = all four (terms
+  // Which steps the user may jump to via the dots. Edit mode = all six (terms
   // shown as completed). Fresh mode = up to the furthest validated step.
   const reachable = useCallback(
     (index: number) => {
@@ -331,13 +358,19 @@ export default function OnboardingPage() {
     return (
       <main
         className={css({
-          minHeight: "100dvh",
+          minHeight: "var(--hgt-page-height)",
           display: "grid",
           placeItems: "center",
           padding: "6",
         })}
       >
-        <p className={css({ color: "ink.500", fontSize: "sm", fontWeight: "bold" })}>
+        <p
+          className={css({
+            color: "ink.500",
+            fontSize: "sm",
+            fontWeight: "bold",
+          })}
+        >
           프로필을 불러오는 중이에요.
         </p>
       </main>
@@ -348,14 +381,21 @@ export default function OnboardingPage() {
     return (
       <main
         className={css({
-          minHeight: "100dvh",
+          minHeight: "var(--hgt-page-height)",
           display: "grid",
           placeItems: "center",
           padding: "6",
           textAlign: "center",
         })}
       >
-        <div className={css({ maxWidth: "300px", display: "flex", flexDirection: "column", gap: "3" })}>
+        <div
+          className={css({
+            maxWidth: "300px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "3",
+          })}
+        >
           <span
             className={css({
               display: "inline-flex",
@@ -364,19 +404,41 @@ export default function OnboardingPage() {
               width: "56px",
               height: "56px",
               marginX: "auto",
-              borderRadius: "capsule",
-              background: "linear-gradient(135deg, #ff7a6b, #d0463c)",
-              boxShadow: "0 12px 28px rgba(255,107,95,.3)",
+              borderRadius: "16px",
+              background: "primary.500",
+              border: "1px solid rgba(190,48,36,.18)",
+              boxShadow: "0 10px 24px rgba(255,79,63,.2)",
             })}
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M5 13l4 4L19 7" />
             </svg>
           </span>
-          <h1 className={css({ color: "ink.950", fontSize: "xl", fontWeight: "black" })}>
+          <h1
+            className={css({
+              color: "ink.950",
+              fontSize: "xl",
+              fontWeight: "black",
+            })}
+          >
             프로필이 저장됐어요
           </h1>
-          <p className={css({ color: "ink.500", fontSize: "sm", lineHeight: "1.6" })}>
+          <p
+            className={css({
+              color: "ink.500",
+              fontSize: "sm",
+              lineHeight: "1.6",
+            })}
+          >
             매칭 풀에 자동으로 참여됐어요. 설정에서 끌 수 있어요.
           </p>
         </div>
@@ -385,7 +447,8 @@ export default function OnboardingPage() {
   }
 
   const meta = STEP_TITLES[step] ?? { title: "", subtitle: "" };
-  const onBack = step > 0 && reachable(step - 1) ? () => goToStep(step - 1, true) : null;
+  const onBack =
+    step > 0 && reachable(step - 1) ? () => goToStep(step - 1, true) : null;
   const isLastStep = step === STEPS.length - 1;
   const ctaLabel = isLastStep
     ? saving
@@ -407,18 +470,24 @@ export default function OnboardingPage() {
       footer={
         <>
           {step > 0 && (
-            <WizardGhostButton onClick={() => onBack?.()}>이전</WizardGhostButton>
+            <WizardGhostButton onClick={() => onBack?.()}>
+              이전
+            </WizardGhostButton>
           )}
           <WizardPrimaryButton
             disabled={!stepValid || saving}
-            onClick={() => (isLastStep ? void onComplete() : goToStep(step + 1, true))}
+            onClick={() =>
+              isLastStep ? void onComplete() : goToStep(step + 1, true)
+            }
           >
             {ctaLabel}
           </WizardPrimaryButton>
         </>
       }
     >
-      <div className={css({ display: "flex", flexDirection: "column", gap: "4" })}>
+      <div
+        className={css({ display: "flex", flexDirection: "column", gap: "4" })}
+      >
         <OfflineBanner />
 
         {step === 0 && (
@@ -469,7 +538,36 @@ export default function OnboardingPage() {
             state={basics}
             sensitiveAccepted={sensitiveAccepted}
             gender={gender}
-            onChange={(key, value) => setBasics((prev) => ({ ...prev, [key]: value }))}
+            section="facts"
+            onChange={(key, value) =>
+              setBasics((prev) => ({ ...prev, [key]: value }))
+            }
+          />
+        )}
+
+        {step === 4 && (
+          <StepBasics
+            properties={properties}
+            state={basics}
+            sensitiveAccepted={sensitiveAccepted}
+            gender={gender}
+            section="personality"
+            onChange={(key, value) =>
+              setBasics((prev) => ({ ...prev, [key]: value }))
+            }
+          />
+        )}
+
+        {step === 5 && (
+          <StepBasics
+            properties={properties}
+            state={basics}
+            sensitiveAccepted={sensitiveAccepted}
+            gender={gender}
+            section="preferences"
+            onChange={(key, value) =>
+              setBasics((prev) => ({ ...prev, [key]: value }))
+            }
           />
         )}
 
@@ -485,7 +583,7 @@ export default function OnboardingPage() {
             {error}
           </p>
         )}
-        {step === 3 && ageError && !error && (
+        {step === 5 && ageError && !error && (
           <p
             className={css({
               color: "primary.700",

@@ -2,15 +2,20 @@
 
 import { motion } from "framer-motion";
 import { css } from "_panda/css";
-import { buildChatItems, formatTimeOfDay, type ChatMessage } from "@/components/chat/lib";
+import {
+  buildChatItems,
+  formatTimeOfDay,
+  type ChatMessage,
+} from "@/components/chat/lib";
 import { formatMessageDay } from "@/lib/format";
 
-/* Darkest-coral gradient that keeps white text ≥4.5:1 (see ui/glass.tsx). */
-const CORAL_TEXT_GRADIENT = "linear-gradient(135deg, #b83e3a, #d0463c)";
+const MESSAGE_RED = "#d93629";
 
 function DaySeparator({ date }: { date: string }) {
   return (
-    <div className={css({ display: "grid", placeItems: "center", marginY: "1.5" })}>
+    <div
+      className={css({ display: "grid", placeItems: "center", marginY: "1.5" })}
+    >
       <span
         className={css({
           borderRadius: "capsule",
@@ -58,19 +63,36 @@ function MessageBubble({
     <div
       className={css({
         display: "flex",
-        flexDirection: "column",
-        gap: "0.5",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: "1",
         flexShrink: 0,
-        paddingBottom: "1",
+        paddingBottom: "0.5",
         textAlign: mine ? "right" : "left",
       })}
     >
       {mine && showRead && !failed && !sending && (
-        <span className={css({ color: "primary.600", fontSize: "10px", fontWeight: "black", lineHeight: "1" })}>
+        <span
+          className={css({
+            color: "primary.600",
+            fontSize: "10px",
+            fontWeight: "black",
+            lineHeight: "1",
+            whiteSpace: "nowrap",
+          })}
+        >
           읽음
         </span>
       )}
-      <span className={css({ color: "ink.300", fontSize: "10px", fontWeight: "bold", lineHeight: "1", whiteSpace: "nowrap" })}>
+      <span
+        className={css({
+          color: "ink.300",
+          fontSize: "10px",
+          fontWeight: "bold",
+          lineHeight: "1",
+          whiteSpace: "nowrap",
+        })}
+      >
         {sending ? "전송 중" : formatTimeOfDay(message.createdAt)}
       </span>
     </div>
@@ -99,18 +121,24 @@ function MessageBubble({
       >
         <div
           className={css({
-            borderRadius: radius,
             paddingX: "3.5",
             paddingY: "2.5",
             color: mine ? "white" : "ink.900",
-            background: mine ? CORAL_TEXT_GRADIENT : "surface.card",
+            background: mine ? MESSAGE_RED : "surface.card",
             border: mine ? "none" : "1px solid",
             borderColor: mine ? undefined : "surface.hairline",
-            boxShadow: mine ? "0 6px 16px rgba(255,107,95,.2)" : "cardSoft",
+            boxShadow: "none",
             overflowWrap: "anywhere",
           })}
+          style={{ borderRadius: radius }}
         >
-          <p className={css({ fontSize: "15px", lineHeight: "1.55", whiteSpace: "pre-wrap" })}>
+          <p
+            className={css({
+              fontSize: "15px",
+              lineHeight: "1.55",
+              whiteSpace: "pre-wrap",
+            })}
+          >
             {message.body}
           </p>
         </div>
@@ -119,15 +147,28 @@ function MessageBubble({
       </motion.div>
 
       {failed && (
-        <div className={css({ display: "flex", alignItems: "center", gap: "1.5", marginTop: "1" })}>
-          <span className={css({ color: "primary.700", fontSize: "11px", fontWeight: "bold" })}>
+        <div
+          className={css({
+            display: "flex",
+            alignItems: "center",
+            gap: "1.5",
+            marginTop: "1",
+          })}
+        >
+          <span
+            className={css({
+              color: "primary.700",
+              fontSize: "11px",
+              fontWeight: "bold",
+            })}
+          >
             전송 실패
           </span>
           <button
             type="button"
             onClick={() => onRetry(message)}
             className={css({
-              minHeight: "28px",
+              minHeight: "44px",
               borderRadius: "capsule",
               paddingX: "2.5",
               color: "primary.700",
@@ -145,7 +186,7 @@ function MessageBubble({
             type="button"
             onClick={() => onDelete(message)}
             className={css({
-              minHeight: "28px",
+              minHeight: "44px",
               borderRadius: "capsule",
               paddingX: "2.5",
               color: "ink.500",
@@ -180,7 +221,14 @@ export function MessageList({
   const items = buildChatItems(messages, myId);
 
   return (
-    <div className={css({ display: "flex", flexDirection: "column", paddingX: "3", paddingY: "2" })}>
+    <div
+      className={css({
+        display: "flex",
+        flexDirection: "column",
+        paddingX: "3",
+        paddingY: "2",
+      })}
+    >
       {items.map((item) =>
         item.kind === "day" ? (
           <DaySeparator key={item.key} date={item.date} />

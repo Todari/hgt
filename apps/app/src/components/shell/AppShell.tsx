@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import { css } from "_panda/css";
+import { useEffect, type ReactNode } from "react";
+import { css, cx } from "_panda/css";
 
-/** Fixed bottom bar height (excl. the safe-area inset the bar adds itself). */
-const TAB_BAR_HEIGHT = 64;
+/** Floating Liquid Glass tab bar height (excl. the home-indicator safe area). */
+const TAB_BAR_HEIGHT = 62;
 
 type Tab = {
   href: "/home" | "/conversations" | "/settings";
@@ -66,39 +66,95 @@ const TABS: Tab[] = [
 ];
 
 /**
- * Fixed bottom tab bar for authed pages. Solid (non-blur) surface per the GPU
- * budget; hairline top border; respects the home-indicator inset.
+ * Floating iOS 26-inspired tab chrome. The bar is inset from the viewport like
+ * a single glass volume and each selected tab gets a tinted liquid capsule.
+ * Coarse-pointer blur is capped globally for the WebView GPU budget.
  * `unreadDot` puts a badge dot on the 대화 tab.
  */
 export function TabBar({ unreadDot = false }: { unreadDot?: boolean }) {
   const pathname = usePathname();
+  const activeIndex = pathname.startsWith("/conversations")
+    ? 1
+    : pathname.startsWith("/settings") || pathname.startsWith("/safety")
+      ? 2
+      : 0;
+
+  useEffect(() => {
+    const nativeHandler = (
+      window as typeof window & {
+        webkit?: {
+          messageHandlers?: {
+            hgtNativeTabs?: { postMessage: (value: unknown) => void };
+          };
+        };
+      }
+    ).webkit?.messageHandlers?.hgtNativeTabs;
+
+    nativeHandler?.postMessage({
+      visible: true,
+      activeIndex,
+      unread: unreadDot,
+    });
+  }, [activeIndex, unreadDot]);
+
+  useEffect(() => {
+    return () => {
+      const nativeHandler = (
+        window as typeof window & {
+          webkit?: {
+            messageHandlers?: {
+              hgtNativeTabs?: { postMessage: (value: unknown) => void };
+            };
+          };
+        }
+      ).webkit?.messageHandlers?.hgtNativeTabs;
+      nativeHandler?.postMessage({ visible: false });
+    };
+  }, []);
 
   return (
     <nav
       aria-label="주요 메뉴"
-      className={css({
+      className={cx("hgt-web-tab-bar", css({
         position: "fixed",
         bottom: 0,
         left: 0,
         right: 0,
         zIndex: 50,
-        background: "surface.card",
-        borderTop: "1px solid",
-        borderTopColor: "surface.hairline",
-        // fixed elements escape the body's safe-area padding — pad here
-        paddingBottom: "env(safe-area-inset-bottom)",
-        paddingLeft: "env(safe-area-inset-left)",
-        paddingRight: "env(safe-area-inset-right)",
-      })}
+        paddingX: "3",
+        paddingTop: "2",
+        paddingBottom: "calc(env(safe-area-inset-bottom) + 8px)",
+        paddingLeft: "max(12px, env(safe-area-inset-left))",
+        paddingRight: "max(12px, env(safe-area-inset-right))",
+        pointerEvents: "none",
+        _before: {
+          content: '""',
+          position: "absolute",
+          left: 0,
+          right: 0,
+          top: "-24px",
+          height: "34px",
+          pointerEvents: "none",
+          background: "linear-gradient(to bottom, transparent, rgba(246,240,228,.78))",
+        },
+      }))}
     >
       <div
-        className={css({
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          maxWidth: "480px",
-          height: `${TAB_BAR_HEIGHT}px`,
-          marginX: "auto",
-        })}
+        className={cx(
+          "liquid-glass",
+          css({
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            width: "100%",
+            maxWidth: "430px",
+            height: `${TAB_BAR_HEIGHT}px`,
+            marginX: "auto",
+            padding: "1",
+            borderRadius: "30px",
+            overflow: "hidden",
+            pointerEvents: "auto",
+          }),
+        )}
       >
         {TABS.map((tab) => {
           const active =
@@ -114,12 +170,35 @@ export function TabBar({ unreadDot = false }: { unreadDot?: boolean }) {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "0.5",
+                gap: "0",
                 minHeight: "44px",
                 color: active ? "primary.600" : "ink.500",
+                // 30px outer radius - 4px shell padding = 26px.
+                borderRadius: "26px",
+                border: "1px solid",
+                borderColor: active ? "rgba(255,255,255,.82)" : "transparent",
+                background: active
+                  ? "linear-gradient(145deg, rgba(255,255,255,.72), rgba(255,79,63,.18))"
+                  : "transparent",
+                boxShadow: active
+                  ? "0 7px 18px rgba(217,54,41,.12), inset 0 1px 0 rgba(255,255,255,.86)"
+                  : "none",
+                fontFamily:
+                  "-apple-system, BlinkMacSystemFont, 'Pretendard Variable', sans-serif",
+                WebkitTapHighlightColor: "transparent",
+                transition:
+                  "color 160ms ease, opacity 120ms ease, background 180ms ease, transform 180ms cubic-bezier(.16,1,.3,1)",
+                _active: { opacity: 0.68, transform: "scale(.96)" },
               })}
             >
-              <span className={css({ position: "relative", display: "inline-flex" })}>
+              <span
+                className={css({
+                  position: "relative",
+                  display: "inline-flex",
+                  transform: active ? "translateY(-1px)" : "none",
+                  transition: "transform 140ms ease",
+                })}
+              >
                 {tab.icon(active)}
                 {tab.href === "/conversations" && unreadDot && (
                   <span
@@ -139,8 +218,10 @@ export function TabBar({ unreadDot = false }: { unreadDot?: boolean }) {
               </span>
               <span
                 className={css({
-                  fontSize: "11px",
-                  fontWeight: active ? "black" : "bold",
+                  marginTop: "-1px",
+                  fontSize: "10px",
+                  fontWeight: active ? "semibold" : "medium",
+                  letterSpacing: "-0.01em",
                 })}
               >
                 {tab.label}
@@ -171,7 +252,7 @@ export function AppShell({
   unreadDot?: boolean;
 }) {
   return (
-    <div className={css({ minHeight: "100dvh" })}>
+    <div className={css({ minHeight: "var(--hgt-page-height)" })}>
       <main
         className={css({
           width: "100%",
@@ -180,7 +261,7 @@ export function AppShell({
           paddingTop: "3",
           paddingX: "4",
           // keep scrolled-to-bottom content clear of the fixed bar
-          paddingBottom: `calc(${TAB_BAR_HEIGHT}px + env(safe-area-inset-bottom) + 16px)`,
+          paddingBottom: `calc(${TAB_BAR_HEIGHT}px + env(safe-area-inset-bottom) + 28px)`,
         })}
       >
         {children}

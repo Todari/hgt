@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Conversation, MeProfile, MyMatchResponse } from "@hgt-client/contract";
+import type {
+  Conversation,
+  MeProfile,
+  MyMatchResponse,
+} from "@hgt-client/contract";
 import { css } from "_panda/css";
 import { AppShell } from "@/components/shell/AppShell";
 import { Ambient } from "@/components/ui/Ambient";
@@ -21,15 +25,15 @@ function TrustFooter() {
   return (
     <p
       className={css({
-        color: "ink.300",
-        fontSize: "11px",
+        color: "ink.500",
+        fontSize: "12px",
         fontWeight: "bold",
         textAlign: "center",
         lineHeight: "1.7",
         paddingX: "4",
       })}
     >
-      모든 상대는 홍익대 포털 인증을 거친 재학·휴학생이에요.
+      모든 상대는 홍익대 포털 인증을 거친 재학·휴학·졸업 구성원이에요.
     </p>
   );
 }
@@ -43,10 +47,10 @@ function StatePanel({ children }: { children: React.ReactNode }) {
         placeItems: "center",
         borderRadius: "vessel",
         padding: "6",
-        background: "surface.card",
+        background: "var(--content-surface)",
         border: "1px solid",
         borderColor: "surface.hairline",
-        boxShadow: "cardSoft",
+        boxShadow: "var(--content-shadow)",
         textAlign: "center",
       })}
     >
@@ -88,7 +92,10 @@ export default function HomePage() {
       try {
         await loadData(activeSession);
       } catch (err) {
-        if (alive) setError(err instanceof ApiError ? err.message : "불러오지 못했어요.");
+        if (alive)
+          setError(
+            err instanceof ApiError ? err.message : "불러오지 못했어요.",
+          );
       } finally {
         if (alive) setLoading(false);
       }
@@ -107,7 +114,8 @@ export default function HomePage() {
     const conn = connectRealtime(
       session,
       (event) => {
-        if (event.type === "match") void loadData(session).catch(() => undefined);
+        if (event.type === "match")
+          void loadData(session).catch(() => undefined);
       },
       { onReconnect: () => void loadData(session).catch(() => undefined) },
     );
@@ -138,21 +146,47 @@ export default function HomePage() {
       <Ambient />
       <div className={css({ position: "relative", zIndex: 1 })}>
         <AppShell unreadDot={unreadDot}>
-          <div className={css({ display: "flex", flexDirection: "column", gap: "5" })}>
+          <div
+            className={css({
+              display: "flex",
+              flexDirection: "column",
+              gap: "5",
+            })}
+          >
             {me && <GreetingHeader name={me.name} />}
 
             <OfflineBanner />
 
             {loading ? (
               <StatePanel>
-                <p className={css({ color: "ink.500", fontSize: "sm", fontWeight: "bold" })}>
+                <p
+                  className={css({
+                    color: "ink.500",
+                    fontSize: "sm",
+                    fontWeight: "bold",
+                  })}
+                >
                   이번 주 인연을 불러오는 중이에요.
                 </p>
               </StatePanel>
             ) : error ? (
               <StatePanel>
-                <div className={css({ display: "flex", flexDirection: "column", gap: "3", alignItems: "center" })}>
-                  <p className={css({ color: "ink.700", fontSize: "sm", fontWeight: "bold", lineHeight: "1.7" })}>
+                <div
+                  className={css({
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "3",
+                    alignItems: "center",
+                  })}
+                >
+                  <p
+                    className={css({
+                      color: "ink.700",
+                      fontSize: "sm",
+                      fontWeight: "bold",
+                      lineHeight: "1.7",
+                    })}
+                  >
                     {error}
                   </p>
                   <button
@@ -183,8 +217,21 @@ export default function HomePage() {
                   <>
                     <MatchWaitingCard noMatchThisWeek={noMatchThisWeek} />
                     {previous && (
-                      <div className={css({ display: "flex", flexDirection: "column", gap: "2" })}>
-                        <p className={css({ color: "ink.500", fontSize: "xs", fontWeight: "black", paddingLeft: "1" })}>
+                      <div
+                        className={css({
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "2",
+                        })}
+                      >
+                        <p
+                          className={css({
+                            color: "ink.500",
+                            fontSize: "xs",
+                            fontWeight: "black",
+                            paddingLeft: "1",
+                          })}
+                        >
                           지난주의 인연
                         </p>
                         <PreviousMatchCard match={previous} />
@@ -193,7 +240,11 @@ export default function HomePage() {
                   </>
                 ) : (
                   /* STATE C — never matched. Activation checklist. */
-                  <ActivationChecklist session={session} me={me} onProfileChange={setMe} />
+                  <ActivationChecklist
+                    session={session}
+                    me={me}
+                    onProfileChange={setMe}
+                  />
                 )}
 
                 {/* Native-only push opt-in — never on web. */}

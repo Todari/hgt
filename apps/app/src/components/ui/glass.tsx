@@ -9,49 +9,17 @@ import { css, cx } from "_panda/css";
 type GlassTone = "default" | "quiet" | "strong";
 type GlassVariant = "solid" | "glass";
 
-/*
- * White-text coral gradients are clamped: the LIGHT end never goes above
- * primary.600 (#d0463c, ≈4.55:1 against white). #ff6b5f/#ff9a87 ends fail
- * WCAG AA — keep them for decoration only, never under white text.
- */
-const CORAL_TEXT_GRADIENT = "linear-gradient(135deg, #b83e3a, #d0463c)";
-
-const toneStyles: Record<GlassTone, string> = {
-  default: css({ boxShadow: "glassFloat" }),
-  quiet: css({
-    background:
-      "linear-gradient(145deg, rgba(255,255,255,.58), rgba(255,255,255,.24))",
-    boxShadow:
-      "0 1px 0 rgba(255,255,255,.72) inset, 0 14px 30px rgba(10,17,24,.08), 0 10px 26px rgba(255,107,95,.1)",
-  }),
-  strong: css({ boxShadow: "actionGlow" }),
+const panelTone: Record<GlassTone, string> = {
+  default: css({ background: "var(--content-surface)" }),
+  quiet: css({ background: "rgba(255,252,247,.76)" }),
+  strong: css({ background: "primary.500" }),
 };
 
-/* Solid content surface: opaque card, hairline border, ONE soft shadow. */
-const solidStyles = css({
-  background: "surface.card",
-  border: "1px solid",
-  borderColor: "surface.hairline",
-  boxShadow: "cardSoft",
-});
-
-const solidToneStyles: Partial<Record<GlassTone, string>> = {
-  strong: css({
-    borderColor: "primary.200",
-    boxShadow: "0 8px 28px rgba(255,107,95,.16)",
-  }),
-};
-
-/**
- * Content surface. `variant="solid"` (default) renders an opaque card —
- * cheap to composite and readable. Reserve `variant="glass"` (backdrop blur)
- * for nav chrome and floating accents only, per the GPU budget.
- */
 export function GlassPanel({
   children,
   className,
   tone = "default",
-  variant = "solid",
+  variant: _variant = "solid",
   interactive = false,
   ...props
 }: HTMLMotionProps<"section"> & {
@@ -59,22 +27,24 @@ export function GlassPanel({
   variant?: GlassVariant;
   interactive?: boolean;
 }) {
-  const base = css({
-    position: "relative",
-    overflow: "hidden",
-    borderRadius: "liquid",
-    padding: "5",
-  });
-  const classNames =
-    variant === "glass"
-      ? cx("glass-panel", toneStyles[tone], base, className)
-      : cx(base, solidStyles, solidToneStyles[tone], className);
-
   return (
     <motion.section
-      className={classNames}
-      whileHover={interactive ? { y: -4 } : undefined}
-      transition={{ duration: 0.18 }}
+      className={cx(
+        css({
+          position: "relative",
+          overflow: "hidden",
+          borderRadius: "liquid",
+          padding: "5",
+          border: "1px solid",
+          borderColor: "surface.hairline",
+          boxShadow: "var(--content-shadow)",
+        }),
+        panelTone[tone],
+        className,
+      )}
+      whileHover={interactive ? { y: -1 } : undefined}
+      whileTap={interactive ? { scale: 0.99 } : undefined}
+      transition={{ duration: 0.12 }}
       {...props}
     >
       {children}
@@ -92,25 +62,24 @@ export function GlassBadge({
   return (
     <span
       className={cx(
-        "glass-panel",
         css({
-          position: "relative",
-          zIndex: 1,
           display: "inline-flex",
           alignItems: "center",
           width: "fit-content",
-          minHeight: "34px",
+          minHeight: "30px",
           borderRadius: "capsule",
-          paddingX: "4",
-          color: "ink.700",
-          fontSize: "sm",
-          fontWeight: "bold",
-          boxShadow: "glassInset",
+          paddingX: "3",
+          color: "ink.950",
+          background: "#fff3bd",
+          border: "1px solid rgba(218,167,22,.22)",
+          boxShadow: "none",
+          fontSize: "xs",
+          fontWeight: "black",
         }),
         className,
       )}
     >
-      <span className={css({ position: "relative", zIndex: 1 })}>{children}</span>
+      {children}
     </span>
   );
 }
@@ -133,45 +102,27 @@ export function GlassButton({
   const classNames = cx(
     "glass-control",
     css({
-      position: "relative",
-      zIndex: 1,
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",
       minHeight: "52px",
-      borderRadius: "capsule",
+      borderRadius: "16px",
       paddingX: "6",
       paddingY: "2.5",
-      border: "1px solid rgba(255,255,255,.72)",
+      color: variant === "primary" ? "white" : "ink.950",
+      background: variant === "primary" ? "primary.500" : "surface.card",
       fontWeight: "black",
       whiteSpace: "nowrap",
-      _disabled: {
-        cursor: "not-allowed",
-        opacity: 0.58,
-      },
+      _disabled: { cursor: "not-allowed", opacity: 0.5 },
     }),
-    variant === "primary"
-      ? css({
-          color: "white",
-          background: CORAL_TEXT_GRADIENT,
-          boxShadow: "actionGlow",
-        })
-      : css({
-          color: "ink.800",
-          background:
-            "linear-gradient(145deg, rgba(255,255,255,.7), rgba(255,255,255,.3))",
-          boxShadow: "glassLift",
-        }),
     className,
   );
 
-  const content = <span className={css({ position: "relative", zIndex: 1 })}>{children}</span>;
-
   if (href) {
     return (
-      <motion.div whileHover={{ y: -3, scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+      <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.985 }}>
         <Link href={href} className={classNames}>
-          {content}
+          {children}
         </Link>
       </motion.div>
     );
@@ -181,11 +132,11 @@ export function GlassButton({
     <motion.button
       className={classNames}
       disabled={disabled}
-      whileHover={disabled ? undefined : { y: -3, scale: 1.02 }}
-      whileTap={disabled ? undefined : { scale: 0.98 }}
+      whileHover={disabled ? undefined : { y: -1 }}
+      whileTap={disabled ? undefined : { scale: 0.985 }}
       {...props}
     >
-      {content}
+      {children}
     </motion.button>
   );
 }
@@ -207,28 +158,45 @@ export function GlassTextField({
   ...props
 }: GlassTextFieldProps) {
   const fieldId = id ?? `field-${label.replace(/\s+/g, "-").toLowerCase()}`;
-
   return (
-    <div className={cx(css({ display: "flex", flexDirection: "column", gap: "2" }), containerClassName)}>
+    <div
+      className={cx(
+        css({ display: "flex", flexDirection: "column", gap: "2" }),
+        containerClassName,
+      )}
+    >
       <label
         htmlFor={fieldId}
-        className={css({ color: "ink.700", fontSize: "sm", fontWeight: "bold" })}
+        className={css({
+          color: "ink.950",
+          fontSize: "sm",
+          fontWeight: "black",
+        })}
       >
         {label}
       </label>
       <input
         id={fieldId}
         className={cx(
-          "glass-field",
           css({
-            minHeight: "52px",
-            borderRadius: "18px",
+            width: "100%",
+            minHeight: "50px",
+            borderRadius: "12px",
             paddingX: "4",
             color: "ink.950",
-            fontSize: "md",
+            background: "rgba(255,255,255,.82)",
+            fontSize: "16px",
             fontWeight: "medium",
-            boxShadow:
-              "0 1px 0 rgba(255,255,255,.78) inset, 0 14px 30px rgba(10,17,24,.08)",
+            appearance: "none",
+            border: "1px solid",
+            borderColor: "surface.hairline",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,.9)",
+            _focusVisible: {
+              outline: "none",
+              borderColor: "primary.300",
+              boxShadow: "0 0 0 3px rgba(255,79,63,.14)",
+            },
+            _placeholder: { color: "ink.300" },
           }),
           className,
         )}
@@ -243,7 +211,7 @@ export function GlassTextField({
             color: error ? "primary.700" : "ink.500",
             fontSize: "xs",
             lineHeight: "1.6",
-            fontWeight: error ? "bold" : "medium",
+            fontWeight: error ? "black" : "medium",
           })}
         >
           {error ?? helper}
@@ -270,29 +238,46 @@ export function GlassTextarea({
   ...props
 }: GlassTextareaProps) {
   const fieldId = id ?? `field-${label.replace(/\s+/g, "-").toLowerCase()}`;
-
   return (
-    <div className={cx(css({ display: "flex", flexDirection: "column", gap: "2" }), containerClassName)}>
+    <div
+      className={cx(
+        css({ display: "flex", flexDirection: "column", gap: "2" }),
+        containerClassName,
+      )}
+    >
       <label
         htmlFor={fieldId}
-        className={css({ color: "ink.700", fontSize: "sm", fontWeight: "bold" })}
+        className={css({
+          color: "ink.950",
+          fontSize: "sm",
+          fontWeight: "black",
+        })}
       >
         {label}
       </label>
       <textarea
         id={fieldId}
         className={cx(
-          "glass-field",
           css({
+            width: "100%",
             minHeight: "108px",
-            borderRadius: "18px",
+            borderRadius: "12px",
             padding: "4",
             color: "ink.950",
-            fontSize: "md",
+            background: "rgba(255,255,255,.82)",
+            fontSize: "16px",
             fontWeight: "medium",
             resize: "vertical",
-            boxShadow:
-              "0 1px 0 rgba(255,255,255,.78) inset, 0 14px 30px rgba(10,17,24,.08)",
+            appearance: "none",
+            border: "1px solid",
+            borderColor: "surface.hairline",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,.9)",
+            _focusVisible: {
+              outline: "none",
+              borderColor: "primary.300",
+              boxShadow: "0 0 0 3px rgba(255,79,63,.14)",
+            },
+            _placeholder: { color: "ink.300" },
           }),
           className,
         )}
@@ -307,7 +292,7 @@ export function GlassTextarea({
             color: error ? "primary.700" : "ink.500",
             fontSize: "xs",
             lineHeight: "1.6",
-            fontWeight: error ? "bold" : "medium",
+            fontWeight: error ? "black" : "medium",
           })}
         >
           {error ?? helper}
@@ -326,50 +311,35 @@ export function GlassChip({
   selected?: boolean;
   onClick?: () => void;
 }) {
-  const classNames = cx(
-    onClick ? "glass-control" : undefined,
-    css({
-      position: "relative",
-      zIndex: 1,
-      display: "inline-flex",
-      alignItems: "center",
-      // 44px = minimum comfortable touch target
-      minHeight: "44px",
-      borderRadius: "capsule",
-      paddingX: "4",
-      color: selected ? "white" : "ink.700",
-      fontSize: "sm",
-      fontWeight: "bold",
-      cursor: onClick ? "pointer" : "default",
-      background: selected ? CORAL_TEXT_GRADIENT : "rgba(255,255,255,.36)",
-      border: "1px solid",
-      borderColor: selected ? "rgba(255,255,255,.76)" : "rgba(255,255,255,.58)",
-      boxShadow: selected
-        ? "0 1px 0 rgba(255,255,255,.58) inset, 0 12px 26px rgba(255,107,95,.22)"
-        : "0 1px 0 rgba(255,255,255,.72) inset, 0 10px 20px rgba(10,17,24,.07)",
-    }),
-  );
+  const classNames = css({
+    display: "inline-flex",
+    alignItems: "center",
+    minHeight: "44px",
+    borderRadius: "capsule",
+    paddingX: "4",
+    color: "ink.950",
+    background: selected ? "rgba(255,79,63,.13)" : "surface.card",
+    border: "1px solid",
+    borderColor: selected ? "rgba(255,79,63,.4)" : "surface.hairline",
+    boxShadow: selected ? "0 5px 16px rgba(255,79,63,.1)" : "none",
+    fontSize: "sm",
+    fontWeight: "black",
+    cursor: onClick ? "pointer" : "default",
+  });
 
-  const content = <span className={css({ position: "relative", zIndex: 1 })}>{children}</span>;
-
-  if (!onClick) {
-    return <span className={classNames}>{content}</span>;
-  }
-
+  if (!onClick) return <span className={classNames}>{children}</span>;
   return (
-    <button type="button" aria-pressed={selected} onClick={onClick} className={classNames}>
-      {content}
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onClick}
+      className={classNames}
+    >
+      {children}
     </button>
   );
 }
 
-/**
- * The single switch-knob visual used by every toggle in the app (the glass
- * `GlassToggle` card here AND the solid settings row's `SettingsToggleRow`).
- * Keep both surfaces rendering this one primitive so the toggle reads
- * identically everywhere. Visual only — state/semantics live on the parent
- * button. `aria-hidden` because the parent carries role="switch".
- */
 export function SwitchKnob({ checked }: { checked: boolean }) {
   return (
     <span
@@ -377,25 +347,27 @@ export function SwitchKnob({ checked }: { checked: boolean }) {
       className={css({
         position: "relative",
         flexShrink: 0,
-        width: "46px",
-        height: "28px",
+        width: "51px",
+        height: "31px",
         borderRadius: "capsule",
-        background: checked ? CORAL_TEXT_GRADIENT : "rgba(10,17,24,.14)",
+        background: checked ? "primary.500" : "rgba(104,99,91,.22)",
+        border: "none",
         boxShadow: checked
-          ? "0 10px 20px rgba(255,107,95,.24)"
-          : "0 1px 0 rgba(255,255,255,.62) inset",
+          ? "inset 0 0 0 1px rgba(185,38,28,.1)"
+          : "inset 0 0 0 1px rgba(17,17,15,.06)",
         transition: "background 160ms ease, box-shadow 160ms ease",
         _before: {
           content: '""',
           position: "absolute",
-          top: "4px",
-          left: checked ? "22px" : "4px",
-          width: "20px",
-          height: "20px",
+          top: "2px",
+          left: checked ? "22px" : "2px",
+          width: "27px",
+          height: "27px",
           borderRadius: "50%",
           background: "white",
-          boxShadow: "0 2px 6px rgba(10,17,24,.22)",
-          transition: "left 160ms ease",
+          border: "none",
+          boxShadow: "0 1px 3px rgba(17,17,15,.24), 0 0 1px rgba(17,17,15,.18)",
+          transition: "left 160ms cubic-bezier(.2,.8,.2,1)",
         },
       })}
     />
@@ -419,45 +391,46 @@ export function GlassToggle({
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={cx(
-        "glass-control",
-        css({
-          position: "relative",
-          zIndex: 1,
-          width: "100%",
-          borderRadius: "20px",
-          padding: "3",
-          display: "grid",
-          gridTemplateColumns: "1fr auto",
-          alignItems: "center",
-          gap: "4",
-          textAlign: "left",
-          background: "rgba(255,255,255,.36)",
-          boxShadow: "0 1px 0 rgba(255,255,255,.72) inset, 0 12px 26px rgba(10,17,24,.07)",
-        }),
-      )}
+      className={css({
+        width: "100%",
+        minHeight: "60px",
+        borderRadius: "12px",
+        padding: "3.5",
+        display: "grid",
+        gridTemplateColumns: "1fr auto",
+        alignItems: "center",
+        gap: "4",
+        textAlign: "left",
+        background: "surface.card",
+        border: "1px solid",
+        borderColor: "surface.hairline",
+      })}
     >
       <span
-        className={css({
-          position: "relative",
-          zIndex: 1,
-          display: "flex",
-          flexDirection: "column",
-          gap: "1",
-        })}
+        className={css({ display: "flex", flexDirection: "column", gap: "1" })}
       >
-        <span className={css({ color: "ink.950", fontSize: "sm", fontWeight: "black" })}>
+        <span
+          className={css({
+            color: "ink.950",
+            fontSize: "sm",
+            fontWeight: "black",
+          })}
+        >
           {label}
         </span>
         {description && (
-          <span className={css({ color: "ink.500", fontSize: "xs", lineHeight: "1.5" })}>
+          <span
+            className={css({
+              color: "ink.500",
+              fontSize: "xs",
+              lineHeight: "1.5",
+            })}
+          >
             {description}
           </span>
         )}
       </span>
-      <span className={css({ position: "relative", zIndex: 1 })}>
-        <SwitchKnob checked={checked} />
-      </span>
+      <SwitchKnob checked={checked} />
     </button>
   );
 }
@@ -472,9 +445,21 @@ export function GlassFeatureCard({
   children: ReactNode;
 }) {
   return (
-    <GlassPanel interactive tone="quiet" className={css({ minHeight: "210px" })}>
-      <div className={css({ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: "3" })}>
-        <span className={css({ color: "primary.700", fontSize: "xs", fontWeight: "black" })}>
+    <GlassPanel
+      interactive
+      tone="quiet"
+      className={css({ minHeight: "210px" })}
+    >
+      <div
+        className={css({ display: "flex", flexDirection: "column", gap: "3" })}
+      >
+        <span
+          className={css({
+            color: "primary.700",
+            fontSize: "xs",
+            fontWeight: "black",
+          })}
+        >
           {label}
         </span>
         <h3
@@ -487,7 +472,13 @@ export function GlassFeatureCard({
         >
           {title}
         </h3>
-        <p className={css({ color: "ink.500", fontSize: "sm", lineHeight: "1.7" })}>
+        <p
+          className={css({
+            color: "ink.500",
+            fontSize: "sm",
+            lineHeight: "1.7",
+          })}
+        >
           {children}
         </p>
       </div>
@@ -506,12 +497,11 @@ export function GlassMetric({
     <div
       className={css({
         minWidth: 0,
-        border: "1px solid rgba(255,255,255,.58)",
-        borderRadius: "20px",
+        border: "1px solid rgba(218,167,22,.22)",
+        borderRadius: "14px",
         padding: "3",
-        background: "rgba(255,255,255,.36)",
-        boxShadow: "0 12px 26px rgba(10,17,24,.07)",
-        backdropFilter: "blur(11px)",
+        background: "#ffd84d",
+        boxShadow: "0 6px 18px rgba(218,167,22,.1)",
       })}
     >
       <p
@@ -525,7 +515,13 @@ export function GlassMetric({
       >
         {value}
       </p>
-      <p className={css({ color: "ink.500", fontSize: "xs", fontWeight: "bold" })}>
+      <p
+        className={css({
+          color: "ink.700",
+          fontSize: "xs",
+          fontWeight: "bold",
+        })}
+      >
         {label}
       </p>
     </div>

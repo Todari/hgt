@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { PartnerUser } from "@hgt-client/contract";
-import { css } from "_panda/css";
+import { css, cx } from "_panda/css";
 import { api, ApiError } from "@/lib/api";
 
 type Mode = "menu" | "report";
@@ -56,7 +56,11 @@ export function SafetySheet({
       await api.blockUser(session, partner.id);
       onBlocked();
     } catch (err) {
-      setNotice(err instanceof ApiError ? err.message : "차단에 실패했어요. 잠시 후 다시 시도해 주세요.");
+      setNotice(
+        err instanceof ApiError
+          ? err.message
+          : "차단에 실패했어요. 잠시 후 다시 시도해 주세요.",
+      );
       setBusy(null);
     }
   }
@@ -76,7 +80,11 @@ export function SafetySheet({
       setNotice("신고가 접수됐어요. 운영팀이 빠르게 확인할게요.");
       setMode("menu");
     } catch (err) {
-      setNotice(err instanceof ApiError ? err.message : "신고에 실패했어요. 잠시 후 다시 시도해 주세요.");
+      setNotice(
+        err instanceof ApiError
+          ? err.message
+          : "신고에 실패했어요. 잠시 후 다시 시도해 주세요.",
+      );
     } finally {
       setBusy(null);
     }
@@ -105,20 +113,25 @@ export function SafetySheet({
             role="dialog"
             aria-modal="true"
             aria-label="안전 조치"
-            className={css({
-              width: "100%",
-              maxWidth: "480px",
-              marginX: "auto",
-              background: "surface.card",
-              borderTopRadius: "vessel",
-              boxShadow: "0 -12px 40px rgba(10,17,24,.22)",
-              paddingX: "5",
-              paddingTop: "3",
-              paddingBottom: "calc(env(safe-area-inset-bottom) + 20px)",
-              display: "flex",
-              flexDirection: "column",
-              gap: "3",
-            })}
+            className={cx(
+              "liquid-chrome",
+              css({
+                width: "100%",
+                maxWidth: "480px",
+                marginX: "auto",
+                borderTopRadius: "28px",
+                borderBottom: "none",
+                boxShadow:
+                  "0 -18px 56px rgba(80,46,36,.2), inset 0 1px 0 rgba(255,255,255,.88)",
+                paddingX: "5",
+                paddingTop: "3",
+                paddingBottom: "calc(env(safe-area-inset-bottom) + 20px)",
+                display: "flex",
+                flexDirection: "column",
+                gap: "3",
+                overflow: "hidden",
+              }),
+            )}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -140,10 +153,23 @@ export function SafetySheet({
             {mode === "menu" ? (
               <>
                 <div className={css({ textAlign: "center" })}>
-                  <h2 className={css({ color: "ink.950", fontSize: "md", fontWeight: "black" })}>
+                  <h2
+                    className={css({
+                      color: "ink.950",
+                      fontSize: "md",
+                      fontWeight: "black",
+                    })}
+                  >
                     {partner.name}님과의 대화
                   </h2>
-                  <p className={css({ marginTop: "1", color: "ink.500", fontSize: "xs", lineHeight: "1.6" })}>
+                  <p
+                    className={css({
+                      marginTop: "1",
+                      color: "ink.500",
+                      fontSize: "xs",
+                      lineHeight: "1.6",
+                    })}
+                  >
                     불편한 상황이 생기면 언제든 멈출 수 있어요.
                   </p>
                 </div>
@@ -168,7 +194,14 @@ export function SafetySheet({
                   </p>
                 )}
 
-                <div className={css({ display: "flex", flexDirection: "column", gap: "2", marginTop: "1" })}>
+                <div
+                  className={css({
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "2",
+                    marginTop: "1",
+                  })}
+                >
                   <button
                     type="button"
                     onClick={() => {
@@ -242,7 +275,13 @@ export function SafetySheet({
               </>
             ) : (
               <>
-                <div className={css({ display: "flex", alignItems: "center", gap: "2" })}>
+                <div
+                  className={css({
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "2",
+                  })}
+                >
                   <button
                     type="button"
                     aria-label="뒤로"
@@ -253,8 +292,8 @@ export function SafetySheet({
                     className={css({
                       display: "grid",
                       placeItems: "center",
-                      width: "36px",
-                      height: "36px",
+                      width: "44px",
+                      height: "44px",
                       flexShrink: 0,
                       borderRadius: "12px",
                       color: "ink.700",
@@ -264,16 +303,40 @@ export function SafetySheet({
                       _active: { background: "ink.50" },
                     })}
                   >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden
+                    >
                       <path d="M15 5l-7 7 7 7" />
                     </svg>
                   </button>
-                  <h2 className={css({ color: "ink.950", fontSize: "md", fontWeight: "black" })}>
+                  <h2
+                    className={css({
+                      color: "ink.950",
+                      fontSize: "md",
+                      fontWeight: "black",
+                    })}
+                  >
                     신고하기
                   </h2>
                 </div>
-                <p className={css({ color: "ink.500", fontSize: "xs", lineHeight: "1.6", paddingX: "1" })}>
-                  어떤 점이 불편했는지 구체적으로 적어주시면 검토에 큰 도움이 돼요.
+                <p
+                  className={css({
+                    color: "ink.500",
+                    fontSize: "xs",
+                    lineHeight: "1.6",
+                    paddingX: "1",
+                  })}
+                >
+                  어떤 점이 불편했는지 구체적으로 적어주시면 검토에 큰 도움이
+                  돼요.
                 </p>
                 <textarea
                   value={reason}
@@ -301,7 +364,14 @@ export function SafetySheet({
                   })}
                 />
                 {notice && (
-                  <p className={css({ color: "primary.700", fontSize: "sm", fontWeight: "bold", paddingX: "1" })}>
+                  <p
+                    className={css({
+                      color: "primary.700",
+                      fontSize: "sm",
+                      fontWeight: "bold",
+                      paddingX: "1",
+                    })}
+                  >
                     {notice}
                   </p>
                 )}
@@ -311,13 +381,13 @@ export function SafetySheet({
                   disabled={busy != null}
                   className={css({
                     minHeight: "52px",
-                    borderRadius: "capsule",
+                    borderRadius: "16px",
                     color: "white",
                     fontSize: "sm",
                     fontWeight: "black",
-                    background: "linear-gradient(135deg, #b83e3a, #d0463c)",
-                    boxShadow: "0 10px 24px rgba(255,107,95,.28)",
-                    border: "none",
+                    background: "primary.500",
+                    boxShadow: "0 8px 20px rgba(255,79,63,.18)",
+                    border: "1px solid rgba(190,48,36,.18)",
                     cursor: "pointer",
                     _disabled: { opacity: 0.6, cursor: "not-allowed" },
                   })}
@@ -335,13 +405,34 @@ export function SafetySheet({
 
 function SheetIcon({ kind }: { kind: "report" | "block" }) {
   return (
-    <span aria-hidden className={css({ display: "inline-flex", flexShrink: 0 })}>
+    <span
+      aria-hidden
+      className={css({ display: "inline-flex", flexShrink: 0 })}
+    >
       {kind === "report" ? (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M4 21V4h11l-1.4 3.5L15 11H4" />
         </svg>
       ) : (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <circle cx="12" cy="12" r="9" />
           <path d="M5.6 5.6l12.8 12.8" />
         </svg>

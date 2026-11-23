@@ -3,8 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import type { Conversation, MeProfile, PartnerUser } from "@hgt-client/contract";
-import { css } from "_panda/css";
+import type {
+  Conversation,
+  MeProfile,
+  PartnerUser,
+} from "@hgt-client/contract";
+import { css, cx } from "_panda/css";
 import { Composer } from "@/components/chat/Composer";
 import { Icebreakers } from "@/components/chat/Icebreakers";
 import { mergeMessages, type ChatMessage } from "@/components/chat/lib";
@@ -84,7 +88,9 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
           api.getConversations(current),
           api.getMessages(current, conversationId, { limit: PAGE_SIZE }),
         ]);
-        const conv = conversationList.find((item) => item.id === conversationId);
+        const conv = conversationList.find(
+          (item) => item.id === conversationId,
+        );
         if (!conv) throw new ApiError("대화를 찾을 수 없어요.", 404);
 
         await api.markRead(current, conversationId);
@@ -109,7 +115,9 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
         }
       } catch (err) {
         if (!active) return;
-        setErrorMessage(err instanceof ApiError ? err.message : "대화를 불러오지 못했어요.");
+        setErrorMessage(
+          err instanceof ApiError ? err.message : "대화를 불러오지 못했어요.",
+        );
         setLoadState("error");
       }
     })();
@@ -137,7 +145,9 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
 
     const refetchNewest = async () => {
       try {
-        const history = await api.getMessages(session, conversationId, { limit: PAGE_SIZE });
+        const history = await api.getMessages(session, conversationId, {
+          limit: PAGE_SIZE,
+        });
         ingest(history);
         await api.markRead(session, conversationId);
       } catch {
@@ -246,7 +256,12 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
       try {
         const sent = await api.sendMessage(current, conversationId, trimmed);
         // Drop the temp row, add the settled server row.
-        setMessages((curr) => mergeMessages(curr.filter((m) => m.id !== tempId), [sent]));
+        setMessages((curr) =>
+          mergeMessages(
+            curr.filter((m) => m.id !== tempId),
+            [sent],
+          ),
+        );
       } catch (err) {
         // A 400 (content filter / validation) will never succeed as-is: drop the
         // bubble, restore the draft to edit, and show the server reason inline.
@@ -257,7 +272,9 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
           setSendError(err.message);
         } else {
           setMessages((curr) =>
-            curr.map((m) => (m.id === tempId ? { ...m, clientStatus: "failed" } : m)),
+            curr.map((m) =>
+              m.id === tempId ? { ...m, clientStatus: "failed" } : m,
+            ),
           );
           if (err instanceof ApiError) setSendError(err.message);
         }
@@ -305,18 +322,25 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
     >
       {/* ---------------- header ---------------- */}
       <header
-        className={css({
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          gap: "1.5",
-          minHeight: "52px",
-          paddingX: "1.5",
-          paddingTop: "env(safe-area-inset-top)",
-          background: "surface.card",
-          borderBottom: "1px solid",
-          borderBottomColor: "surface.hairline",
-        })}
+        className={cx(
+          "liquid-chrome",
+          css({
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: "2",
+            minHeight: "58px",
+            paddingX: "2.5",
+            paddingTop: "env(safe-area-inset-top)",
+            paddingBottom: "1",
+            borderTop: "none",
+            borderLeft: "none",
+            borderRight: "none",
+            borderBottomColor: "rgba(255,255,255,.7)",
+            borderBottomRadius: "22px",
+            overflow: "hidden",
+          }),
+        )}
       >
         <button
           type="button"
@@ -324,27 +348,53 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
           // Always go to the canonical parent: a deep link (push / shared URL)
           // has an about:blank history entry, so router.back() would dead-end.
           onClick={() => router.replace("/conversations")}
-          className={css({
-            display: "grid",
-            placeItems: "center",
-            width: "44px",
-            height: "44px",
-            flexShrink: 0,
-            borderRadius: "50%",
-            color: "ink.900",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            _active: { background: "ink.50" },
-          })}
+          className={cx(
+            "liquid-icon",
+            "liquid-interactive",
+            css({
+              display: "grid",
+              placeItems: "center",
+              width: "44px",
+              height: "44px",
+              flexShrink: 0,
+              borderRadius: "50%",
+              color: "ink.900",
+              cursor: "pointer",
+            }),
+          )}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
             <path d="M15 5l-7 7 7 7" />
           </svg>
         </button>
 
-        <div className={css({ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "0" })}>
-          <div className={css({ display: "flex", alignItems: "center", gap: "1.5", minWidth: 0 })}>
+        <div
+          className={css({
+            flex: 1,
+            minWidth: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: "0",
+          })}
+        >
+          <div
+            className={css({
+              display: "flex",
+              alignItems: "center",
+              gap: "1.5",
+              minWidth: 0,
+            })}
+          >
             <span
               className={css({
                 color: "ink.950",
@@ -375,9 +425,24 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
                   borderColor: "primary.100",
                 })}
               >
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M12 2.5 4.5 5.6v5.2c0 4.8 3.2 9.2 7.5 10.7 4.3-1.5 7.5-5.9 7.5-10.7V5.6L12 2.5Z" fill="#d0463c" />
-                  <path d="m8.6 12 2.3 2.3 4.5-4.5" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  width="9"
+                  height="9"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden
+                >
+                  <path
+                    d="M12 2.5 4.5 5.6v5.2c0 4.8 3.2 9.2 7.5 10.7 4.3-1.5 7.5-5.9 7.5-10.7V5.6L12 2.5Z"
+                    fill="#d0463c"
+                  />
+                  <path
+                    d="m8.6 12 2.3 2.3 4.5-4.5"
+                    stroke="white"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
                 인증
               </span>
@@ -404,21 +469,28 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
             type="button"
             aria-label="대화 옵션"
             onClick={() => setSheetOpen(true)}
-            className={css({
-              display: "grid",
-              placeItems: "center",
-              width: "44px",
-              height: "44px",
-              flexShrink: 0,
-              borderRadius: "50%",
-              color: "ink.700",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              _active: { background: "ink.50" },
-            })}
+            className={cx(
+              "liquid-icon",
+              "liquid-interactive",
+              css({
+                display: "grid",
+                placeItems: "center",
+                width: "44px",
+                height: "44px",
+                flexShrink: 0,
+                borderRadius: "50%",
+                color: "ink.700",
+                cursor: "pointer",
+              }),
+            )}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden
+            >
               <circle cx="12" cy="5" r="1.7" />
               <circle cx="12" cy="12" r="1.7" />
               <circle cx="12" cy="19" r="1.7" />
@@ -427,7 +499,15 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
         )}
       </header>
 
-      <div className={css({ flexShrink: 0, paddingX: "3", maxWidth: "480px", width: "100%", marginX: "auto" })}>
+      <div
+        className={css({
+          flexShrink: 0,
+          paddingX: "3",
+          maxWidth: "480px",
+          width: "100%",
+          marginX: "auto",
+        })}
+      >
         <OfflineBanner />
       </div>
 
@@ -444,17 +524,43 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
         })}
       >
         {loadState === "loading" && (
-          <div className={css({ height: "100%", display: "grid", placeItems: "center" })}>
-            <p className={css({ color: "ink.500", fontSize: "sm", fontWeight: "bold" })}>
+          <div
+            className={css({
+              height: "100%",
+              display: "grid",
+              placeItems: "center",
+            })}
+          >
+            <p
+              className={css({
+                color: "ink.500",
+                fontSize: "sm",
+                fontWeight: "bold",
+              })}
+            >
               대화를 불러오는 중이에요.
             </p>
           </div>
         )}
 
         {loadState === "error" && (
-          <div className={css({ height: "100%", display: "grid", placeItems: "center", paddingX: "8" })}>
+          <div
+            className={css({
+              height: "100%",
+              display: "grid",
+              placeItems: "center",
+              paddingX: "8",
+            })}
+          >
             <div className={css({ textAlign: "center" })}>
-              <p className={css({ color: "ink.900", fontSize: "sm", fontWeight: "bold", lineHeight: "1.7" })}>
+              <p
+                className={css({
+                  color: "ink.900",
+                  fontSize: "sm",
+                  fontWeight: "bold",
+                  lineHeight: "1.7",
+                })}
+              >
                 {errorMessage}
               </p>
               <button
@@ -484,8 +590,21 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
           <>
             {/* top sentinel for infinite up-scroll */}
             {hasMore && (
-              <div ref={topSentinelRef} className={css({ display: "grid", placeItems: "center", paddingY: "3" })}>
-                <span className={css({ color: "ink.500", fontSize: "12px", fontWeight: "bold" })}>
+              <div
+                ref={topSentinelRef}
+                className={css({
+                  display: "grid",
+                  placeItems: "center",
+                  paddingY: "3",
+                })}
+              >
+                <span
+                  className={css({
+                    color: "ink.500",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                  })}
+                >
                   {loadingOlder ? "불러오는 중..." : "이전 대화 보기"}
                 </span>
               </div>
@@ -498,8 +617,23 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
                 onPick={(line) => setDraft(line)}
               />
             ) : settledCount === 0 && messages.length === 0 ? (
-              <div className={css({ height: "100%", display: "grid", placeItems: "center", paddingX: "8" })}>
-                <p className={css({ color: "ink.500", fontSize: "sm", fontWeight: "bold", textAlign: "center", lineHeight: "1.7" })}>
+              <div
+                className={css({
+                  height: "100%",
+                  display: "grid",
+                  placeItems: "center",
+                  paddingX: "8",
+                })}
+              >
+                <p
+                  className={css({
+                    color: "ink.500",
+                    fontSize: "sm",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                    lineHeight: "1.7",
+                  })}
+                >
                   아직 메시지가 없어요.{"\n"}먼저 인사를 건네보세요.
                 </p>
               </div>
@@ -543,21 +677,31 @@ export function ChatRoom({ conversationId }: { conversationId: string }) {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "1.5",
-                minHeight: "36px",
+                minHeight: "44px",
                 borderRadius: "capsule",
                 paddingX: "4",
                 color: "white",
                 fontSize: "13px",
                 fontWeight: "black",
-                background: "linear-gradient(135deg, #b83e3a, #d0463c)",
-                boxShadow: "0 8px 20px rgba(255,107,95,.32)",
-                border: "none",
+                background: "primary.500",
+                boxShadow: "0 8px 20px rgba(255,79,63,.2)",
+                border: "1px solid rgba(190,48,36,.18)",
                 cursor: "pointer",
                 zIndex: 5,
               })}
             >
               새 메시지
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </motion.button>

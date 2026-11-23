@@ -50,7 +50,7 @@ export default function DesignSystemPage() {
     <main
       className={css({
         position: "relative",
-        minHeight: "100dvh",
+        minHeight: "var(--hgt-page-height)",
         overflow: "hidden",
         padding: { base: "4", md: "8" },
       })}

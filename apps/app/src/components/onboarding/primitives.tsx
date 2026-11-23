@@ -3,14 +3,9 @@
 import type { ReactNode } from "react";
 import { css, cx } from "_panda/css";
 
-/*
- * White-text-safe coral gradient: the LIGHT end is clamped to primary.600
- * (#d0463c, ≈4.55:1 vs white). #ff7a6b/#ff6b5f/#ff9a87 fail WCAG AA under
- * white text — never put white text on those. See ui/glass.tsx.
- */
-const CORAL_TEXT_GRADIENT = "linear-gradient(135deg, #b83e3a, #d0463c)";
+const BRAND_RED = "#ff4f3f";
 
-/** Solid content card, opaque, one soft shadow — matches the settings list. */
+/** Quiet content card. Brand emphasis belongs to selected controls and CTAs. */
 export function StepCard({
   children,
   className,
@@ -22,11 +17,10 @@ export function StepCard({
     <div
       className={cx(
         css({
-          background: "surface.card",
-          border: "1px solid",
-          borderColor: "surface.hairline",
-          borderRadius: "liquid",
-          boxShadow: "cardSoft",
+          background: "var(--content-surface)",
+          border: "1px solid var(--content-border)",
+          borderRadius: "18px",
+          boxShadow: "var(--content-shadow)",
           padding: "4",
         }),
         className,
@@ -57,7 +51,7 @@ export function FieldHeader({
       })}
     >
       <div className={css({ minWidth: 0 })}>
-        <h2 className={css({ color: "ink.950", fontSize: "md", fontWeight: "black" })}>
+        <h2 className={css({ color: "ink.950", fontSize: "md", fontWeight: "bold" })}>
           {title}
         </h2>
         {helper && (
@@ -93,8 +87,9 @@ export function CountPill({ count, suffix = "개 선택됨" }: { count: number; 
         fontSize: "xs",
         fontWeight: "black",
         whiteSpace: "nowrap",
-        color: count > 0 ? "white" : "ink.500",
-        background: count > 0 ? CORAL_TEXT_GRADIENT : "rgba(10,17,24,.07)",
+        color: count > 0 ? "primary.700" : "ink.500",
+        background: count > 0 ? "rgba(255,79,63,.12)" : "rgba(17,17,15,.06)",
+        border: "1px solid transparent",
       })}
     >
       {count}
@@ -129,16 +124,18 @@ export function Pill({
         alignItems: "center",
         minHeight: "44px",
         paddingX: "4",
-        borderRadius: "capsule",
+        borderRadius: "14px",
         fontSize: "sm",
         fontWeight: "bold",
         whiteSpace: "nowrap",
         cursor: disabled ? "not-allowed" : "pointer",
-        color: selected ? "white" : "ink.800",
-        background: selected ? CORAL_TEXT_GRADIENT : "surface.card",
+        color: "ink.950",
+        background: selected ? "rgba(255,79,63,.13)" : "rgba(255,252,247,.82)",
         border: "1px solid",
-        borderColor: selected ? "transparent" : "surface.hairline",
-        boxShadow: selected ? "0 8px 18px rgba(255,107,95,.22)" : "none",
+        borderColor: selected ? "primary.400" : "rgba(54,45,40,.14)",
+        boxShadow: selected
+          ? "0 6px 16px rgba(217,54,41,.10), inset 0 1px 0 rgba(255,255,255,.8)"
+          : "none",
         opacity: disabled ? 0.4 : 1,
         transition: "background 140ms ease, box-shadow 140ms ease, opacity 140ms ease",
         _active: { transform: disabled ? "none" : "scale(0.97)" },
@@ -174,7 +171,7 @@ export function SegmentedTabs({
       role="tablist"
       className={css({
         display: "flex",
-        gap: "1",
+        gap: "0.5",
         padding: "1",
         borderRadius: "capsule",
         background: "rgba(10,17,24,.05)",
@@ -196,16 +193,17 @@ export function SegmentedTabs({
               flex: "0 0 auto",
               display: "inline-flex",
               alignItems: "center",
-              gap: "1.5",
-              minHeight: "38px",
-              paddingX: "3.5",
+              gap: "1",
+              minWidth: "44px",
+              minHeight: "44px",
+              paddingX: "2.5",
               borderRadius: "capsule",
-              fontSize: "sm",
+              fontSize: "13px",
               fontWeight: isActive ? "black" : "bold",
               whiteSpace: "nowrap",
               color: isActive ? "ink.950" : "ink.500",
-              background: isActive ? "surface.card" : "transparent",
-              boxShadow: isActive ? "0 2px 8px rgba(17,24,32,.1)" : "none",
+              background: isActive ? "rgba(255,252,247,.94)" : "transparent",
+              boxShadow: isActive ? "0 3px 10px rgba(73,48,38,.08)" : "none",
               transition: "background 140ms ease, color 140ms ease",
             })}
           >
@@ -223,7 +221,8 @@ export function SegmentedTabs({
                   fontSize: "10px",
                   fontWeight: "black",
                   color: "white",
-                  background: CORAL_TEXT_GRADIENT,
+                  background: BRAND_RED,
+                  border: "none",
                 })}
               >
                 {tab.count}

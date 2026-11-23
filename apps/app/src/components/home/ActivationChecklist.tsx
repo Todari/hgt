@@ -184,14 +184,12 @@ export function ActivationChecklist({
 
         {/* explore = inline toggle (no /onboarding round-trip). The switch
             itself conveys done/todo state, so no leading CheckMark here. */}
-        <div className={css({ borderRadius: "16px", overflow: "hidden" })}>
-          <GlassToggle
-            checked={exploreDone}
-            onChange={onToggleExplore}
-            label="매칭 참여 켜기"
-            description={exploreDone ? "이번 주 매칭에 참여 중이에요" : "켜면 다음 라운드부터 소개를 받아요"}
-          />
-        </div>
+        <GlassToggle
+          checked={exploreDone}
+          onChange={onToggleExplore}
+          label="매칭 참여 켜기"
+          description={exploreDone ? "이번 주 매칭에 참여 중이에요" : "켜면 다음 라운드부터 소개를 받아요"}
+        />
       </div>
 
       {busy && (

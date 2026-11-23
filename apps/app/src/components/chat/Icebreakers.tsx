@@ -4,21 +4,28 @@ import { css } from "_panda/css";
 import { josa } from "@/components/chat/lib";
 
 /* Darkest-coral gradient that keeps white text ≥4.5:1 (see ui/glass.tsx). */
-const CORAL_TEXT_GRADIENT = "linear-gradient(135deg, #b83e3a, #d0463c)";
+const BRAND_RED = "#ff4f3f";
 
 /**
  * Build 2-3 one-tap starter lines from the shared keywords. Each line is a
  * warm, complete sentence the user can send as-is or edit.
  */
-export function buildStarterLines(partnerName: string, sharedKeywords: string[]): string[] {
+export function buildStarterLines(
+  partnerName: string,
+  sharedKeywords: string[],
+): string[] {
   const lines: string[] = [];
   const [first, second] = sharedKeywords;
 
   if (first) {
-    lines.push(`두 분 다 '${first}'${josa(first, "을", "를")} 좋아하시네요! 어떻게 시작하게 되셨어요?`);
+    lines.push(
+      `두 분 다 '${first}'${josa(first, "을", "를")} 좋아하시네요! 어떻게 시작하게 되셨어요?`,
+    );
   }
   if (second) {
-    lines.push(`'${second}' 키워드 보고 반가웠어요. 평소엔 어떻게 즐기시는 편이에요?`);
+    lines.push(
+      `'${second}' 키워드 보고 반가웠어요. 평소엔 어떻게 즐기시는 편이에요?`,
+    );
   }
   lines.push(`${partnerName}님, 반가워요! 프로필 보고 먼저 인사 드려요 :)`);
 
@@ -52,7 +59,14 @@ export function Icebreakers({
         textAlign: "center",
       })}
     >
-      <div className={css({ display: "flex", flexDirection: "column", gap: "2", alignItems: "center" })}>
+      <div
+        className={css({
+          display: "flex",
+          flexDirection: "column",
+          gap: "2",
+          alignItems: "center",
+        })}
+      >
         <span
           aria-hidden
           className={css({
@@ -61,29 +75,73 @@ export function Icebreakers({
             width: "60px",
             height: "60px",
             borderRadius: "50%",
-            color: "primary.600",
-            background: "linear-gradient(145deg, #ffe2db, #fff5f2)",
-            boxShadow: "0 8px 22px rgba(255,107,95,.18)",
+            color: "ink.950",
+            background: "#fff3bd",
+            border: "1px solid rgba(218,167,22,.22)",
+            boxShadow: "0 8px 20px rgba(218,167,22,.1)",
           })}
         >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.9"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
             <path d="M21 11.6c0 4.2-4 7.6-9 7.6-1 0-2-.14-2.9-.4L4 20.5l1.2-3.6C3.8 15.5 3 13.6 3 11.6 3 7.4 7 4 12 4s9 3.4 9 7.6Z" />
           </svg>
         </span>
-        <h2 className={css({ color: "ink.950", fontSize: "lg", fontWeight: "black", lineHeight: "1.35" })}>
+        <h2
+          className={css({
+            color: "ink.950",
+            fontSize: "lg",
+            fontWeight: "black",
+            lineHeight: "1.35",
+          })}
+        >
           {partnerName}님과의 첫 대화예요
         </h2>
-        <p className={css({ color: "ink.500", fontSize: "sm", lineHeight: "1.7" })}>
+        <p
+          className={css({
+            color: "ink.500",
+            fontSize: "sm",
+            lineHeight: "1.7",
+          })}
+        >
           가볍게 인사부터 건네보면 어때요?
         </p>
       </div>
 
       {sharedKeywords.length > 0 && (
-        <div className={css({ display: "flex", flexDirection: "column", gap: "2.5", width: "100%" })}>
-          <p className={css({ color: "primary.700", fontSize: "xs", fontWeight: "black" })}>
+        <div
+          className={css({
+            display: "flex",
+            flexDirection: "column",
+            gap: "2.5",
+            width: "100%",
+          })}
+        >
+          <p
+            className={css({
+              color: "primary.700",
+              fontSize: "xs",
+              fontWeight: "black",
+            })}
+          >
             ✨ 두 분이 함께 고른 키워드
           </p>
-          <div className={css({ display: "flex", flexWrap: "wrap", gap: "1.5", justifyContent: "center" })}>
+          <div
+            className={css({
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "1.5",
+              justifyContent: "center",
+            })}
+          >
             {sharedKeywords.map((value) => (
               <span
                 key={value}
@@ -97,8 +155,10 @@ export function Icebreakers({
                   fontSize: "13px",
                   fontWeight: "bold",
                   lineHeight: "1",
-                  background: CORAL_TEXT_GRADIENT,
-                  boxShadow: "0 4px 12px rgba(255,107,95,.26)",
+                  background: BRAND_RED,
+                  border: "1px solid",
+                  borderColor: "rgba(190,48,36,.18)",
+                  boxShadow: "none",
                 })}
               >
                 {value}
@@ -108,8 +168,21 @@ export function Icebreakers({
         </div>
       )}
 
-      <div className={css({ display: "flex", flexDirection: "column", gap: "2", width: "100%" })}>
-        <p className={css({ color: "ink.500", fontSize: "xs", fontWeight: "bold" })}>
+      <div
+        className={css({
+          display: "flex",
+          flexDirection: "column",
+          gap: "2",
+          width: "100%",
+        })}
+      >
+        <p
+          className={css({
+            color: "ink.500",
+            fontSize: "xs",
+            fontWeight: "bold",
+          })}
+        >
           탭하면 메시지로 채워드려요
         </p>
         {lines.map((line) => (
@@ -131,7 +204,7 @@ export function Icebreakers({
               background: "surface.card",
               border: "1px solid",
               borderColor: "primary.100",
-              boxShadow: "cardSoft",
+              boxShadow: "none",
               cursor: "pointer",
               transition: "transform 120ms ease, border-color 120ms ease",
               _active: { transform: "scale(0.99)", borderColor: "primary.300" },

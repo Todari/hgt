@@ -3,6 +3,7 @@
 import { MotionConfig } from "framer-motion";
 import { PushBootstrap } from "@/components/push/PushBootstrap";
 import { NativeBridge } from "@/components/native/NativeBridge";
+import { WebReleaseGate } from "@/components/release/WebReleaseGate";
 
 /**
  * App-wide client providers. `reducedMotion="user"` makes every framer-motion
@@ -17,7 +18,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <MotionConfig reducedMotion="user">
       <PushBootstrap />
       <NativeBridge />
-      {children}
+      <WebReleaseGate>{children}</WebReleaseGate>
     </MotionConfig>
   );
 }
