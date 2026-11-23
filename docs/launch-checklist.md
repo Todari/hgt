@@ -7,8 +7,9 @@
 >
 > **상태 갱신 (2026-11-23):** 8월 작업분을 `dev`에 정본화했고, API는 `dev` push 시
 > 자동 배포(CD)된다. TLS·약관 공개 URL·웹 대기 화면 게이트·zod 4/보안 패치가 운영에
-> 반영됐다. 남은 P0는 DB 비밀번호 교체, 백업 cron, 푸시 실기기 검증, Capacitor 8
-> 실기기 검증, 스토어 자산이다 (아래 각 항목 참고).
+> 반영됐다. DB 비밀번호 교체와 백업 cron·복구 리허설도 끝났다. 남은 P0는 백업
+> 오프사이트 복사, 푸시(유료 Apple Developer 가입 필요) 실기기 검증, Capacitor 8
+> 실기기 확인, 스토어 스크린샷이다 (아래 각 항목 참고).
 >
 > **최종 출시 점검 (2026-06-15):** 코드 품질은 양호 — `app`/`api` check-types +
 > `app` lint 통과, 코럴 그라데이션 WCAG 대비(흰 글자) 회귀 수정 확인, QA 픽스처
@@ -23,14 +24,14 @@
 - [x] **네이티브 빌드에 https URL 굽기** — `next.config.js`가 localhost API URL이
       박힌 Capacitor 빌드를 거부한다(`CAPACITOR_ALLOW_LOCAL_API=true`는 시뮬레이터 전용).
       스토어 빌드는 `NEXT_PUBLIC_API_URL=https://api.hgt.todari.dev`로 만들 것.
-- [ ] **DB 비밀번호 교체** — 운영이 커밋된 dev 비밀번호로 돌고 있음 (확인된 리스크).
-      DEPLOY.md §7 절차: `ALTER USER` → `DATABASE_URL` 갱신 → `POSTGRES_PASSWORD`
-      compose env 고정. (완화 요인: DB 포트는 `127.0.0.1:5455`에만 바인딩돼 외부
-      미노출. 단 EC2가 다른 프로젝트와 공용이므로 교체는 여전히 필요.)
-- [ ] **백업 + 오프사이트** — `deploy/backup-db.sh` cron 등록(매일 04:30 KST,
-      DEPLOY.md §6) + S3/rclone 오프사이트 복사 단계 추가. 복구 리허설 1회.
-      2026-11-23 기준 cron 미등록 — 수동 덤프 1회만 존재
-      (`~/backups/hgt/hgt-20261123-predeploy.sql.gz`).
+- [x] **DB 비밀번호 교체** — 2026-11-23 운영 DB 비밀번호를 무작위 값으로 교체
+      (DEPLOY.md §7). `apps/api/.env`의 `DATABASE_URL`과 서버 루트 `.env`의
+      `POSTGRES_PASSWORD`에만 있고, 배포 동기화에서 제외된다. 이전 dev 비밀번호는
+      TCP 접속에서 거부됨을 확인.
+- [~] **백업 + 오프사이트** — 2026-11-23 `deploy/backup-db.sh` cron 등록(매일 04:30 KST,
+      `/var/backups/hgt/`, 14일 보관)하고 복구 리허설 1회 완료(스크래치 DB에 복원해
+      테이블·행 수 일치 확인). **남은 작업:** 오프사이트 복사 — 서버에 `aws`/`rclone`이
+      없고 버킷·자격 증명이 필요하다. 실사용자를 받기 전에 추가할 것.
 - [x] **푸시 클라이언트 배선** — `cap sync`, AppDelegate FCM 토큰 브리지,
       `GoogleService-Info.plist` / `google-services.json`, `aps-environment`
       entitlement까지 구현하고 Firebase 포함 iOS Simulator 빌드 통과.
@@ -106,8 +107,8 @@
 **보안·법무·운영 차단 항목**이 미해소다. 아래 P0를 닫으면 GO.
 
 > **갱신 (2026-11-23):** 아래 NO-GO 사유 중 #1 TLS, #2 https URL 빌드 가드,
-> #5 약관 공개 URL은 해소됐다. 남은 차단 항목은 #4 DB 비밀번호와 백업 cron/오프사이트,
-> 푸시 운영 자격 증명 + 실기기 검증, Capacitor 8 실기기 검증, 스토어 자산이다.
+> #5 약관 공개 URL은 해소됐다. #4 DB 비밀번호도 교체했다. 남은 차단 항목은 백업 오프사이트,
+> 푸시 운영 자격 증명 + 실기기 검증, Capacitor 8 실기기 확인, 스토어 스크린샷이다.
 > 운영 DB에는 실사용자가 아직 없다(계정 1개).
 
 ### NO-GO 사유 (Top 블로커, 모두 코드 외 작업)
