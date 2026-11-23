@@ -12,8 +12,8 @@ import { sessionAuth } from "../middleware/session";
 import { closeUser } from "../ws/registry";
 import type { AppEnv } from "../types";
 
-// 재학생 게이팅: 허용할 학적상태 (env로 조정 가능; 기본 재학/휴학, 졸업 차단).
-const ALLOWED_STATUSES = (process.env.HONGIK_ALLOWED_STATUSES ?? "재학,휴학")
+// 학적 게이팅: 허용할 학적상태 (env로 조정 가능; 기본 재학/휴학/졸업).
+const ALLOWED_STATUSES = (process.env.HONGIK_ALLOWED_STATUSES ?? "재학,휴학,졸업")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
@@ -83,7 +83,7 @@ authRoutes.post("/auth/hongik", async (c) => {
     }
   }
 
-  // 재학생 전용 게이팅.
+  // 허용된 학적상태만 통과시킨다.
   if (
     profile.academicStatus &&
     ALLOWED_STATUSES.length > 0 &&
@@ -91,7 +91,7 @@ authRoutes.post("/auth/hongik", async (c) => {
   ) {
     return fail(
       c,
-      `이용할 수 없는 학적상태입니다 (${profile.academicStatus}). 재학·휴학생만 이용할 수 있습니다.`,
+      `이용할 수 없는 학적상태입니다 (${profile.academicStatus}). 현재 ${ALLOWED_STATUSES.join("·")} 상태만 이용할 수 있습니다.`,
       403,
     );
   }
