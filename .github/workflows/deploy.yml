@@ -1,14 +1,14 @@
 name: Deploy (EC2)
 
-# Continuous deploy of apps/api to the EC2 box. Mirrors the manual recipe in
-# DEPLOY.md §1: lint/type-gate → rsync (preserving the server's .env and
-# port-edited docker-compose.yml) → pnpm install → db:migrate → restart.
+# Continuous deploy of apps/api to the EC2 box: lint/type-gate, then hand the
+# commit sha to deploy/remote-deploy.sh on the server (sync from origin/dev →
+# pnpm install → db:migrate → restart → health check). See DEPLOY.md §1b.
 #
 # REQUIRED GitHub repo secrets (Settings → Secrets and variables → Actions):
-#   EC2_SSH_KEY  — full contents of the private key (~/.ssh/todari-consolidated.pem)
-#   EC2_HOST     — ec2-52-78-45-209.ap-northeast-2.compute.amazonaws.com
-# (the ubuntu user needs passwordless sudo for `systemctl restart hgt-api`,
-#  which it already has.) When the secrets are absent the deploy job no-ops.
+#   EC2_SSH_KEY  — the dedicated CD private key (forced-command only; never the
+#                  operator key)
+#   EC2_HOST     — api.hgt.todari.dev
+# Until both are set the deploy job skips with a warning.
 
 on:
   push:
