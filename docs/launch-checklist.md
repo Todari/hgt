@@ -5,6 +5,11 @@
 > [../apps/app/CAPACITOR.md](../apps/app/CAPACITOR.md) 참고.
 > 완료하면 체크하고, 항목이 사라지거나 바뀌면 이 파일을 갱신할 것.
 >
+> **상태 갱신 (2026-11-23):** 8월 작업분을 `dev`에 정본화했고, API는 `dev` push 시
+> 자동 배포(CD)된다. TLS·약관 공개 URL·웹 대기 화면 게이트·zod 4/보안 패치가 운영에
+> 반영됐다. 남은 P0는 DB 비밀번호 교체, 백업 cron, 푸시 실기기 검증, Capacitor 8
+> 실기기 검증, 스토어 자산이다 (아래 각 항목 참고).
+>
 > **최종 출시 점검 (2026-06-15):** 코드 품질은 양호 — `app`/`api` check-types +
 > `app` lint 통과, 코럴 그라데이션 WCAG 대비(흰 글자) 회귀 수정 확인, QA 픽스처
 > (매칭 쌍 + 대화 5건) 정상. 그러나 아래 **출시 전 필수** 다수가 미완(법무/서버운영)
@@ -12,20 +17,20 @@
 
 ## 출시 전 필수
 
-- [ ] **TLS (HTTPS/WSS)** — 도메인 A 레코드 → EC2, `deploy/Caddyfile`의
-      `api.yourdomain.com`을 실제 도메인으로 수정 후 Caddy 기동 (DEPLOY.md §4).
-      Caddy `reverse_proxy`는 WebSocket(`/ws`) 업그레이드를 자동으로 프록시하므로
-      별도 설정 불필요 — 다만 적용 후 채팅 실시간 수신(wss)을 꼭 확인.
-      이후 SG에서 443 열고 8090 닫기.
-- [ ] **네이티브 빌드에 https URL 굽기** — `NEXT_PUBLIC_API_URL`은 빌드 타임에
-      박제된다. `NEXT_PUBLIC_API_URL=https://api.<도메인>`으로 `build:app` +
-      `cap:sync` 재실행. HTTP URL이 박힌 빌드는 스토어에 내지 말 것
-      (포털 비밀번호가 평문 HTTP로 나간다).
+- [x] **TLS (HTTPS/WSS)** — Nginx + Certbot으로 `https://api.hgt.todari.dev` 운영
+      (`deploy/nginx-api.hgt.todari.dev.conf`, DEPLOY.md §4). 2026-11-23 확인: 외부
+      `/health` 200, `wss` 업그레이드 101, 8090 직접 접근 차단.
+- [x] **네이티브 빌드에 https URL 굽기** — `next.config.js`가 localhost API URL이
+      박힌 Capacitor 빌드를 거부한다(`CAPACITOR_ALLOW_LOCAL_API=true`는 시뮬레이터 전용).
+      스토어 빌드는 `NEXT_PUBLIC_API_URL=https://api.hgt.todari.dev`로 만들 것.
 - [ ] **DB 비밀번호 교체** — 운영이 커밋된 dev 비밀번호로 돌고 있음 (확인된 리스크).
-      DEPLOY.md §6 절차: `ALTER USER` → `DATABASE_URL` 갱신 → `POSTGRES_PASSWORD`
-      compose env 고정.
+      DEPLOY.md §7 절차: `ALTER USER` → `DATABASE_URL` 갱신 → `POSTGRES_PASSWORD`
+      compose env 고정. (완화 요인: DB 포트는 `127.0.0.1:5455`에만 바인딩돼 외부
+      미노출. 단 EC2가 다른 프로젝트와 공용이므로 교체는 여전히 필요.)
 - [ ] **백업 + 오프사이트** — `deploy/backup-db.sh` cron 등록(매일 04:30 KST,
-      DEPLOY.md §5) + S3/rclone 오프사이트 복사 단계 추가. 복구 리허설 1회.
+      DEPLOY.md §6) + S3/rclone 오프사이트 복사 단계 추가. 복구 리허설 1회.
+      2026-11-23 기준 cron 미등록 — 수동 덤프 1회만 존재
+      (`~/backups/hgt/hgt-20261123-predeploy.sql.gz`).
 - [x] **푸시 클라이언트 배선** — `cap sync`, AppDelegate FCM 토큰 브리지,
       `GoogleService-Info.plist` / `google-services.json`, `aps-environment`
       entitlement까지 구현하고 Firebase 포함 iOS Simulator 빌드 통과.
@@ -36,9 +41,9 @@
 - [ ] **Capacitor 6 → 7 마이그레이션** — Google Play의 **target API 35** 하한 때문에
       Capacitor 7(targetSdk 35) 필요 (현재 6.2.x). `npx cap migrate` 실행 후
       iOS/Android 빌드·푸시 재검증.
-- [ ] **이용약관/개인정보처리방침 공개 URL** — 스토어 심사 양식에 공개 URL이 필수.
-      현재 약관 텍스트는 앱 내부(`apps/app/src/content/legal.ts`)에만 있다 —
-      `apps/landing`(현재 placeholder) 또는 정적 호스팅에 게시. (소유: 법무/배포)
+- [x] **이용약관/개인정보처리방침 공개 URL** — `https://app.hgt.todari.dev/terms`,
+      `https://app.hgt.todari.dev/privacy`. 본문은 `apps/app/src/content/legal.ts`
+      하나만 고치면 앱 내부·공개 URL에 함께 반영된다.
 - [x] **PIPA: 민감정보(종교) 별도 동의 — 서버 저장/강제 (코드 구현 완료)** —
       ① 스키마에 `users.sensitive_consent_at` 컬럼 + 마이그레이션 `0003_tricky_nuke.sql`,
       ② contract `updateProfileSchema.agreedToSensitive` 플래그 + `userSchema.sensitiveConsentAt`,
@@ -51,6 +56,9 @@
       전공·성별·나이·재학상태 스크래핑, 키워드, 채팅 메시지, 디바이스 토큰),
       비밀번호는 포워딩만 하고 저장하지 않음, 탈퇴 시 cascade 삭제, 제3자
       제공(Firebase FCM) — 문서 문구가 코드와 다르면 둘 중 하나를 고칠 것.
+      **확인 필요(2026-11-23):** 웹 대기 모드에서는 로그인 즉시 포털 정보가 수집·저장되지만
+      약관 동의 단계(온보딩 `StepTerms`)를 거치지 않고 대기 화면으로 간다. 로그인 화면에
+      수집 고지·약관 링크를 둘지, 대기 화면에서 동의를 받을지 법무 판단 필요.
 - [x] **여성 계정 플로우 QA** — 3차 검증에서 여성 계정(qa_seed_female)으로
       홈/대화/채팅/설정/온보딩 전 구간 + 계정 간 실시간 메시지 전달까지 점검,
       성별 대칭성 확인(저심각 항목만). **수정 완료:** 병역(군필/미필) 필드를
@@ -93,6 +101,11 @@
 
 **판정: 조건부 NO-GO** (소프트 런치 web + TestFlight). 코드/UX 품질은 출시 수준이나,
 **보안·법무·운영 차단 항목**이 미해소다. 아래 P0를 닫으면 GO.
+
+> **갱신 (2026-11-23):** 아래 NO-GO 사유 중 #1 TLS, #2 https URL 빌드 가드,
+> #5 약관 공개 URL은 해소됐다. 남은 차단 항목은 #4 DB 비밀번호와 백업 cron/오프사이트,
+> 푸시 운영 자격 증명 + 실기기 검증, Capacitor 8 실기기 검증, 스토어 자산이다.
+> 운영 DB에는 실사용자가 아직 없다(계정 1개).
 
 ### NO-GO 사유 (Top 블로커, 모두 코드 외 작업)
 1. **TLS 미구성 (보안, 치명)** — API가 평문 HTTP(:8090)로 외부 노출 중이고 Caddyfile은
