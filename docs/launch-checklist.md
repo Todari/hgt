@@ -26,10 +26,13 @@
       compose env 고정.
 - [ ] **백업 + 오프사이트** — `deploy/backup-db.sh` cron 등록(매일 04:30 KST,
       DEPLOY.md §5) + S3/rclone 오프사이트 복사 단계 추가. 복구 리허설 1회.
-- [ ] **푸시 배선 완료** — 서버 `FIREBASE_SERVICE_ACCOUNT` + 네이티브 설정
-      (`cap sync` 재실행, AppDelegate APNs 콜백, `GoogleService-Info.plist` /
-      `google-services.json`, `aps-environment` entitlement, APNs 키 →
-      Firebase 업로드). 전체 런북: CAPACITOR.md "Push notifications".
+- [x] **푸시 클라이언트 배선** — `cap sync`, AppDelegate FCM 토큰 브리지,
+      `GoogleService-Info.plist` / `google-services.json`, `aps-environment`
+      entitlement까지 구현하고 Firebase 포함 iOS Simulator 빌드 통과.
+- [ ] **푸시 운영 자격 증명 + 실기기 검증** — 서버
+      `FIREBASE_SERVICE_ACCOUNT`, Apple App ID Push capability/프로비저닝 프로필
+      갱신, APNs 키 → Firebase 업로드 후 이태훈 iPhone에서 실제 알림 수신 확인.
+      전체 런북: CAPACITOR.md "Push notifications".
 - [ ] **Capacitor 6 → 7 마이그레이션** — Google Play의 **target API 35** 하한 때문에
       Capacitor 7(targetSdk 35) 필요 (현재 6.2.x). `npx cap migrate` 실행 후
       iOS/Android 빌드·푸시 재검증.
@@ -126,7 +129,7 @@
   남은 P2 cosmetic(선택): 홈 "다시 시도" 버튼/브랜드 H 로고 코럴 통일, 라디우스
   토큰 정리, 내부 `/design-system` 쇼케이스 라우트의 'AI 매칭' 카피(프로덕션 번들 포함).
 - **디바이스/Xcode (P0):** https URL로 네이티브 재빌드 → Capacitor 6→7 마이그레이션
-  (Play target API 35) → 푸시 배선(APNs/FCM, entitlement) → 앱 아이콘/스플래시/
+  (Play target API 35) → Apple Push capability/프로필/APNs 키와 실기기 푸시 확인 → 앱 아이콘/스플래시/
   스크린샷 → 데이팅 앱 연령 등급.
 - **서버운영/제품 (런치 후):** Sentry, 애널리틱스 결정, 어드민 콘솔 확장.
 

@@ -38,7 +38,7 @@ param on `/ws` lines so session tokens never reach logs.
    extracts verified facts: name, studentId, major, gender, age, academicStatus.
    The password is forwarded only, never stored.
 3. Gates, in order: `academicStatus` must be in `HONGIK_ALLOWED_STATUSES`
-   (default 재학,휴학); the studentId must not be in `banned_students`
+   (default 재학,휴학,졸업); the studentId must not be in `banned_students`
    (403 "이용이 제한된 계정입니다…" — survives delete + re-signup).
    Rate limits: 5/10min per student id, 300/10min per IP (`src/lib/rate-limit.ts`).
 4. User row upserted; `users.session` **rotated** (`src/lib/session-token.ts`) and any
