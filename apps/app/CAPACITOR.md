@@ -10,14 +10,29 @@ external setup; see the runbook below.
 
 ## Status (native build + Firebase pass — 2026-08-03)
 
-Capacitor core is **6.2.1** (the `^6.1.0` ranges resolve here). Migration to
-Capacitor 7 is a separate, pre-store task — see the device-required list.
+Capacitor core/cli/ios/android are **8.6.2** (migrated 6 → 7 → 8 on 2026-11-23
+with `cap migrate`).
+
+| | Value |
+| --- | --- |
+| Android | `minSdk 24`, `compileSdk 36`, `targetSdk 36` (`android/variables.gradle`), AGP 8.13.0, Gradle wrapper 8.14.3 |
+| iOS | deployment target **15.0** (pbxproj + `Podfile`), CocoaPods project |
+| Toolchain | Node 22+, **Xcode 26+**, Android Studio Otter 2025.2.1+, **JDK 21** for Gradle |
+
+The default `java` on a dev Mac may be 17, which is too old for the Android
+build (`capacitor.build.gradle` compiles with `JavaVersion.VERSION_21`). Point
+Gradle at Android Studio's bundled JBR instead of installing another JDK:
+
+```bash
+cd apps/app/android
+JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug
+```
 
 **Wired now (in-repo, verified by `cap sync`):**
 
-- **Plugins added** (Capacitor 6.x compatible): `@capacitor/app@6.0.3`,
-  `@capacitor/keyboard@6.0.4`, `@capacitor/status-bar@6.0.3` (plus the existing
-  `@capacitor/push-notifications@6.0.5`). All four now appear in
+- **Plugins** (Capacitor 8.x): `@capacitor/app@8.1.2`,
+  `@capacitor/keyboard@8.0.6`, `@capacitor/status-bar@8.0.4`,
+  `@capacitor/push-notifications@8.1.3`. All four appear in
   `ios/App/App/capacitor.config.json` `packageClassList`, in
   `android/.../assets/capacitor.plugins.json`, and as pods in `ios/App/Podfile`
   (`pod install` succeeded).
@@ -27,9 +42,18 @@ Capacitor 7 is a separate, pre-store task — see the device-required list.
   - Android hardware **back button**: `App.addListener('backButton')` →
     `router.back()` when there is in-app history and we're not on a top-level
     route (`/home`, `/signin`, `/`); otherwise `App.minimizeApp()`.
-  - **StatusBar**: `setStyle(Light)` (white icons over coral) +
-    `setOverlaysWebView({ overlay: false })` so the CSS safe-area padding owns
-    the inset and the WebView is not drawn under the bar.
+  - **StatusBar**: `setStyle(Light)`, plus `setOverlaysWebView({ overlay: false })`
+    on Android. With `targetSdk 36` that overlay call only still applies on
+    Android ≤ 14 devices: Android 15+ enforces edge-to-edge, so the WebView is
+    drawn under the status/navigation bars and Capacitor 8's core `SystemBars`
+    plugin (default `insetsHandling: "css"`) feeds the real insets to
+    `env(safe-area-inset-*)`. The layout relies on `viewport-fit=cover` + those
+    `env()` paddings — do not remove either.
+- **iOS UIScene lifecycle** (required by Xcode 27, adopted in Capacitor 8.5):
+  `ios/App/App/SceneDelegate.swift` builds the window in code and must
+  instantiate **`HGTBridgeViewController`** (the native tab bar host), not the
+  stock `CAPBridgeViewController`. URL opens / universal links now arrive via
+  the scene delegate; `AppDelegate` keeps launch + remote-notification callbacks.
 - **Keyboard resize = `native`** in `capacitor.config.ts`
   (`plugins.Keyboard.resize`). Rationale + the `Body` fallback are documented
   inline in that file — flip to `Body` only if the chat composer is clipped on a
@@ -49,10 +73,12 @@ Capacitor 7 is a separate, pre-store task — see the device-required list.
   `NEXT_PUBLIC_API_URL` is missing or points at localhost, instead of shipping a
   bundle that cannot work on a real phone. Simulator-only builds must also set
   `CAPACITOR_ALLOW_LOCAL_API=true`.
-- **Builds verified**: production API Capacitor export + `cap sync` ✓, and an
-  unsigned iOS Simulator Xcode build with Firebase Messaging ✓. `out/` includes
-  the waitlist route as well as the native app routes. appId `com.todari.hgt`
-  is unchanged on both platforms.
+- **Builds verified** (on Capacitor 8, 2026-11-23): production API Capacitor
+  export + `cap sync` ✓, an unsigned iOS Simulator Xcode build with Firebase
+  Messaging ✓ (Xcode 27.2), and Android `assembleDebug` ✓ (JDK 21, merged
+  manifest `targetSdkVersion 36`). `out/` includes the waitlist route as well as
+  the native app routes. appId `com.todari.hgt` is unchanged on both platforms.
+  These are compile checks only — nothing was run on a device or simulator.
 
 **Still requires account/console setup:**
 
@@ -68,8 +94,11 @@ Capacitor 7 is a separate, pre-store task — see the device-required list.
 4. **Physical-device delivery test** — rebuild/install after steps 1–3, log in,
    allow notifications, and send a message from the matched account.
 5. **Icons / splash** — generate with `@capacitor/assets` (not yet run).
-6. **Capacitor 7 migration** — required before store submission (Android API 35).
-   Bump `@capacitor/*` to 7.x, re-`cap sync`, address breaking changes.
+6. **Capacitor 8 device QA** — the migration is only build-verified. On real
+   devices check: Android edge-to-edge layout (status bar / gesture + 3-button
+   nav insets, Android 14 vs 15+), Android keyboard over the chat composer, iOS
+   launch through the scene delegate with the native tab bar, iOS keyboard
+   resize, and push registration on both platforms.
 
 ## Build & run
 
@@ -165,5 +194,6 @@ message from the other account of a matched pair, or run
   (`ios/App/App/public`, `android/app/src/main/assets/public`) and the generated
   configs (`capacitor.config.json`, `capacitor.plugins.json`). `out/` is gitignored.
 - App id: `com.todari.hgt`, name `HGT` (edit in `capacitor.config.ts`).
-- Store submission blockers (API 35 / Capacitor 7, icons, demo account, …):
-  see `docs/launch-checklist.md`.
+- Store submission blockers (icons, demo account, …): see
+  `docs/launch-checklist.md`. The Android target-API blocker is cleared by the
+  Capacitor 8 migration (`targetSdk 36`).
