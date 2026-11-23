@@ -25,10 +25,11 @@ fi
 git -C "$SRC" checkout --quiet --force --detach "$sha"
 echo "deploying $(git -C "$SRC" log -1 --format='%h %s')"
 
-# Server-only files survive: the env file and the port-edited compose file.
+# Server-only files survive: the API env file, the compose env file that pins
+# POSTGRES_PASSWORD (DEPLOY.md §7), and the port-edited compose file.
 rsync -a --delete \
   --exclude=.git --exclude=node_modules --exclude=.turbo --exclude=styled-system \
-  --exclude=apps/api/.env --exclude=docker-compose.yml \
+  --exclude=apps/api/.env --exclude=/.env --exclude=docker-compose.yml \
   "$SRC/" "$APP/"
 
 cd "$APP"
